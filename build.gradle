@@ -1,0 +1,36 @@
+plugins {
+	id 'com.gradle.plugin-publish' version '0.9.6'
+}
+
+apply plugin: 'groovy'
+
+version = '0.1.0'
+group = 'fidata.org'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+	compile gradleApi()
+	compile localGroovy()
+	compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
+}
+
+task wrapper(type: Wrapper) {
+	group 'Help'
+    gradleVersion = '3.1'
+}
+
+pluginBundle {
+	website = 'https://github.com/FIDATA/gradle-packer-plugin'
+	vcsUrl = 'https://github.com/FIDATA/gradle-packer-plugin'
+	description = 'Run Packer builds from Gradle.'
+	tags = ['packer', 'devops', 'vm']
+	plugins {
+		gradlePackerPlugin {
+			id = 'org.fidata.gradle-packer-plugin'
+			displayName = 'Gradle Packer plugin'
+		}
+	}
+}
