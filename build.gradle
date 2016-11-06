@@ -43,7 +43,7 @@ task wrapper(type: Wrapper) {
 pluginBundle {
 	website = 'https://github.com/FIDATA/gradle-packer-plugin'
 	vcsUrl = 'https://github.com/FIDATA/gradle-packer-plugin'
-	description = 'Run Packer builds from Gradle.'
+	description = 'Run Packer builds from Gradle'
 	tags = ['packer', 'devops', 'vm']
 	plugins {
 		gradlePackerPlugin {
