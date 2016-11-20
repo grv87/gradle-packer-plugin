@@ -5,3 +5,5 @@ gradle.properties
 build
 # GFM Viewer
 .*.md.html
+# Gradle IDE
+/bin/
