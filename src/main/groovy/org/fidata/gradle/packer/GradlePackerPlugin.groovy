@@ -150,16 +150,15 @@ class GradlePackerPlugin implements Plugin<Project> {
 					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], variables)
 				]
 				String sourceAMI = parseString(builder['source_ami'], variables)
-				String sourceFileName = ".gradle/$project.gradle.gradleVersion/taskArtifacts/${sourceAMI}.json"
-				File sourceFileDir = project.file(sourceFileName).getParentFile()
-				if (!sourceFileDir.exists())
-					sourceFileDir.mkdirs()
-				project.exec { //String outputFileName, String sourceAMI ->
-					environment << t.awsEnvironment
-					commandLine 'aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables), '--filters', "Name=\"image-id\",Values=\"$sourceAMI\"", '--output', 'json'
-					standardOutput = new FileOutputStream(sourceFileName)
+				new ByteArrayOutputStream().withStream { os ->
+					task.project.exec {
+						environment << t.awsEnvironment
+						commandLine 'aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables), '--filters', "Name=\"image-id\",Values=\"$sourceAMI\"", '--output', 'json'
+						standardOutput = os
+					}
+					res = new JsonSlurper().parseText(os.toString())
 				}
-				t.inputs.file sourceFileName
+				t.inputs.property 'sourceAMI', res
 				checkAmazonRegionUpToDate(t, parseString(builder['region'], variables))
 				if (builder.containsKey('ami_regions'))
 					for (region in builder['ami_regions'])
