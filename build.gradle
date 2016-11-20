@@ -18,11 +18,11 @@
 */
 plugins {
 	id 'com.gradle.plugin-publish' version '0.9.6'
+	id 'de.gliderpilot.semantic-release' version '1.0.0'
 }
 
 apply plugin: 'groovy'
 
-version = '0.1.1'
 group = 'fidata.org'
 
 repositories {
@@ -52,3 +52,6 @@ pluginBundle {
 		}
 	}
 }
+
+if (!version.toString().endsWith('-SNAPSHOT'))
+    publish.dependsOn publishPlugins
