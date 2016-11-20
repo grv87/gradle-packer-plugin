@@ -17,13 +17,15 @@
 	limitations under the License.
 */
 plugins {
+	id 'de.gliderpilot.semantic-release' version '1.2.0'
 	id 'com.gradle.plugin-publish' version '0.9.6'
 }
 
 apply plugin: 'groovy'
 
-version = '0.1.1'
 group = 'fidata.org'
+
+project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
 
 repositories {
     jcenter()
@@ -52,3 +54,12 @@ pluginBundle {
 		}
 	}
 }
+
+semanticRelease {
+    repo {
+        ghToken = project.ghToken
+    }
+}
+
+if (!version.toString().endsWith('-SNAPSHOT'))
+    publish.dependsOn publishPlugins
