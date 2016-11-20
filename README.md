@@ -85,7 +85,7 @@ are not changed.
 
 
 ------------------------------------------------------------------------
-Copyright © 2016  Basil Peace
+Copyright Â© 2016  Basil Peace
 
 This is part of gradle-packer-plugin.
 
