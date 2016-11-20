@@ -23,7 +23,7 @@ packer {
 
 ## Requirements
 *	[Packer](http://www.packer.io/)
-*	[AWS CLI](https://aws.amazon.com/cli/) - for Amazon builders
+*	[AWS CLI](https://aws.amazon.com/cli/) – for Amazon builders
 
 ## Supported Packer configurations:
 *	Builders:
@@ -78,7 +78,8 @@ cache.
 		`override` configuration is supported.
 
 ## Notes
-1.	Gradle (as of 3.1) can't handle URLs as Task inputs.
+1.	Gradle (as of 3.2) [can't handle URLs]
+(https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
 
 	However, it is usually safe to assume that ISOs in the web
 are not changed.
