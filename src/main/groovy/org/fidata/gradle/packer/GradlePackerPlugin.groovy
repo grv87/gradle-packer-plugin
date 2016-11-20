@@ -1,5 +1,5 @@
 /*	gradle-packer-plugin
-	Copyright © 2016  Basil Peace
+	Copyright ï¿½ 2016  Basil Peace
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import groovy.json.JsonSlurper
 
 class GradlePackerPlugin implements Plugin<Project> {
     def void apply(Project project) {
-		project.task('validate') << { group 'Validate' }
+		project.task('validate') { group 'Validate' }
 		project.extensions.create("packer", PackerPluginExtension)
 		project.afterEvaluate {
 			for(template in project.packer.templates)
