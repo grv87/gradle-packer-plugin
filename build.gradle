@@ -25,7 +25,9 @@ apply plugin: 'groovy'
 
 group = 'fidata.org'
 
-project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
+ext.ghToken = hasProperty('ghToken') ? getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
+System.setProperty('org.ajoberstar.grgit.auth.username', hasProperty('gitUsername') ? getProperty('gitUsername') : System.getenv('GIT_USER') ?: System.getenv('GITCREDENTIALUSERNAME') ?: null)
+System.setProperty('org.ajoberstar.grgit.auth.password', hasProperty('gitPassword') ? getProperty('gitPassword') : System.getenv('GIT_PASS') ?: System.getenv('GITCREDENTIALPASSWORD') ?: null)
 
 repositories {
     jcenter()
@@ -62,4 +64,4 @@ semanticRelease {
 }
 
 if (!version.toString().endsWith('-SNAPSHOT'))
-    publish.dependsOn publishPlugins
+    release.dependsOn publishPlugins
