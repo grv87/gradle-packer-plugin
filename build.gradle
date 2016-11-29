@@ -19,7 +19,6 @@
 plugins {
 	id 'de.gliderpilot.semantic-release' version '1.2.0'
 	id 'com.gradle.plugin-publish' version '0.9.6'
-	id 'de.gliderpilot.semantic-release' version '1.0.0'
 }
 
 apply plugin: 'groovy'
