@@ -17,6 +17,7 @@
 	limitations under the License.
 */
 plugins {
+	id 'de.gliderpilot.semantic-release' version '1.2.0'
 	id 'com.gradle.plugin-publish' version '0.9.6'
 	id 'de.gliderpilot.semantic-release' version '1.0.0'
 }
@@ -24,6 +25,8 @@ plugins {
 apply plugin: 'groovy'
 
 group = 'fidata.org'
+
+project.ext.ghToken = project.hasProperty('ghToken') ? project.getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
 
 repositories {
     jcenter()
@@ -51,6 +54,12 @@ pluginBundle {
 			displayName = 'Gradle Packer plugin'
 		}
 	}
+}
+
+semanticRelease {
+    repo {
+        ghToken = project.ghToken
+    }
 }
 
 if (!version.toString().endsWith('-SNAPSHOT'))
