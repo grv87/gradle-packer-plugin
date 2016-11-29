@@ -64,4 +64,4 @@ semanticRelease {
 }
 
 if (!version.toString().endsWith('-SNAPSHOT'))
-    task('release').dependsOn publishPlugins
+    tasks.release.finalizedBy publishPlugins
