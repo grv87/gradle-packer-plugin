@@ -40,12 +40,11 @@ dependencies {
 	compile localGroovy()
 	compile gradleApi()
 	compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
-	//runtime group: 'com.samskivert', name: 'jmustache', version: '1.13'
 }
 
 task wrapper(type: Wrapper) {
 	group 'Help'
-	gradleVersion = '3.2'
+	gradleVersion = '3.2.1'
 }
 
 pluginBundle {
