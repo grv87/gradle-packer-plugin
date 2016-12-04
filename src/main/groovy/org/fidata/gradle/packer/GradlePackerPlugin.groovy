@@ -151,7 +151,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				]
 				String sourceAMI = parseString(builder['source_ami'], variables)
 				new ByteArrayOutputStream().withStream { os ->
-					task.project.exec {
+					project.exec {
 						environment << t.awsEnvironment
 						commandLine 'aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables), '--filters', "Name=\"image-id\",Values=\"$sourceAMI\"", '--output', 'json'
 						standardOutput = os
