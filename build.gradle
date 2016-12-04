@@ -22,7 +22,6 @@ plugins {
 	id 'com.gradle.plugin-publish' version '0.9.6'
 }
 
-apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
@@ -40,7 +39,6 @@ dependencies {
 	compile localGroovy()
 	compile gradleApi()
 	compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
-	//runtime group: 'com.samskivert', name: 'jmustache', version: '1.13'
 }
 
 task wrapper(type: Wrapper) {
@@ -67,6 +65,7 @@ semanticRelease {
 	}
 	branchNames {
 		replace ~/^hotfix\/(.*)$/, '$1'
+		replace ~/^code\/(.*)$/, '$1'
 	}
 }
 
@@ -75,9 +74,22 @@ ext.isRelease = !version.toString().endsWith('-SNAPSHOT')
 publishing {
 	publications {
 		mavenGroovy(MavenPublication) {
-			from components.java
 			groupId "gradle.plugin.$group"
 			artifact jar
+			pom.withXml {
+				def dependenciesNode = asNode().appendNode('dependencies')
+				configurations.compile.allDependencies.each { dependency ->
+					if (dependency.name != 'unspecified') {
+						def dependencyNode = dependenciesNode.appendNode('dependency')
+						dependencyNode.appendNode('groupId', dependency.group)
+						dependencyNode.appendNode('artifactId', dependency.name)
+						dependencyNode.appendNode('version', dependency.version)
+						dependencyNode.appendNode('scope', 'compile')
+						dependencyNode.appendNode('type', 'jar')
+						dependencyNode.appendNode('optional', false)
+					}
+				}
+			}
 		}
 	}
 }
