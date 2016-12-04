@@ -150,6 +150,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], variables)
 				]
 				String sourceAMI = parseString(builder['source_ami'], variables)
+				Map res = [:]
 				new ByteArrayOutputStream().withStream { os ->
 					project.exec {
 						environment << t.awsEnvironment
