@@ -77,7 +77,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
 				environment 'PACKER_LOG',  1
-			commandLine ((['packer', 'validate', '-syntax-only'] + customVariablesCmdLine + [fileName] + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['--debug'] : [])))
+			commandLine ((['packer', 'validate', '-syntax-only'] + customVariablesCmdLine + [fileName]))
 			inputs.file templateFile
 		}
 		Map ts = [:]
@@ -89,7 +89,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				group 'Build'
 				ext.builderType = builderType
 				ext.buildName = buildName
-				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + [fileName]))
+				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
 				inputs.file templateFile
 			}
 
