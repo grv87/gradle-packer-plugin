@@ -17,11 +17,14 @@
 	limitations under the License.
 */
 plugins {
+	id 'com.jfrog.artifactory' version '4.4.9'
 	id 'de.gliderpilot.semantic-release' version '1.2.0'
 	id 'com.gradle.plugin-publish' version '0.9.6'
 }
 
+apply plugin: 'java'
 apply plugin: 'groovy'
+apply plugin: 'maven-publish'
 
 group = 'fidata.org'
 
@@ -30,18 +33,19 @@ System.setProperty('org.ajoberstar.grgit.auth.username', hasProperty('gitUsernam
 System.setProperty('org.ajoberstar.grgit.auth.password', hasProperty('gitPassword') ? getProperty('gitPassword') : System.getenv('GIT_PASS') ?: System.getenv('GITCREDENTIALPASSWORD') ?: null)
 
 repositories {
-    jcenter()
+	jcenter()
 }
 
 dependencies {
-	compile gradleApi()
 	compile localGroovy()
+	compile gradleApi()
 	compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
+	//runtime group: 'com.samskivert', name: 'jmustache', version: '1.13'
 }
 
 task wrapper(type: Wrapper) {
 	group 'Help'
-    gradleVersion = '3.2'
+	gradleVersion = '3.2'
 }
 
 pluginBundle {
@@ -58,10 +62,63 @@ pluginBundle {
 }
 
 semanticRelease {
-    repo {
-        ghToken = project.ghToken
-    }
+	repo {
+		ghToken = project.ghToken
+	}
+	branchNames {
+		replace ~/^hotfix\/(.*)$/, '$1'
+	}
 }
 
-if (!version.toString().endsWith('-SNAPSHOT'))
-    tasks.release.finalizedBy publishPlugins
+ext.isRelease = !version.toString().endsWith('-SNAPSHOT')
+
+publishing {
+	publications {
+		mavenGroovy(MavenPublication) {
+			from components.java
+			groupId "gradle.plugin.$group"
+			artifact jar
+		}
+	}
+}
+artifactory {
+	contextUrl = 'https://fidata.jfrog.io/fidata'
+	publish {
+		repository {
+			if (isRelease)
+				repoKey = 'plugins-release-local'
+			else
+				repoKey = 'plugins-snapshot-local'
+			username = "${artifactory_user}"
+			password = "${artifactory_password}"
+			maven = true
+		}
+		defaults {
+			publications('mavenGroovy')
+		}
+	}
+	resolve {
+		repository {
+			repoKey = 'libs-snapshot'
+			username = "${artifactory_user}"
+			password = "${artifactory_password}"
+			maven = true
+		}
+	}
+}
+
+tasks.release.finalizedBy artifactoryPublish
+
+if (isRelease)
+	tasks.release.finalizedBy publishPlugins
+
+task(inputsOutputs).doLast {
+	for (t in tasks) {
+		if (t.inputs.hasInputs)
+			for (f in t.inputs.files)
+				logger.lifecycle(sprintf('%s input: %s', [t.name, f.path]))
+		if (t.outputs.hasOutput)
+			for (f in t.outputs.files)
+				logger.lifecycle(sprintf('%s output: %s', [t.name, f.path]))
+	}
+}
