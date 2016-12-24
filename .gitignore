@@ -1,6 +1,5 @@
 # Gradle
 .gradle
-gradle-app.setting
 gradle.properties
 build
 # GFM Viewer
