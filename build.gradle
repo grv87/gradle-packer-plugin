@@ -66,6 +66,7 @@ semanticRelease {
 	}
 	branchNames {
 		replace ~/^hotfix\/(.*)$/, '$1'
+		replace ~/^code\/(.*)$/, '$1'
 	}
 }
 
