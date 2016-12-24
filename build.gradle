@@ -54,7 +54,7 @@ pluginBundle {
 	tags = ['packer', 'devops', 'vm']
 	plugins {
 		gradlePackerPlugin {
-			id = 'org.fidata.gradle-packer-plugin'
+			id = 'org.fidata.packer'
 			displayName = 'Gradle Packer plugin'
 		}
 	}
