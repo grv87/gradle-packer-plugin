@@ -24,6 +24,7 @@ import org.gradle.api.logging.LogLevel
 import java.util.regex.*
 import com.samskivert.mustache.Mustache
 import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 
 
 class GradlePackerPlugin implements Plugin<Project> {
@@ -149,12 +150,21 @@ class GradlePackerPlugin implements Plugin<Project> {
 					'AWS_ACCESS_KEY_ID': parseString(builder['access_key'], variables),
 					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], variables)
 				]
-				String sourceAMI = parseString(builder['source_ami'], variables)
+				Map filters
+				String[] owners = []
+				boolean mostRecent = false
+				if (builder.containsKey('source_ami'))
+					filters = ['image-id':  [parseString(builder['source_ami'], variables)]]
+				else {
+					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> ["$key": values instanceof List ? values.collect { [parseString(it, variables)] } : [values instanceof String ? parseString(values, variables) : values]] }
+					owners = builder['source_ami_filter']['owners'] ?: []
+					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
+				}
 				Map res = [:]
 				new ByteArrayOutputStream().withStream { os ->
 					project.exec {
 						environment << t.awsEnvironment
-						commandLine 'aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables), '--filters', "Name=\"image-id\",Values=\"$sourceAMI\"", '--output', 'json'
+						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.length > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', '\\"'), '--output', 'json'])
 						standardOutput = os
 					}
 					res = new JsonSlurper().parseText(os.toString())

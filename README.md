@@ -38,8 +38,8 @@ packer {
 
 	*	`amazon-ebs`
 
-		Plugin queries AWS for `sourceAMI` and saves results in Gradle's
-cache.
+		Plugin queries AWS for `source-ami` or `source_ami_filter` and
+saves results in Gradle's cache.
 
 		The following fields are also considered as inputs:
 		*	`ssh_private_key_file`
