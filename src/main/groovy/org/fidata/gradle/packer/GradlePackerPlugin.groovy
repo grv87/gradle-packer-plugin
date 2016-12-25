@@ -56,7 +56,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				}
 				res = new JsonSlurper().parseText(os.toString())
 			}
-			return res['Images'].length == 1
+			return res['Images'].size() == 1
 		}
 	}
 	def void processTemplate(Project project, String fileName, Task parentTask = null) {
@@ -164,10 +164,12 @@ class GradlePackerPlugin implements Plugin<Project> {
 				new ByteArrayOutputStream().withStream { os ->
 					project.exec {
 						environment << t.awsEnvironment
-						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.length > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', '\\"'), '--output', 'json'])
+						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', '\\"'), '--output', 'json'])
 						standardOutput = os
 					}
 					res = new JsonSlurper().parseText(os.toString())
+					if (res['Images'].size() > 0 && mostRecent)
+						res['Images'] = res['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] } [0 .. 0]
 				}
 				t.inputs.property 'sourceAMI', res
 				checkAmazonRegionUpToDate(t, parseString(builder['region'], variables))
