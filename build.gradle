@@ -88,7 +88,7 @@ artifactory {
 			if (isRelease)
 				repoKey = 'plugins-release-local'
 			else
-				repoKey = 'plugins-snapshot-local'
+				repoKey = 'gradle-snapshot-local'
 			username = "${artifactory_user}"
 			password = "${artifactory_password}"
 			maven = true
