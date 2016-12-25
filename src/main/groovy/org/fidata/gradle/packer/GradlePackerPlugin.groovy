@@ -21,6 +21,7 @@ import org.gradle.api.*
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.os.OperatingSystem
 import java.util.regex.*
 import com.samskivert.mustache.Mustache
 import groovy.json.JsonSlurper
@@ -164,7 +165,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				new ByteArrayOutputStream().withStream { os ->
 					project.exec {
 						environment << t.awsEnvironment
-						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', '\\"'), '--output', 'json'])
+						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
 						standardOutput = os
 					}
 					res = new JsonSlurper().parseText(os.toString())
