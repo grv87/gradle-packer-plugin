@@ -11,6 +11,10 @@ This plugin allows to run [Packer](http://www.packer.io/) builds from Gradle.
 
 Example of use:
 ```groovy
+plugins {
+	id 'org.fidata.packer' version '2.0.0'
+}
+
 packer {
 	customVariables = [
 		'packer_output_dir': packerOutputDir,
