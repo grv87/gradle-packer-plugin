@@ -172,7 +172,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					if (res['Images'].size() > 0 && mostRecent)
 						res['Images'] = res['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] } [0 .. 0]
 				}
-				t.inputs.property 'sourceAMI', res
+				t.inputs.property 'sourceAMI', JsonOutput.toJson(res)
 				checkAmazonRegionUpToDate(t, parseString(builder['region'], variables))
 				if (builder.containsKey('ami_regions'))
 					for (region in builder['ami_regions'])
