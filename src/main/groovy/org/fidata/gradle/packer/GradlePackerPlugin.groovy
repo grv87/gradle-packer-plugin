@@ -91,6 +91,10 @@ class GradlePackerPlugin implements Plugin<Project> {
 				group 'Build'
 				ext.builderType = builderType
 				ext.buildName = buildName
+				ext.fullBuildName = fullBuildName
+				ext.cleanTask = project.task("clean-$fullBuildName") {
+					group 'Clean'
+				}
 				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
 				inputs.file templateFile
 			}
@@ -129,19 +133,16 @@ class GradlePackerPlugin implements Plugin<Project> {
 				// Output filename when no post-processors are used - default
 				t.ext.outputFileName = project.file(new File(outputDir, VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
-				/*t.dependsOn*/ project.task("clean-$imageName-$buildName") {
+				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
 					group 'Clean'
-					Task unregisterVM = project.task([type: Exec], "unregisterVM-$imageName-$buildName") {
-						group 'Clean'
-						commandLine 'VBoxManage', 'unregistervm', "$VMName", '--delete'
-						ignoreExitValue true
-					}
-					dependsOn unregisterVM
-					dependsOn project.task([type: Delete], "deleteOutputDir-$imageName-$buildName") {
-						group 'Clean'
-						shouldRunAfter unregisterVM
-						delete outputDir
-					}
+					commandLine 'VBoxManage', 'unregistervm', "$VMName", '--delete'
+					ignoreExitValue true
+				}
+				t.cleanTask.dependsOn unregisterVM
+				t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
+					group 'Clean'
+					shouldRunAfter unregisterVM
+					delete outputDir
 				}
 			}
 
@@ -241,11 +242,12 @@ class GradlePackerPlugin implements Plugin<Project> {
 				if (p.containsKey('only'))
 					for (buildName in p['only'])
 						processedTasks[buildName] = ts[buildName]
-				else if (p.containsKey('except')) {
+				else {
 					for (t in ts)
 						processedTasks[t.key] = t.value
-					for (buildName in p['except'])
-						processedTasks.remove buildName
+					if (p.containsKey('except'))
+						for (buildName in p['except'])
+							processedTasks.remove buildName
 				}
 				for (t in processedTasks.values()) {
 					Map postProcessor = new HashMap(p)
@@ -262,20 +264,23 @@ class GradlePackerPlugin implements Plugin<Project> {
 						if (postProcessor.containsKey('include'))
 							for (include in postProcessor['include'])
 								t.inputs.file parseString(include, variables)
-						String vargantProvider
+						String vagrantProvider
 						switch (t.builderType) {
 							case 'virtualbox-iso':
 							case 'virtualbox-ovf':
-								vargantProvider = 'virtualbox'
+								vagrantProvider = 'virtualbox'
 								break
 							case 'amazon-ebs':
-								vargantProvider = 'aws'
+								vagrantProvider = 'aws'
 								break
 						}
-						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', variables + ['.Provider': vargantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
+						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', variables + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
 						project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
+						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-${t.fullBuildName}") {
+							group 'Clean'
+							delete t.outputFileName
+						}
 					}
-
 				}
 			}
 
