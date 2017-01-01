@@ -133,8 +133,15 @@ class GradlePackerPlugin implements Plugin<Project> {
 				// Output filename when no post-processors are used - default
 				t.ext.outputFileName = project.file(new File(outputDir, VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
+				Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") {
+					group 'Clean'
+					commandLine 'VBoxManage', 'controlvm', "$VMName", 'poweroff'
+					ignoreExitValue true
+				}
+				t.cleanTask.dependsOn powerOffVM
 				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
 					group 'Clean'
+					shouldRunAfter powerOffVM
 					commandLine 'VBoxManage', 'unregistervm', "$VMName", '--delete'
 					ignoreExitValue true
 				}
