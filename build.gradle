@@ -65,8 +65,9 @@ semanticRelease {
 		ghToken = project.ghToken
 	}
 	branchNames {
-		replace ~/^hotfix\/(.*)$/, '$1'
-		replace ~/^code\/(.*)$/, '$1'
+		replace ~/^bug\/(.*)$/, '$1'
+		replace ~/^refactor\/(.*)$/, '$1'
+		replace ~/^chore\/(.*)$/, '$1'
 	}
 }
 
