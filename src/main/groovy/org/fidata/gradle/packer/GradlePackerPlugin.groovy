@@ -74,13 +74,14 @@ class GradlePackerPlugin implements Plugin<Project> {
 			else
 				variables["user `$variable.key`"] = variable.value
 		String imageName = variables['user `name`'] // ?: templateFile filename without extension
-		project.tasks['validate'].dependsOn project.task([type: Exec], "validate-$imageName") {
+		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
 				environment 'PACKER_LOG',  1
 			commandLine ((['packer', 'validate', '-syntax-only'] + customVariablesCmdLine + [fileName]))
 			inputs.file templateFile
 		}
+		project.tasks['validate'].dependsOn validate
 		Map ts = [:]
 		for (builder in InputJSON['builders']) {
 			String builderType = builder['type']
@@ -93,7 +94,10 @@ class GradlePackerPlugin implements Plugin<Project> {
 				ext.fullBuildName = fullBuildName
 				ext.cleanTask = project.task("clean-$fullBuildName") {
 					group 'Clean'
+					shouldRunAfter validate
 				}
+				shouldRunAfter validate
+				mustRunAfter cleanTask
 				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
 				inputs.file templateFile
 			}
@@ -137,17 +141,15 @@ class GradlePackerPlugin implements Plugin<Project> {
 					commandLine 'VBoxManage', 'controlvm', "$t.VMName", 'poweroff'
 					ignoreExitValue true
 				}
-				t.cleanTask.dependsOn powerOffVM
 				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
 					group 'Clean'
-					shouldRunAfter powerOffVM
+					dependsOn powerOffVM
 					commandLine 'VBoxManage', 'unregistervm', "$t.VMName", '--delete'
 					ignoreExitValue true
 				}
-				t.cleanTask.dependsOn unregisterVM
 				Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
 					group 'Clean'
-					shouldRunAfter unregisterVM
+					dependsOn unregisterVM
 					delete outputDir
 				}
 				t.cleanTask.dependsOn deleteOutputDir
