@@ -1,7 +1,7 @@
 # Gradle
-.gradle
+.gradle/
 gradle.properties
-build
+build/
 # GFM Viewer
 .*.md.html
 # Gradle IDE
