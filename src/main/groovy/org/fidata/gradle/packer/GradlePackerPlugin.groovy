@@ -46,19 +46,18 @@ class GradlePackerPlugin implements Plugin<Project> {
 	}
 	static Pattern httpFileNamePattern = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
-	def boolean checkAmazonRegionUpToDate(task, region) {
-		task.outputs.upToDateWhen {
-			Map res = [:]
-			new ByteArrayOutputStream().withStream { os ->
-				task.project.exec {
-					environment << task.awsEnvironment
-					commandLine 'aws', 'ec2', 'describe-images', '--region', region, '--filters', "Name=\"name\",Values=\"$task.buildName\"", '--executable-users', 'self', '--output', 'json'
-					standardOutput = os
-				}
-				res = new JsonSlurper().parseText(os.toString())
+	def String findAMI(t, region) {
+		Map res
+		new ByteArrayOutputStream().withStream { os ->
+			t.project.exec {
+				environment << t.awsEnvironment
+				commandLine 'aws', 'ec2', 'describe-images', '--region', region, '--filters', "Name=\"name\",Values=\"$t.AMIName\"".replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'
+				standardOutput = os
 			}
-			return res['Images'].size() == 1
+			res = new JsonSlurper().parseText(os.toString())
 		}
+		if (res['Images'].size() == 1)
+			return res['Images'][0]['ImageId']
 	}
 	def void processTemplate(Project project, String fileName, Task parentTask = null) {
 		project.logger.info(sprintf('gradle-packer-plugin: Processing %s template', [fileName]))
@@ -181,10 +180,45 @@ class GradlePackerPlugin implements Plugin<Project> {
 						res['Images'] = res['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] } [0 .. 0]
 				}
 				t.inputs.property 'sourceAMI', JsonOutput.toJson(res)
-				checkAmazonRegionUpToDate(t, parseString(builder['region'], variables))
-				if (builder.containsKey('ami_regions'))
-					for (region in builder['ami_regions'])
-						checkAmazonRegionUpToDate(t, parseString(region, variables))
+
+				t.ext.AMIName = parseString(builder['ami_name'], variables)
+				t.ext.outputAMI = [:]
+				if (!builder.containsKey('ami_regions'))
+					builder['ami_regions'] = []
+				builder['ami_regions'] = [builder['region']] + builder['ami_regions']
+				for (region in builder['ami_regions']) {
+					region = parseString(region, variables)
+					t.outputs.upToDateWhen {
+						t.ext.outputAMI = findAMI(t, region)
+						return t.ext.outputAMI != null
+					}
+					Task unregisterImage = project.task("unregisterImage-$fullBuildName-$region") {
+						group 'Clean'
+						onlyIf {
+							ext.AMI = findAMI(t, region)
+							return ext.AMI != null
+						}
+						doLast {
+							project.exec {
+								environment << t.awsEnvironment
+								commandLine 'aws', 'ec2', 'deregister-image', '--region', region, '--image-id', ext.AMI
+							}
+						}
+					}
+					Task waitForUnregisterImage = project.task("waitForUnregisterImage-$fullBuildName-$region") {
+						group: 'Clean'
+						onlyIf {
+							String AMI = findAMI(t, region)
+							return AMI != null
+						}
+						dependsOn unregisterImage
+						doLast {
+							while (findAMI(t, region) != null)
+								sleep(10 * 1000)
+						}
+					}
+					t.cleanTask.dependsOn waitForUnregisterImage
+				}
 				if (builder.containsKey('ssh_private_key_file'))
 					t.inputs.file parseString(builder['ssh_private_key_file'], variables)
 				if (builder.containsKey('user_data_file'))
