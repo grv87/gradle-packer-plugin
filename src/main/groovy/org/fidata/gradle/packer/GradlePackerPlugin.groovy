@@ -74,7 +74,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 			else
 				variables["user `$variable.key`"] = variable.value
 		String imageName = variables['user `name`'] // ?: templateFile filename without extension
-		project.validate.dependsOn project.task([type: Exec], "validate-$imageName") {
+		project.tasks['validate'].dependsOn project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
 				environment 'PACKER_LOG',  1
@@ -128,28 +128,29 @@ class GradlePackerPlugin implements Plugin<Project> {
 					t.inputs.file parseString(builder['ssh_key_path'], variables)
 
 				String outputDir = parseString(builder['output_directory'] ?: "output-$buildName", variables)
-				String VMName = parseString(builder['vm_name'] ?: "packer-$buildName", variables)
+				t.ext.VMName = parseString(builder['vm_name'] ?: "packer-$buildName", variables)
 				// Output filename when no post-processors are used - default
-				t.ext.outputFileName = project.file(new File(outputDir, VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
+				t.ext.outputFileName = project.file(new File(outputDir, t.VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
 				Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") {
 					group 'Clean'
-					commandLine 'VBoxManage', 'controlvm', "$VMName", 'poweroff'
+					commandLine 'VBoxManage', 'controlvm', "$t.VMName", 'poweroff'
 					ignoreExitValue true
 				}
 				t.cleanTask.dependsOn powerOffVM
 				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
 					group 'Clean'
 					shouldRunAfter powerOffVM
-					commandLine 'VBoxManage', 'unregistervm', "$VMName", '--delete'
+					commandLine 'VBoxManage', 'unregistervm', "$t.VMName", '--delete'
 					ignoreExitValue true
 				}
 				t.cleanTask.dependsOn unregisterVM
-				t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
+				Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
 					group 'Clean'
 					shouldRunAfter unregisterVM
 					delete outputDir
 				}
+				t.cleanTask.dependsOn deleteOutputDir
 			}
 
 			// Amazon EBS builder
@@ -317,7 +318,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 						}
 						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', variables + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
 						project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
-						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-${t.fullBuildName}") {
+						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-$t.fullBuildName") {
 							group 'Clean'
 							delete t.outputFileName
 						}
