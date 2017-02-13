@@ -280,8 +280,8 @@ class GradlePackerPlugin implements Plugin<Project> {
 
 				}
 			}
-		if (InputJSON.containsKey('post-processors'))
-			for (p in InputJSON['post-processors']) {
+		if (InputJSON.containsKey('post-processors')) {
+			Closure processPostProcessors = { p ->
 				processedTasks = [:]
 				if (p.containsKey('only'))
 					for (buildName in p['only'])
@@ -327,7 +327,13 @@ class GradlePackerPlugin implements Plugin<Project> {
 					}
 				}
 			}
-
+			for (p in InputJSON['post-processors']) {
+				if (p instanceof String) continue
+				if (p instanceof List)
+					for (p2 in p) processPostProcessors(p2)
+				else processPostProcessors(p)
+			}
+		}
 		for (t in ts.values()) {
 			if (t.ext.has('outputFileName')) {
 				project.logger.info(sprintf('gradle-packer-plugin: task %s has outputFileName %s', [t.name, t.outputFileName]))
