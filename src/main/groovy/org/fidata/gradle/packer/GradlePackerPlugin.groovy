@@ -171,18 +171,21 @@ class GradlePackerPlugin implements Plugin<Project> {
 					owners = builder['source_ami_filter']['owners'] ?: []
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
-				Map res = [:]
-				new ByteArrayOutputStream().withStream { os ->
-					project.exec {
-						environment << t.awsEnvironment
-						commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
-						standardOutput = os
+				t.inputs.property('sourceAMI', {
+					Map res = [:]
+					new ByteArrayOutputStream().withStream { os ->
+						project.exec {
+							environment << t.awsEnvironment
+							commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
+							standardOutput = os
+						}
+						res = new JsonSlurper().parseText(os.toString())
+						if (res['Images'].size() > 0 && mostRecent)
+							res['Images'] = [ res['Images'].max { it['CreationDate'] } ]
 					}
-					res = new JsonSlurper().parseText(os.toString())
-					if (res['Images'].size() > 0 && mostRecent)
-						res['Images'] = res['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] } [0 .. 0]
-				}
-				t.inputs.property 'sourceAMI', JsonOutput.toJson(res)
+					project.logger.info(sprintf('gradle-packer-plugin: sourceAMI value %s', [JsonOutput.toJson(res)]))
+					JsonOutput.toJson(res)
+				})
 
 				t.ext.AMIName = parseString(builder['ami_name'], variables)
 				t.ext.outputAMI = [:]
