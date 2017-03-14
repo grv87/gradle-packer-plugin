@@ -65,11 +65,6 @@ semanticRelease {
 	repo {
 		ghToken = project.ghToken
 	}
-	branchNames {
-		replace ~/^bug\/(.*)$/, '$1'
-		replace ~/^refactor\/(.*)$/, '$1'
-		replace ~/^chore\/(.*)$/, '$1'
-	}
 }
 
 ext.isRelease = !version.toString().endsWith('-SNAPSHOT')
