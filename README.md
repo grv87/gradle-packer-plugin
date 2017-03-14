@@ -90,7 +90,7 @@ are not changed.
 
 
 ------------------------------------------------------------------------
-Copyright © 2016  Basil Peace
+Copyright © 2016-2017  Basil Peace
 
 This is part of gradle-packer-plugin.
 
