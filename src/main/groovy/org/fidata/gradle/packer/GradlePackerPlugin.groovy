@@ -239,20 +239,22 @@ class GradlePackerPlugin implements Plugin<Project> {
 
 		if (InputJSON.containsKey('provisioners'))
 			for (p in InputJSON['provisioners']) {
-				processedTasks = [:]
-				if (p.containsKey('only'))
+				if (p.containsKey('only')) {
+					processedTasks = [:]
 					for (buildName in p['only'])
 						processedTasks[buildName] = ts[buildName]
-				else if (p.containsKey('except')) {
-					for (t in ts)
-						processedTasks[t.key] = t.value
-					for (buildName in p['except'])
-						processedTasks.remove buildName
+				}
+				else {
+					processedTasks = new HashMap(ts)
+					if (p.containsKey('except'))
+						for (buildName in p['except'])
+							processedTasks.remove buildName
 				}
 				for (t in processedTasks.values()) {
 					Map provisioner = new HashMap(p)
-					for (override in provisioner['override'])
-						provisioner[override.key] = override.value
+					if (provisioner.containsKey('override'))
+						for (override in provisioner['override'][t.buildName])
+							provisioner[override.key] = override.value
 					provisioner.remove 'override'
 
 					// Shell provisioner
@@ -274,7 +276,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 						if (provisioner.containsKey('data_bags_path'))
 							t.inputs.dir parseString(provisioner['data_bags_path'], variables)
 						if (provisioner.containsKey('encrypted_data_bag_secret_path'))
-							t.inputs.dir parseString(provisioner['encrypted_data_bag_secret_path'], variables)
+							t.inputs.file parseString(provisioner['encrypted_data_bag_secret_path'], variables)
 						if (provisioner.containsKey('environments_path'))
 							t.inputs.dir parseString(provisioner['environments_path'], variables)
 						if (provisioner.containsKey('roles_path'))
@@ -285,13 +287,13 @@ class GradlePackerPlugin implements Plugin<Project> {
 			}
 		if (InputJSON.containsKey('post-processors')) {
 			Closure processPostProcessors = { p ->
-				processedTasks = [:]
-				if (p.containsKey('only'))
+				if (p.containsKey('only')) {
+					processedTasks = [:]
 					for (buildName in p['only'])
 						processedTasks[buildName] = ts[buildName]
+				}
 				else {
-					for (t in ts)
-						processedTasks[t.key] = t.value
+					processedTasks = new HashMap(ts)
 					if (p.containsKey('except'))
 						for (buildName in p['except'])
 							processedTasks.remove buildName
