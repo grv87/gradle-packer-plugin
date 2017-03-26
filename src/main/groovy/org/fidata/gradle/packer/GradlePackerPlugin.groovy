@@ -63,7 +63,11 @@ class GradlePackerPlugin implements Plugin<Project> {
 		project.logger.info(sprintf('gradle-packer-plugin: Processing %s template', [fileName]))
 		File templateFile = project.file(fileName)
 		Map InputJSON = new JsonSlurper().parse(templateFile)
-		Map variables = [:]
+		Map variables = [
+			'pwd': project.file('.').getCanonicalPath(),
+			'template_dir': templateFile.getParentFile().getAbsolutePath(),
+			'timestamp': project.extensions.packer.initTime.time.intdiv(1000),
+		]
 		List<String> customVariablesCmdLine = []
 		for (variable in InputJSON['variables'])
 			if (project.packer.customVariables[variable.key]) {
@@ -356,6 +360,7 @@ class PackerTemplate {
 class PackerPluginExtension {
 	Map customVariables = [:]
 	List<PackerTemplate> templates = []
+	Date initTime = new Date()
 
 	def template(String fileName, Task parentTask = null) {
 		templates.push(new PackerTemplate(fileName: fileName, parentTask: parentTask))
