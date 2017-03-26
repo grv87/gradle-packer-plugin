@@ -12,7 +12,7 @@ This plugin allows to run [Packer](http://www.packer.io/) builds from Gradle.
 Example of use:
 ```groovy
 plugins {
-	id 'org.fidata.packer' version '2.3.1'
+	id 'org.fidata.packer' version '2.4.0'
 }
 
 packer {
