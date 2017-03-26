@@ -81,6 +81,13 @@ saves results in Gradle's cache.
 
 		`override` configuration is supported.
 
+*	Functions:
+
+	Now only a subset of Packer template functions is supported:
+	*	`pwd`
+	*	`template_dir`
+	*	`timestamp`
+
 ## Notes
 1.	Gradle (as of 3.2) [can't handle URLs]
 (https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
