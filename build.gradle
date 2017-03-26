@@ -47,7 +47,7 @@ dependencies {
 
 task wrapper(type: Wrapper) {
 	group 'Help'
-	gradleVersion = '3.4'
+	gradleVersion = '3.4.1'
 }
 
 pluginBundle {
