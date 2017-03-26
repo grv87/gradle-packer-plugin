@@ -29,6 +29,17 @@ packer {
 *	[Packer](http://www.packer.io/)
 *	[AWS CLI](https://aws.amazon.com/cli/) – for Amazon builders
 
+## Task names
+Plugin creates series of tasks for cleaning and running Packer builds.
+If template has a `name` variable, it is used instead of template
+filename. High-level task names are:
+
+*      `clean-<name variable or template filename>-<build name>`
+*      `build-<name variable or template filename>-<build name>`
+
+Note that there is no out-of-the-box single task to run all builds
+defined in one template.
+
 ## Supported Packer configurations:
 *	Builders:
 	*	`virtualbox-iso` and `virtualbox-ovf`.

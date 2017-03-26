@@ -26,6 +26,7 @@ import java.util.regex.*
 import com.samskivert.mustache.Mustache
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import org.apache.commons.io.FilenameUtils
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.UUIDGenerator
 
@@ -79,7 +80,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 			}
 			else
 				templateData["user `$variable.key`"] = variable.value
-		String imageName = templateData['user `name`'] // ?: templateFile filename without extension
+		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
