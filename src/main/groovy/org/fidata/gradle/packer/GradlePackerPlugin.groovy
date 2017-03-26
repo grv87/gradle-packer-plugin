@@ -72,14 +72,16 @@ class GradlePackerPlugin implements Plugin<Project> {
 			'timestamp': project.extensions.packer.initTime.time.intdiv(1000),
 		]
 		List<String> customVariablesCmdLine = []
-		for (variable in InputJSON['variables'])
-			if (project.packer.customVariables[variable.key]) {
-				templateData["user `$variable.key`"] = project.packer.customVariables[variable.key]
-				customVariablesCmdLine.push '-var'
-				customVariablesCmdLine.push "$variable.key=${project.packer.customVariables[variable.key]}"
-			}
-			else
-				templateData["user `$variable.key`"] = variable.value
+		if (InputJSON.containsKey('variables')) {
+			for (variable in InputJSON['variables'])
+				if (project.packer.customVariables[variable.key]) {
+					templateData["user `$variable.key`"] = project.packer.customVariables[variable.key]
+					customVariablesCmdLine.push '-var'
+					customVariablesCmdLine.push "$variable.key=${project.packer.customVariables[variable.key]}"
+				}
+				else
+					templateData["user `$variable.key`"] = variable.value
+		}
 		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
