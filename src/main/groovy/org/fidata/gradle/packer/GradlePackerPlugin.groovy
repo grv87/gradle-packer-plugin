@@ -26,6 +26,8 @@ import java.util.regex.*
 import com.samskivert.mustache.Mustache
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import com.fasterxml.uuid.Generators
+import com.fasterxml.uuid.UUIDGenerator
 
 
 class GradlePackerPlugin implements Plugin<Project> {
@@ -41,8 +43,8 @@ class GradlePackerPlugin implements Plugin<Project> {
 	   This code uses Mustache to parse templates.
 	   There could be errors due to slightly different syntax.
 	   However, that most probably won't happen in simple templates. */
-	static String parseString(string, variables) {
-		Mustache.compiler().compile(string).execute(variables)
+	static String parseString(string, contextTemplateData) {
+		Mustache.compiler().compile(string).execute(contextTemplateData)
 	}
 	static Pattern httpFileNamePattern = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
@@ -63,7 +65,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 		project.logger.info(sprintf('gradle-packer-plugin: Processing %s template', [fileName]))
 		File templateFile = project.file(fileName)
 		Map InputJSON = new JsonSlurper().parse(templateFile)
-		Map variables = [
+		Map templateData = [
 			'pwd': project.file('.').getCanonicalPath(),
 			'template_dir': templateFile.getParentFile().getAbsolutePath(),
 			'timestamp': project.extensions.packer.initTime.time.intdiv(1000),
@@ -71,13 +73,13 @@ class GradlePackerPlugin implements Plugin<Project> {
 		List<String> customVariablesCmdLine = []
 		for (variable in InputJSON['variables'])
 			if (project.packer.customVariables[variable.key]) {
-				variables["user `$variable.key`"] = project.packer.customVariables[variable.key]
+				templateData["user `$variable.key`"] = project.packer.customVariables[variable.key]
 				customVariablesCmdLine.push '-var'
 				customVariablesCmdLine.push "$variable.key=${project.packer.customVariables[variable.key]}"
 			}
 			else
-				variables["user `$variable.key`"] = variable.value
-		String imageName = variables['user `name`'] // ?: templateFile filename without extension
+				templateData["user `$variable.key`"] = variable.value
+		String imageName = templateData['user `name`'] // ?: templateFile filename without extension
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
@@ -100,6 +102,11 @@ class GradlePackerPlugin implements Plugin<Project> {
 					group 'Clean'
 					shouldRunAfter validate
 				}
+				ext.contextTemplateData = new HashMap(templateData)
+				ext.uuid = project.packer.uuidGenerator.generate()
+				ext.contextTemplateData['build_name'] = buildName
+				ext.contextTemplateData['build_type'] = builderType
+				ext.contextTemplateData['uuid'] = uuid
 				shouldRunAfter validate
 				mustRunAfter cleanTask
 				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
@@ -112,31 +119,31 @@ class GradlePackerPlugin implements Plugin<Project> {
 				// See: https://docs.gradle.org/current/javadoc/org/gradle/api/Project.html#files%28java.lang.Object...%29
 				// But, still, 1) this should work in the future 2) most probably, there is no reason to check ISO change if there is known checksum
 				// if (builder.containsKey('iso_url'))
-				// 	t.inputs.file parseString(builder['iso_url'], variables)
+				// 	t.inputs.file parseString(builder['iso_url'], t.contextTemplateData)
 				// else if (builder.containsKey('iso_urls'))
 				// 	for (iso_url in builder['iso_urls'])
-				// 		t.inputs.file parseString(iso_url, variables)
+				// 		t.inputs.file parseString(iso_url, t.contextTemplateData)
 			}
 			if (builder['type'] == 'virtualbox-ovf') {
-				t.inputs.file parseString(builder['source_path'], variables)
+				t.inputs.file parseString(builder['source_path'], t.contextTemplateData)
 			}
 			if (builderType == 'virtualbox-iso' || builderType == 'virtualbox-ovf') {
 				if (builder.containsKey('floppy_files'))
 					for (floppy_file in builder['floppy_files'])
-						t.inputs.file parseString(floppy_file, variables)
+						t.inputs.file parseString(floppy_file, t.contextTemplateData)
 				if (builder.containsKey('http_directory') && builder.containsKey('boot_command')) {
-					Matcher m = httpFileNamePattern.matcher(parseString(builder['boot_command'].toString(), variables + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
+					Matcher m = httpFileNamePattern.matcher(parseString(builder['boot_command'].toString(), t.contextTemplateData + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
 					if (m.find() && m.group(1) != '')
-						t.inputs.file project.file(new File(parseString(builder['http_directory'], variables), m.group(1)))
+						t.inputs.file project.file(new File(parseString(builder['http_directory'], t.contextTemplateData), m.group(1)))
 				}
 				// ISO URL
 				// if (builder.containsKey('guest_addition_url'))
-				// 	t.inputs.file parseString(builder['guest_addition_url'], variables)
+				// 	t.inputs.file parseString(builder['guest_addition_url'], t.contextTemplateData)
 				if (builder.containsKey('ssh_key_path'))
-					t.inputs.file parseString(builder['ssh_key_path'], variables)
+					t.inputs.file parseString(builder['ssh_key_path'], t.contextTemplateData)
 
-				String outputDir = parseString(builder['output_directory'] ?: "output-$buildName", variables)
-				t.ext.VMName = parseString(builder['vm_name'] ?: "packer-$buildName", variables)
+				String outputDir = parseString(builder['output_directory'] ?: "output-$buildName", t.contextTemplateData)
+				t.ext.VMName = parseString(builder['vm_name'] ?: "packer-$buildName", t.contextTemplateData)
 				// Output filename when no post-processors are used - default
 				t.ext.outputFileName = project.file(new File(outputDir, t.VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
@@ -162,16 +169,16 @@ class GradlePackerPlugin implements Plugin<Project> {
 			// Amazon EBS builder
 			if (builderType == 'amazon-ebs') {
 				t.ext.awsEnvironment = [
-					'AWS_ACCESS_KEY_ID': parseString(builder['access_key'], variables),
-					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], variables)
+					'AWS_ACCESS_KEY_ID': parseString(builder['access_key'], t.contextTemplateData),
+					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], t.contextTemplateData)
 				]
 				Map filters
 				String[] owners = []
 				boolean mostRecent = false
 				if (builder.containsKey('source_ami'))
-					filters = ['image-id':  [parseString(builder['source_ami'], variables)]]
+					filters = ['image-id':  [parseString(builder['source_ami'], t.contextTemplateData)]]
 				else {
-					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> ["$key": values instanceof List ? values.collect { [parseString(it, variables)] } : [values instanceof String ? parseString(values, variables) : values]] }
+					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> ["$key": values instanceof List ? values.collect { [parseString(it, t.contextTemplateData)] } : [values instanceof String ? parseString(values, t.contextTemplateData) : values]] }
 					owners = builder['source_ami_filter']['owners'] ?: []
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
@@ -180,7 +187,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					new ByteArrayOutputStream().withStream { os ->
 						project.exec {
 							environment << t.awsEnvironment
-							commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], variables)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
+							commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], t.contextTemplateData)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
 							standardOutput = os
 						}
 						res = new JsonSlurper().parseText(os.toString())
@@ -191,13 +198,13 @@ class GradlePackerPlugin implements Plugin<Project> {
 					JsonOutput.toJson(res)
 				})
 
-				t.ext.AMIName = parseString(builder['ami_name'], variables)
+				t.ext.AMIName = parseString(builder['ami_name'], t.contextTemplateData)
 				t.ext.outputAMI = [:]
 				if (!builder.containsKey('ami_regions'))
 					builder['ami_regions'] = []
 				builder['ami_regions'] = [builder['region']] + builder['ami_regions']
 				for (region in builder['ami_regions']) {
-					region = parseString(region, variables)
+					region = parseString(region, t.contextTemplateData)
 					t.outputs.upToDateWhen {
 						t.ext.outputAMI = findAMI(t, region)
 						return t.ext.outputAMI != null
@@ -230,9 +237,9 @@ class GradlePackerPlugin implements Plugin<Project> {
 					t.cleanTask.dependsOn waitForUnregisterImage
 				}
 				if (builder.containsKey('ssh_private_key_file'))
-					t.inputs.file parseString(builder['ssh_private_key_file'], variables)
+					t.inputs.file parseString(builder['ssh_private_key_file'], t.contextTemplateData)
 				if (builder.containsKey('user_data_file'))
-					t.inputs.file parseString(builder['user_data_file'], variables)
+					t.inputs.file parseString(builder['user_data_file'], t.contextTemplateData)
 			}
 
 			ts[buildName] = t
@@ -264,27 +271,27 @@ class GradlePackerPlugin implements Plugin<Project> {
 					// Shell provisioner
 					if (provisioner['type'] == 'shell') {
 						if (provisioner.containsKey('script'))
-							t.inputs.file parseString(provisioner['script'], variables)
+							t.inputs.file parseString(provisioner['script'], t.contextTemplateData)
 						else if (provisioner.containsKey('scripts'))
 							for (script in provisioner['scripts'])
-								t.inputs.file parseString(script, variables)
+								t.inputs.file parseString(script, t.contextTemplateData)
 					}
 
 					// Chef solo provisioner
 					if (provisioner['type'] == 'chef-solo') {
 						if (provisioner.containsKey('config_template'))
-							t.inputs.file parseString(provisioner['config_template'], variables)
+							t.inputs.file parseString(provisioner['config_template'], t.contextTemplateData)
 						if (provisioner.containsKey('cookbook_paths'))
 							for (cookbook_path in provisioner['cookbook_paths'])
-								t.inputs.dir parseString(cookbook_path, variables)
+								t.inputs.dir parseString(cookbook_path, t.contextTemplateData)
 						if (provisioner.containsKey('data_bags_path'))
-							t.inputs.dir parseString(provisioner['data_bags_path'], variables)
+							t.inputs.dir parseString(provisioner['data_bags_path'], t.contextTemplateData)
 						if (provisioner.containsKey('encrypted_data_bag_secret_path'))
-							t.inputs.file parseString(provisioner['encrypted_data_bag_secret_path'], variables)
+							t.inputs.file parseString(provisioner['encrypted_data_bag_secret_path'], t.contextTemplateData)
 						if (provisioner.containsKey('environments_path'))
-							t.inputs.dir parseString(provisioner['environments_path'], variables)
+							t.inputs.dir parseString(provisioner['environments_path'], t.contextTemplateData)
 						if (provisioner.containsKey('roles_path'))
-							t.inputs.dir parseString(provisioner['roles_path'], variables)
+							t.inputs.dir parseString(provisioner['roles_path'], t.contextTemplateData)
 					}
 
 				}
@@ -313,10 +320,10 @@ class GradlePackerPlugin implements Plugin<Project> {
 						postProcessor.remove 'override'
 
 						if (postProcessor.containsKey('vagrantfile_template'))
-							t.inputs.file parseString(postProcessor['vagrantfile_template'], variables)
+							t.inputs.file parseString(postProcessor['vagrantfile_template'], t.contextTemplateData)
 						if (postProcessor.containsKey('include'))
 							for (include in postProcessor['include'])
-								t.inputs.file parseString(include, variables)
+								t.inputs.file parseString(include, t.contextTemplateData)
 						String vagrantProvider
 						switch (t.builderType) {
 							case 'virtualbox-iso':
@@ -327,7 +334,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 								vagrantProvider = 'aws'
 								break
 						}
-						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', variables + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
+						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', t.contextTemplateData + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
 						project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
 						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-$t.fullBuildName") {
 							group 'Clean'
@@ -361,6 +368,7 @@ class PackerPluginExtension {
 	Map customVariables = [:]
 	List<PackerTemplate> templates = []
 	Date initTime = new Date()
+	UUIDGenerator uuidGenerator = Generators.timeBasedGenerator()
 
 	def template(String fileName, Task parentTask = null) {
 		templates.push(new PackerTemplate(fileName: fileName, parentTask: parentTask))

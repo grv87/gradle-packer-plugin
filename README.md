@@ -84,9 +84,12 @@ saves results in Gradle's cache.
 *	Functions:
 
 	Now only a subset of Packer template functions is supported:
+	*	`build_name`
+	*	`build_type`
 	*	`pwd`
 	*	`template_dir`
 	*	`timestamp`
+	*	`uuid`
 
 ## Notes
 1.	Gradle (as of 3.2) [can't handle URLs]
