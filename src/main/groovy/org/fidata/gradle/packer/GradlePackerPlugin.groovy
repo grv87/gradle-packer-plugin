@@ -49,18 +49,15 @@ class GradlePackerPlugin implements Plugin<Project> {
 	}
 	static Pattern httpFileNamePattern = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
-	def String findAMI(t, region) {
-		Map res
+	def List findAMI(project, awsEnvironment, region, owners, filters) {
 		new ByteArrayOutputStream().withStream { os ->
-			t.project.exec {
-				environment << t.awsEnvironment
-				commandLine(['aws'] + (t.project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', region, '--filters', "Name=\"name\",Values=\"$t.AMIName\"".replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
+			project.exec {
+				environment << awsEnvironment
+				commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', region] + (owners.size() > 0 ? ['--owners'] + owners : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
 				standardOutput = os
 			}
-			res = new JsonSlurper().parseText(os.toString())
+			return new JsonSlurper().parseText(os.toString())['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] }
 		}
-		if (res['Images'].size() == 1)
-			return res['Images'][0]['ImageId']
 	}
 	def void processTemplate(Project project, String fileName, Task parentTask = null) {
 		project.logger.info(sprintf('gradle-packer-plugin: Processing %s template', [fileName]))
@@ -186,36 +183,46 @@ class GradlePackerPlugin implements Plugin<Project> {
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
 				t.inputs.property('sourceAMI', {
-					Map res = [:]
-					new ByteArrayOutputStream().withStream { os ->
-						project.exec {
-							environment << t.awsEnvironment
-							commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', parseString(builder['region'], t.contextTemplateData)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
-							standardOutput = os
-						}
-						res = new JsonSlurper().parseText(os.toString())
-						if (res['Images'].size() > 0 && mostRecent)
-							res['Images'] = [ res['Images'].max { it['CreationDate'] } ]
-					}
+					List res = findAMI(
+						project, t.awsEnvironment,
+						parseString(builder['region'], t.contextTemplateData),
+						owners,
+						filters
+					)
+					if (res.size > 1 && mostRecent)
+						res = [res[0]]
 					project.logger.info(sprintf('gradle-packer-plugin: sourceAMI value %s', [JsonOutput.toJson(res)]))
 					JsonOutput.toJson(res)
 				})
 
 				t.ext.AMIName = parseString(builder['ami_name'], t.contextTemplateData)
-				t.ext.outputAMI = [:]
+				Map awsContextTemplateData = new HashMap(t.contextTemplateData)
+				awsContextTemplateData['timestamp'] = '*'
+				awsContextTemplateData['uuid'] = '*'
+				String AMINameForUpToDate = parseString(builder['ami_name'], awsContextTemplateData)
 				if (!builder.containsKey('ami_regions'))
 					builder['ami_regions'] = []
 				builder['ami_regions'] = [builder['region']] + builder['ami_regions']
 				for (region in builder['ami_regions']) {
 					region = parseString(region, t.contextTemplateData)
 					t.outputs.upToDateWhen {
-						t.ext.outputAMI = findAMI(t, region)
+						t.ext.outputAMI = findAMI(
+							project, t.awsEnvironment,
+							region,
+							['self'],
+							['name': [AMINameForUpToDate]]
+						)[0]
 						return t.ext.outputAMI != null
 					}
 					Task unregisterImage = project.task("unregisterImage-$fullBuildName-$region") {
 						group 'Clean'
 						onlyIf {
-							ext.AMI = findAMI(t, region)
+							ext.AMI = (findAMI(
+								project, t.awsEnvironment,
+								region,
+								['self'],
+								['name': [t.AMIName]]
+							)[0] ?: [:])['ImageId']
 							return ext.AMI != null
 						}
 						doLast {
@@ -228,12 +235,21 @@ class GradlePackerPlugin implements Plugin<Project> {
 					Task waitForUnregisterImage = project.task("waitForUnregisterImage-$fullBuildName-$region") {
 						group: 'Clean'
 						onlyIf {
-							String AMI = findAMI(t, region)
-							return AMI != null
+							return findAMI(
+								project, t.awsEnvironment,
+								region,
+								['self'],
+								['name': [t.AMIName]]
+							).size() > 0
 						}
 						dependsOn unregisterImage
 						doLast {
-							while (findAMI(t, region) != null)
+							while (findAMI(
+								project, t.awsEnvironment,
+								region,
+								['self'],
+								['name': [t.AMIName]]
+							).size() > 0)
 								sleep(10 * 1000)
 						}
 					}
