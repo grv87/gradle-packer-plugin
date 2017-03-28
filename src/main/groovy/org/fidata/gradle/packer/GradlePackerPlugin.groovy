@@ -54,7 +54,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 		new ByteArrayOutputStream().withStream { os ->
 			t.project.exec {
 				environment << t.awsEnvironment
-				commandLine 'aws', 'ec2', 'describe-images', '--region', region, '--filters', "Name=\"name\",Values=\"$t.AMIName\"".replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'
+				commandLine(['aws'] + (t.project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', region, '--filters', "Name=\"name\",Values=\"$t.AMIName\"".replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
 				standardOutput = os
 			}
 			res = new JsonSlurper().parseText(os.toString())
@@ -190,7 +190,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					new ByteArrayOutputStream().withStream { os ->
 						project.exec {
 							environment << t.awsEnvironment
-							commandLine(['aws', 'ec2', 'describe-images', '--region', parseString(builder['region'], t.contextTemplateData)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
+							commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', parseString(builder['region'], t.contextTemplateData)] + (owners.size() > 0 ? ['--owners', owners] : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
 							standardOutput = os
 						}
 						res = new JsonSlurper().parseText(os.toString())
@@ -221,7 +221,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 						doLast {
 							project.exec {
 								environment << t.awsEnvironment
-								commandLine 'aws', 'ec2', 'deregister-image', '--region', region, '--image-id', ext.AMI
+								commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'deregister-image', '--region', region, '--image-id', ext.AMI])
 							}
 						}
 					}
