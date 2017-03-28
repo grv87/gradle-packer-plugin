@@ -85,7 +85,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
-			if (project.gradle.startParameter.logLevel >= LogLevel.DEBUG)
+			if (project.gradle.startParameter.logLevel <= LogLevel.DEBUG)
 				environment 'PACKER_LOG',  1
 			commandLine ((['packer', 'validate', '-syntax-only'] + customVariablesCmdLine + [fileName]))
 			inputs.file templateFile
@@ -112,7 +112,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				ext.contextTemplateData['uuid'] = uuid
 				shouldRunAfter validate
 				mustRunAfter cleanTask
-				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel >= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
+				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
 				inputs.file templateFile
 			}
 
