@@ -34,9 +34,9 @@ import com.fasterxml.uuid.UUIDGenerator
 class GradlePackerPlugin implements Plugin<Project> {
     def void apply(Project project) {
 		project.task('validate') { group 'Validate' }
-		project.extensions.create("packer", PackerPluginExtension)
+		project.extensions.create('packer', PackerPluginExtension)
 		project.afterEvaluate {
-			for(template in project.packer.templates)
+			for (template in project.packer.templates)
 				processTemplate project, template.fileName, template.parentTask
 		}
     }
@@ -53,7 +53,21 @@ class GradlePackerPlugin implements Plugin<Project> {
 		new ByteArrayOutputStream().withStream { os ->
 			project.exec {
 				environment << awsEnvironment
-				commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'describe-images', '--region', region] + (owners.size() > 0 ? ['--owners'] + owners : []) + ['--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'), '--output', 'json'])
+				commandLine(
+					[
+						'aws'
+					] +
+					(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) +
+					[
+						'ec2', 'describe-images',
+						'--region', region
+					] +
+					(owners.size() > 0 ? ['--owners'] + owners : []) +
+					[
+						'--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'),
+						'--output', 'json'
+					]
+				)
 				standardOutput = os
 			}
 			return new JsonSlurper().parseText(os.toString())['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] }
@@ -72,19 +86,28 @@ class GradlePackerPlugin implements Plugin<Project> {
 		if (InputJSON.containsKey('variables')) {
 			for (variable in InputJSON['variables'])
 				if (project.packer.customVariables[variable.key]) {
-					templateData["user `$variable.key`"] = project.packer.customVariables[variable.key]
+					templateData["user `${variable.key}`"] = project.packer.customVariables[variable.key]
 					customVariablesCmdLine.push '-var'
-					customVariablesCmdLine.push "$variable.key=${project.packer.customVariables[variable.key]}"
+					customVariablesCmdLine.push "${variable.key}=${project.packer.customVariables[variable.key]}"
 				}
 				else
-					templateData["user `$variable.key`"] = variable.value
+					templateData["user `${variable.key}`"] = variable.value
 		}
 		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
 			if (project.gradle.startParameter.logLevel <= LogLevel.DEBUG)
 				environment 'PACKER_LOG',  1
-			commandLine ((['packer', 'validate', '-syntax-only'] + customVariablesCmdLine + [fileName]))
+			commandLine(
+				[
+					'packer',
+					'validate', '-syntax-only'
+				] +
+				customVariablesCmdLine +
+				[
+					fileName
+				]
+			)
 			inputs.file templateFile
 		}
 		project.tasks['validate'].dependsOn validate
@@ -167,13 +190,23 @@ class GradlePackerPlugin implements Plugin<Project> {
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
 				Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") {
 					group 'Clean'
-					commandLine 'VBoxManage', 'controlvm', "$t.VMName", 'poweroff'
+					commandLine([
+						'VBoxManage',
+						'controlvm',
+						t.VMName,
+						'poweroff'
+					])
 					ignoreExitValue true
 				}
 				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
 					group 'Clean'
 					dependsOn powerOffVM
-					commandLine 'VBoxManage', 'unregistervm', "$t.VMName", '--delete'
+					commandLine([
+						'VBoxManage',
+						'unregistervm',
+						t.VMName,
+						'--delete'
+					])
 					ignoreExitValue true
 				}
 				Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
@@ -196,7 +229,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				if (builder.containsKey('source_ami'))
 					filters = ['image-id':  [parseString(builder['source_ami'], t.contextTemplateData)]]
 				else {
-					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> ["$key": values instanceof List ? values.collect { [parseString(it, t.contextTemplateData)] } : [values instanceof String ? parseString(values, t.contextTemplateData) : values]] }
+					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> [(key): values instanceof List ? values.collect { [parseString(it, t.contextTemplateData)] } : [values instanceof String ? parseString(values, t.contextTemplateData) : values]] }
 					owners = (builder['source_ami_filter']['owners'] ?: []).collect { parseString(it, t.contextTemplateData) }
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
@@ -246,7 +279,17 @@ class GradlePackerPlugin implements Plugin<Project> {
 						doLast {
 							project.exec {
 								environment << t.awsEnvironment
-								commandLine(['aws'] + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) + ['ec2', 'deregister-image', '--region', region, '--image-id', ext.AMI])
+								commandLine(
+									[
+										'aws'
+									] +
+									(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) +
+									[
+										'ec2', 'deregister-image',
+										'--region', region,
+										'--image-id', ext.AMI
+									]
+								)
 							}
 						}
 					}
@@ -373,7 +416,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 						}
 						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', t.contextTemplateData + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
 						project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
-						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-$t.fullBuildName") {
+						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-${t.fullBuildName}") {
 							group 'Clean'
 							delete t.outputFileName
 						}
