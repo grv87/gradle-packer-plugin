@@ -233,7 +233,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					owners = (builder['source_ami_filter']['owners'] ?: []).collect { parseString(it, t.contextTemplateData) }
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
-				t.inputs.property('sourceAMI', {
+				t.inputProperties['sourceAMI'] = {
 					List res = findAMI(
 						project, t.awsEnvironment,
 						parseString(builder['region'], t.contextTemplateData),
@@ -244,7 +244,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 						res = [res[0]]
 					project.logger.info(sprintf('gradle-packer-plugin: sourceAMI value %s', [JsonOutput.toJson(res)]))
 					JsonOutput.toJson(res)
-				})
+				}
 
 				t.ext.AMIName = parseString(builder['ami_name'], t.contextTemplateData)
 				Map awsContextTemplateData = new HashMap(t.contextTemplateData)
@@ -256,7 +256,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 				builder['ami_regions'] = [builder['region']] + builder['ami_regions']
 				for (region in builder['ami_regions']) {
 					region = parseString(region, t.contextTemplateData)
-					t.outputs.upToDateWhen {
+					t.upToDateWhen.push {
 						t.ext.outputAMI = findAMI(
 							project, t.awsEnvironment,
 							region,
@@ -430,7 +430,49 @@ class GradlePackerPlugin implements Plugin<Project> {
 				else processPostProcessors(p)
 			}
 		}
+		Task commonT = project.task("build-$imageName") {
+			group 'Build'
+			ext.cleanTask = project.task("clean-$imageName") {
+				group 'Clean'
+				shouldRunAfter validate
+			}
+			shouldRunAfter validate
+			mustRunAfter cleanTask
+			doLast {
+				project.exec {
+					commandLine(
+						[
+							'packer',
+							'build',
+						] +
+						customVariablesCmdLine +
+						(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) +
+						[
+							fileName
+						]
+					)
+				}
+			}
+			inputs.property 'customVariablesCmdLine', customVariablesCmdLine
+		}
 		for (t in ts.values()) {
+			commonT.cleanTask.dependsOn t.cleanTask
+			for (i in t.inputs.files)
+				commonT.inputs.file i
+			for (i in t.inputProperties) {
+				t.inputs.property i.key, i.value
+				commonT.inputs.property "${t.buildName}-${i.key}", i.value
+			}
+			for (o in t.outputs.files)
+				commonT.outputs.file o
+			Closure u = {
+				if (t.upToDateWhen.size() > 0)
+					t.upToDateWhen.every { it() }
+				else
+					true
+			}
+			t.outputs.upToDateWhen u
+			commonT.outputs.upToDateWhen u
 			if (t.ext.has('outputFileName')) {
 				project.logger.info(sprintf('gradle-packer-plugin: task %s has outputFileName %s', [t.name, t.outputFileName]))
 				t.outputs.file(t.outputFileName)

@@ -1,8 +1,9 @@
 # gradle-packer-plugin
 This plugin allows to run [Packer](http://www.packer.io/) builds from Gradle.
 
-1.	It parses Packer's templates and creates Gradle tasks to run Packer,
-	separate task for each builder in each template.
+1.	It parses Packer's templates and creates Gradle tasks to run Packer.
+	For each template it creates single task to run all builders at once
+	and separate task for each builder.
 
 2.	It could pass used-defined variables to Packer.
 
@@ -34,11 +35,10 @@ Plugin creates series of tasks for cleaning and running Packer builds.
 If template has a `name` variable, it is used instead of template
 filename. High-level task names are:
 
+*      `clean-<name variable or template filename>`
+*      `build-<name variable or template filename>`
 *      `clean-<name variable or template filename>-<build name>`
 *      `build-<name variable or template filename>-<build name>`
-
-Note that there is no out-of-the-box single task to run all builds
-defined in one template.
 
 ## Supported Packer configurations:
 *	Builders:
