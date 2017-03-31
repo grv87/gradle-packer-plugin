@@ -35,11 +35,16 @@ class GradlePackerPlugin implements Plugin<Project> {
     def void apply(Project project) {
 		project.task('validate') { group 'Validate' }
 		project.extensions.create('packer', PackerPluginExtension)
-		project.afterEvaluate {
-			for (template in project.packer.templates)
-				processTemplate project, template.fileName, template.parentTask
-		}
+		project.extensions.packer.project = project
     }
+}
+
+class PackerPluginExtension {
+	Project project
+	Map customVariables = [:]
+	Date initTime = new Date()
+	UUIDGenerator uuidGenerator = Generators.timeBasedGenerator()
+
 	/* Packer uses Go text/template library. It wasn't ported to Java/Groovy
 	   This code uses Mustache to parse templates.
 	   There could be errors due to slightly different syntax.
@@ -479,20 +484,8 @@ class GradlePackerPlugin implements Plugin<Project> {
 			}
 		}
 	}
-}
-
-class PackerTemplate {
-	String fileName
-	Task parentTask = null
-}
-
-class PackerPluginExtension {
-	Map customVariables = [:]
-	List<PackerTemplate> templates = []
-	Date initTime = new Date()
-	UUIDGenerator uuidGenerator = Generators.timeBasedGenerator()
 
 	def template(String fileName, Task parentTask = null) {
-		templates.push(new PackerTemplate(fileName: fileName, parentTask: parentTask))
+		processTemplate project, fileName, parentTask
 	}
 }
