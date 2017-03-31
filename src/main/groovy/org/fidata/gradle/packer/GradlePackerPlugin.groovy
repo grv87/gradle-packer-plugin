@@ -194,7 +194,6 @@ class PackerPluginExtension {
 				t.ext.outputFileName = project.file(new File(outputDir, t.VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
 				project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
 				Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") {
-					group 'Clean'
 					commandLine([
 						'VBoxManage',
 						'controlvm',
@@ -204,7 +203,6 @@ class PackerPluginExtension {
 					ignoreExitValue true
 				}
 				Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
-					group 'Clean'
 					dependsOn powerOffVM
 					commandLine([
 						'VBoxManage',
@@ -215,7 +213,6 @@ class PackerPluginExtension {
 					ignoreExitValue true
 				}
 				Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
-					group 'Clean'
 					dependsOn unregisterVM
 					delete outputDir
 				}
@@ -271,7 +268,6 @@ class PackerPluginExtension {
 						return t.ext.outputAMI != null
 					}
 					Task unregisterImage = project.task("unregisterImage-$fullBuildName-$region") {
-						group 'Clean'
 						onlyIf {
 							ext.AMI = (findAMI(
 								project, t.awsEnvironment,
@@ -299,7 +295,6 @@ class PackerPluginExtension {
 						}
 					}
 					Task waitForUnregisterImage = project.task("waitForUnregisterImage-$fullBuildName-$region") {
-						group: 'Clean'
 						onlyIf {
 							return findAMI(
 								project, t.awsEnvironment,
@@ -422,7 +417,6 @@ class PackerPluginExtension {
 						t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', t.contextTemplateData + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
 						project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
 						t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-${t.fullBuildName}") {
-							group 'Clean'
 							delete t.outputFileName
 						}
 					}
