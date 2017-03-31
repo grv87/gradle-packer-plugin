@@ -179,7 +179,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 					filters = ['image-id':  [parseString(builder['source_ami'], t.contextTemplateData)]]
 				else {
 					filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> ["$key": values instanceof List ? values.collect { [parseString(it, t.contextTemplateData)] } : [values instanceof String ? parseString(values, t.contextTemplateData) : values]] }
-					owners = builder['source_ami_filter']['owners'] ?: []
+					owners = (builder['source_ami_filter']['owners'] ?: []).collect { parseString(it, t.contextTemplateData) }
 					mostRecent = builder['source_ami_filter']['most_recent'] ?: false
 				}
 				t.inputs.property('sourceAMI', {
