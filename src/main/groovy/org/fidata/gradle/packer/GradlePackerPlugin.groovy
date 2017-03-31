@@ -93,7 +93,7 @@ class GradlePackerPlugin implements Plugin<Project> {
 			String builderType = builder['type']
 			String buildName = builder['name'] ?: builderType
 			String fullBuildName = "$imageName-$buildName"
-			Task t = project.task([type: Exec], "build-$fullBuildName") {
+			Task t = project.task("build-$fullBuildName") {
 				group 'Build'
 				ext.builderType = builderType
 				ext.buildName = buildName
@@ -107,10 +107,28 @@ class GradlePackerPlugin implements Plugin<Project> {
 				ext.contextTemplateData['build_name'] = buildName
 				ext.contextTemplateData['build_type'] = builderType
 				ext.contextTemplateData['uuid'] = uuid
+				ext.upToDateWhen = []
+				ext.inputProperties = [:]
 				shouldRunAfter validate
 				mustRunAfter cleanTask
-				commandLine((['packer', 'build', "-only=$buildName"] + customVariablesCmdLine + (project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) + [fileName]))
+				doLast {
+					project.exec {
+						commandLine(
+							[
+								'packer',
+								'build',
+								"-only=$buildName"
+							] +
+							customVariablesCmdLine +
+							(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) +
+							[
+								fileName
+							]
+						)
+					}
+				}
 				inputs.file templateFile
+				inputs.property 'customVariablesCmdLine', customVariablesCmdLine
 			}
 
 			// VirtualBox ISO & OVF builders
