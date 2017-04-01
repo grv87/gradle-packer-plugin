@@ -98,7 +98,10 @@ artifactory {
 	}
 	resolve {
 		repository {
-			repoKey = 'libs-snapshot'
+			if (isRelease)
+				repoKey = 'libs-release'
+			else
+				repoKey = 'libs-snapshot'
 			username = "${artifactory_user}"
 			password = "${artifactory_password}"
 			maven = true
