@@ -17,10 +17,10 @@
 	limitations under the License.
 */
 plugins {
-	id 'com.jfrog.artifactory' version '4.4.9'
+	id 'com.jfrog.artifactory' version '4.4.14'
 	id 'de.gliderpilot.semantic-release' version '1.2.0'
 	id 'com.gradle.plugin-publish' version '0.9.7'
-	id 'com.ofg.uptodate' version '1.6.2'
+	id 'com.ofg.uptodate' version '1.6.3'
 }
 
 apply plugin: 'java'
