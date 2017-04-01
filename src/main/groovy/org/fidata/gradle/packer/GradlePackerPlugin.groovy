@@ -101,8 +101,6 @@ class PackerPluginExtension {
 		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
-			if (project.gradle.startParameter.logLevel <= LogLevel.DEBUG)
-				environment 'PACKER_LOG',  1
 			commandLine(
 				[
 					'packer',
