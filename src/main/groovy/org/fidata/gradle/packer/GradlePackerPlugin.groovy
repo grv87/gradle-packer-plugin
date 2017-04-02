@@ -55,6 +55,13 @@ class PackerPluginExtension {
 	}
 	static Pattern httpFileNamePattern = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
+	def List<String> packerLogLevelArgs(project) {
+		(project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['-debug'] : []
+	}
+	def List<String> awsLogLevelArgs(project) {
+		(project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['--debug'] : []
+	}
+
 	def List findAMI(project, awsEnvironment, region, owners, filters) {
 		new ByteArrayOutputStream().withStream { os ->
 			project.exec {
@@ -63,7 +70,7 @@ class PackerPluginExtension {
 					[
 						'aws'
 					] +
-					(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) +
+					awsLogLevelArgs(project) +
 					[
 						'ec2', 'describe-images',
 						'--region', region
@@ -147,7 +154,7 @@ class PackerPluginExtension {
 								"-only=$buildName"
 							] +
 							customVariablesCmdLine +
-							(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) +
+							packerLogLevelArgs(project) +
 							[
 								fileName
 							]
@@ -283,7 +290,7 @@ class PackerPluginExtension {
 									[
 										'aws'
 									] +
-									(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['--debug'] : []) +
+									awsLogLevelArgs(project) +
 									[
 										'ec2', 'deregister-image',
 										'--region', region,
@@ -444,7 +451,7 @@ class PackerPluginExtension {
 							'build',
 						] +
 						customVariablesCmdLine +
-						(project.gradle.startParameter.logLevel <= LogLevel.DEBUG ? ['-debug'] : []) +
+						packerLogLevelArgs(project) +
 						[
 							fileName
 						]
