@@ -1,3 +1,4 @@
+#!/usr/bin/env groovy
 /*	gradle-packer-plugin
 	Copyright © 2016-2017  Basil Peace
 
