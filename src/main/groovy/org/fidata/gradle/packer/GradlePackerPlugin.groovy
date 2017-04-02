@@ -33,7 +33,8 @@ import com.fasterxml.uuid.UUIDGenerator
 
 class GradlePackerPlugin implements Plugin<Project> {
     def void apply(Project project) {
-		project.task('validate') { group 'Validate' }
+		if (project.tasks.findByPath('validate') == null)
+			project.task('validate') { group 'Validate' }
 		project.extensions.create('packer', PackerPluginExtension)
 		project.extensions.packer.project = project
     }
