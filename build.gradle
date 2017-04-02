@@ -89,8 +89,8 @@ artifactory {
 				repoKey = 'plugins-release-local'
 			else
 				repoKey = 'plugins-snapshot-local'
-			username = "${artifactory_user}"
-			password = "${artifactory_password}"
+			username = artifactory_user
+			password = artifactory_password
 			maven = true
 		}
 		defaults {
@@ -103,8 +103,8 @@ artifactory {
 				repoKey = 'libs-release'
 			else
 				repoKey = 'libs-snapshot'
-			username = "${artifactory_user}"
-			password = "${artifactory_password}"
+			username = artifactory_user
+			password = artifactory_password
 			maven = true
 		}
 	}
