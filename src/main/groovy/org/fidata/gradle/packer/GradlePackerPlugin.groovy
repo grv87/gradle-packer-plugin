@@ -53,7 +53,7 @@ class PackerPluginExtension {
 	static String parseString(string, contextTemplateData) {
 		Mustache.compiler().compile(string).execute(contextTemplateData)
 	}
-	static Pattern httpFileNamePattern = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
+	static Pattern HTTP_FILENAME_PATTERN = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
 	def List<String> packerLogLevelArgs(project) {
 		(project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['-debug'] : []
@@ -109,6 +109,7 @@ class PackerPluginExtension {
 		String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
 		Task validate = project.task([type: Exec], "validate-$imageName") {
 			group 'Validate'
+			inputs.file templateFile
 			commandLine(
 				[
 					'packer',
@@ -119,7 +120,6 @@ class PackerPluginExtension {
 					fileName
 				]
 			)
-			inputs.file templateFile
 		}
 		project.tasks['validate'].dependsOn validate
 		Map ts = [:]
@@ -141,10 +141,12 @@ class PackerPluginExtension {
 				ext.contextTemplateData['build_name'] = buildName
 				ext.contextTemplateData['build_type'] = builderType
 				ext.contextTemplateData['uuid'] = uuid
-				ext.upToDateWhen = []
-				ext.inputProperties = [:]
 				shouldRunAfter validate
 				mustRunAfter cleanTask
+				inputs.file templateFile
+				inputs.property 'customVariablesCmdLine', customVariablesCmdLine
+				ext.inputProperties = [:]
+				ext.upToDateWhen = []
 				doLast {
 					project.exec {
 						commandLine(
@@ -161,8 +163,6 @@ class PackerPluginExtension {
 						)
 					}
 				}
-				inputs.file templateFile
-				inputs.property 'customVariablesCmdLine', customVariablesCmdLine
 			}
 
 			// VirtualBox ISO & OVF builders
@@ -184,7 +184,7 @@ class PackerPluginExtension {
 					for (floppy_file in builder['floppy_files'])
 						t.inputs.file parseString(floppy_file, t.contextTemplateData)
 				if (builder.containsKey('http_directory') && builder.containsKey('boot_command')) {
-					Matcher m = httpFileNamePattern.matcher(parseString(builder['boot_command'].toString(), t.contextTemplateData + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
+					Matcher m = HTTP_FILENAME_PATTERN.matcher(parseString(builder['boot_command'].toString(), t.contextTemplateData + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
 					if (m.find() && m.group(1) != '')
 						t.inputs.file project.file(new File(parseString(builder['http_directory'], t.contextTemplateData), m.group(1)))
 				}
@@ -443,6 +443,7 @@ class PackerPluginExtension {
 			}
 			shouldRunAfter validate
 			mustRunAfter cleanTask
+			inputs.property 'customVariablesCmdLine', customVariablesCmdLine
 			doLast {
 				project.exec {
 					commandLine(
@@ -458,7 +459,6 @@ class PackerPluginExtension {
 					)
 				}
 			}
-			inputs.property 'customVariablesCmdLine', customVariablesCmdLine
 		}
 		for (t in ts.values()) {
 			commonT.cleanTask.dependsOn t.cleanTask
