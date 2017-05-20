@@ -233,7 +233,7 @@ class PackerPluginExtension {
 					'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], t.contextTemplateData)
 				]
 				Map filters
-				String[] owners = []
+				List<String> owners = []
 				boolean mostRecent = false
 				if (builder.containsKey('source_ami'))
 					filters = ['image-id':  [parseString(builder['source_ami'], t.contextTemplateData)]]
