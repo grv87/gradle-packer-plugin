@@ -1,2 +1,4 @@
-gradlew text eol=lf
-gradlew.bat text eol=crlf
+gradlew eol=lf
+gradlew.bat eol=crlf
+gradle-wrapper.properties eol=lf
+**/gradle/dependency-locks/*.lockfile eol=lf

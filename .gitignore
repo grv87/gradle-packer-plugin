@@ -2,7 +2,19 @@
 .gradle/
 gradle.properties
 build/
+
 # GFM Viewer
 .*.md.html
-# Gradle IDE
-/bin/
+
+# IDEA User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+
+# IDEA Legacy Project Format
+*.iws
+
+# IDEA Gradle
+*.iml
+.idea/**/gradle.xml
