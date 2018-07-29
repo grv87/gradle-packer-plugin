@@ -18,110 +18,54 @@
 	limitations under the License.
 */
 plugins {
-	id 'com.jfrog.artifactory' version '4.4.14'
-	id 'de.gliderpilot.semantic-release' version '1.2.0'
-	id 'com.gradle.plugin-publish' version '0.9.7'
-	id 'com.ofg.uptodate' version '1.6.3'
+  id 'org.fidata.project.groovy' version '2.1.0'
+  id 'org.fidata.plugin' version '2.1.0'
 }
 
-apply plugin: 'java'
-apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+description = 'Run Packer builds from Gradle'
 
 group = 'fidata.org'
 
-ext.ghToken = hasProperty('ghToken') ? getProperty('ghToken') : System.getenv('GH_TOKEN') ?: null
-System.setProperty('org.ajoberstar.grgit.auth.username', hasProperty('gitUsername') ? getProperty('gitUsername') : System.getenv('GIT_USER') ?: System.getenv('GITCREDENTIALUSERNAME') ?: null)
-System.setProperty('org.ajoberstar.grgit.auth.password', hasProperty('gitPassword') ? getProperty('gitPassword') : System.getenv('GIT_PASS') ?: System.getenv('GITCREDENTIALPASSWORD') ?: null)
+license = 'Apache-2.0'
+publicReleases = true
 
-repositories {
-	jcenter()
+contacts {
+  'grv87@yandex.ru' {
+    moniker 'Basil Peace'
+    github 'grv87'
+    roles 'owner', 'developer'
+  }
 }
 
 dependencies {
-	compile localGroovy()
-	compile gradleApi()
-	compile group: 'com.samskivert', name: 'jmustache', version: '1.13'
-	compile group: 'commons-io', name: 'commons-io', version: '2.5'
-	compile group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.4'
+  implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
+  implementation group: 'commons-io', name: 'commons-io', version: '2.5'
+  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.4'
 }
 
-task wrapper(type: Wrapper) {
-	group 'Help'
-	gradleVersion = '4.9'
+gradlePlugin {
+  plugins {
+    keygenPlugin {
+      id = 'org.fidata.packer'
+      implementationClass = 'org.fidata.gradle.packer.GradlePackerPlugin'
+    }
+  }
 }
 
-pluginBundle {
-	website = 'https://github.com/FIDATA/gradle-packer-plugin'
-	vcsUrl = 'https://github.com/FIDATA/gradle-packer-plugin'
-	description = 'Run Packer builds from Gradle'
-	tags = ['packer', 'devops', 'vm']
-	plugins {
-		gradlePackerPlugin {
-			id = 'org.fidata.packer'
-			displayName = 'Gradle Packer plugin'
-		}
-	}
+stutter {
+  sparse = true
+  java(8) {
+    compatibleRange '3.1'
+  }
+  java(9) {
+    compatibleRange '3.1'
+  }
 }
 
-semanticRelease {
-	repo {
-		ghToken = project.ghToken
-	}
-}
-
-ext.isRelease = !version.toString().endsWith('-SNAPSHOT')
-
-publishing {
-	publications {
-		mavenGroovy(MavenPublication) {
-			from components.java
-			groupId "gradle.plugin.$group"
-			artifact jar
-		}
-	}
-}
-artifactory {
-	contextUrl = 'https://fidata.jfrog.io/fidata'
-	publish {
-		repository {
-			if (isRelease)
-				repoKey = 'plugins-release-local'
-			else
-				repoKey = 'plugins-snapshot-local'
-			username = artifactory_user
-			password = artifactory_password
-			maven = true
-		}
-		defaults {
-			publications('mavenGroovy')
-		}
-	}
-	resolve {
-		repository {
-			if (isRelease)
-				repoKey = 'libs-release'
-			else
-				repoKey = 'libs-snapshot'
-			username = artifactory_user
-			password = artifactory_password
-			maven = true
-		}
-	}
-}
-
-tasks.release.finalizedBy artifactoryPublish
-
-if (isRelease)
-	tasks.release.finalizedBy publishPlugins
-
-task(inputsOutputs).doLast {
-	for (t in tasks) {
-		if (t.inputs.hasInputs)
-			for (f in t.inputs.files)
-				logger.lifecycle(sprintf('%s input: %s', [t.name, f.path]))
-		if (t.outputs.hasOutput)
-			for (f in t.outputs.files)
-				logger.lifecycle(sprintf('%s output: %s', [t.name, f.path]))
-	}
+pluginBundle.plugins {
+  packerPlugin {
+    id = 'org.fidata.packer'
+    displayName = 'Gradle Packer plugin'
+    tags = ['packer', 'devops', 'vm']
+  }
 }
