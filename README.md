@@ -1,5 +1,5 @@
 # gradle-packer-plugin
-This plugin allows to run [Packer](http://www.packer.io/) builds from Gradle.
+This plugin allows to run [Packer](https://www.packer.io/) builds from Gradle.
 
 1.	It parses Packer's templates and creates Gradle tasks to run Packer.
 	For each template it creates single task to run all builders at once
@@ -27,7 +27,7 @@ packer {
 ```
 
 ## Requirements
-*	[Packer](http://www.packer.io/)
+*	[Packer](https://www.packer.io/)
 *	[AWS CLI](https://aws.amazon.com/cli/) – for Amazon builders
 
 ## Task names
@@ -108,8 +108,8 @@ script, so that up-to-date detection provided by this plugin would work.
 	*	`uuid`
 
 ## Notes
-1.	Gradle (as of 3.2) [can't handle URLs]
-(https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
+1.	Gradle (as of 3.2) [can't handle URLs](
+https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
 
 	However, it is usually safe to assume that ISOs in the web
 are not changed.
