@@ -17,18 +17,21 @@
 */
 package org.fidata.gradle.packer
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 
 /**
  * `org.fidata.packer` plugin
  */
+@CompileStatic
 class GradlePackerPlugin implements Plugin<Project> {
   void apply(Project project) {
     if (project.tasks.findByPath('validate') == null) {
-      project.task('validate') { group 'Validate' }
+      project.task('validate') { Task task -> task.group = 'Validate' }
     }
     project.extensions.create('packer', PackerPluginExtension)
-    project.extensions.packer.project = project
+    project.extensions.getByType(PackerPluginExtension).project = project
   }
 }

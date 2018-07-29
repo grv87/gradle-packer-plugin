@@ -17,12 +17,14 @@
 */
 package org.fidata.gradle.packer
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ExecSpec
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.regex.Matcher
@@ -31,16 +33,17 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import org.apache.commons.io.FilenameUtils
 import com.fasterxml.uuid.Generators
-import com.fasterxml.uuid.UUIDGenerator
+import com.fasterxml.uuid.NoArgGenerator
 
 /**
  * `packer` extension for Gradle project
  */
+@CompileStatic
 class PackerPluginExtension {
   Project project
   Map customVariables = [:]
   Date initTime = new Date()
-  UUIDGenerator uuidGenerator = Generators.timeBasedGenerator()
+  NoArgGenerator uuidGenerator = Generators.timeBasedGenerator()
 
   /* Packer uses Go text/template library. It wasn't ported to Java/Groovy
      This code uses Mustache to parse templates.
@@ -51,114 +54,120 @@ class PackerPluginExtension {
   }
   static final Pattern HTTP_FILENAME_PATTERN = ~$/http://\{\{\s*.HTTPIP\s*\}\}(?::\{\{\s*.HTTPPort\s*\}\})?\/([^\s<]*)/$
 
-  List<String> packerLogLevelArgs(Project project) {
-    (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['-debug'] : []
+  List<String> packerLogLevelArgs() {
+    (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['-debug'] : (List<String>)[]
   }
-  List<String> awsLogLevelArgs(Project project) {
-    (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['--debug'] : []
+  List<String> awsLogLevelArgs() {
+    (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG ? ['--debug'] : (List<String>)[]
   }
 
-  List findAMI(Project project, Map<String, Object> awsEnvironment, String region, List<String> owners, Map<String, String> filters) {
+  List findAMI(Map<String, Object> awsEnvironment, String region, List<String> owners, Map<String, Object> filters) {
     new ByteArrayOutputStream().withStream { os ->
-      project.exec {
-        environment << awsEnvironment
-        commandLine(
-          [
-            'aws'
-          ] +
-            awsLogLevelArgs(project) +
+      project.exec { ExecSpec execSpec ->
+        execSpec.with {
+          environment << awsEnvironment
+          commandLine(
             [
-              'ec2', 'describe-images',
-              '--region', region
+              'aws'
             ] +
-            (owners.size() > 0 ? ['--owners'] + owners : []) +
-            [
-              '--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'),
-              '--output', 'json'
-            ]
-        )
-        standardOutput = os
+              awsLogLevelArgs() +
+              [
+                'ec2', 'describe-images',
+                '--region', region
+              ] +
+              (owners.size() > 0 ? ['--owners'] + owners : (List<String>)[]) +
+              [
+                '--filters', JsonOutput.toJson(filters.collectEntries { key, values -> ['Name': key, 'Values': values] }).replace('"', OperatingSystem.current().windows ? '\\"' : '"'),
+                '--output', 'json'
+              ]
+          )
+          standardOutput = os
+        }
       }
-      new JsonSlurper().parseText(os.toString())['Images'].sort { a, b -> b['CreationDate'] <=> a['CreationDate'] }
+      ((List<Map<String, Object>>)new JsonSlurper().parseText(os.toString())['Images']).sort { Map<String, Object> a, b -> ((Date)b['CreationDate']) <=> ((Date)a['CreationDate']) }
     }
   }
   @SuppressWarnings(['BusyWait', 'UnnecessaryObjectReferences'])
-  void processTemplate(Project project, String fileName, Task parentTask = null) {
+  void processTemplate(String fileName, Task parentTask = null) {
     project.logger.info(sprintf('gradle-packer-plugin: Processing %s template', [fileName]))
     File templateFile = project.file(fileName)
-    Map inputJSON = new JsonSlurper().parse(templateFile)
-    Map templateData = [
-      'pwd': project.file('.').canonicalPath,
+    Map<String, Object> inputJSON = (Map<String, Object>)new JsonSlurper().parse(templateFile)
+    Map<String, Object> templateData = (Map<String, Object>)[
+      'pwd': (Object)project.file('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
-      'timestamp': project.extensions.packer.initTime.time.intdiv(1000),
+      'timestamp': initTime.time.intdiv(1000),
     ]
     List<String> customVariablesCmdLine = []
     if (inputJSON.containsKey('variables')) {
-      for (variable in inputJSON['variables']) {
-        if (project.packer.customVariables[variable.key]) {
-          templateData["user `${ variable.key }`"] = project.packer.customVariables[variable.key]
+      for (Map.Entry variable in (Map<String, Object>)inputJSON['variables']) {
+        if (customVariables[variable.key]) {
+          templateData.put "user `${ variable.key }`".toString(), customVariables[variable.key]
           customVariablesCmdLine.push '-var'
-          customVariablesCmdLine.push "${ variable.key }=${ project.packer.customVariables[variable.key] }"
+          customVariablesCmdLine.push "${ variable.key }=${ customVariables[variable.key] }".toString()
         } else {
-          templateData["user `${ variable.key }`"] = variable.value
+          templateData["user `${ variable.key }`".toString()] = variable.value
         }
       }
     }
     String imageName = templateData['user `name`'] ?: FilenameUtils.getBaseName(fileName)
-    Task validate = project.task([type: Exec], "validate-$imageName") {
-      group 'Validate'
-      inputs.file templateFile
-      commandLine(
-        [
-          'packer',
-          'validate', '-syntax-only'
-        ] +
+    Task validate = project.task([type: Exec], "validate-$imageName") { Exec task ->
+      task.with {
+        group = 'Validate'
+        inputs.file templateFile
+        commandLine(
+          [
+            'packer',
+            'validate', '-syntax-only'
+          ] +
           customVariablesCmdLine +
           [
             fileName
           ]
-      )
+        )
+      }
     }
-    project.tasks['validate'].dependsOn validate
-    Map ts = [:]
-    for (builder in inputJSON['builders']) {
+    project.tasks.getByName('validate').dependsOn validate
+    Map<String, Task> ts = [:]
+    for (Map<String, Object> builder in (List<Map<String, Object>>)inputJSON['builders']) {
       String builderType = builder['type']
       String buildName = builder['name'] ?: builderType
       String fullBuildName = "$imageName-$buildName"
-      Task t = project.task("build-$fullBuildName") {
-        group 'Build'
-        ext.builderType = builderType
-        ext.buildName = buildName
-        ext.fullBuildName = fullBuildName
-        ext.cleanTask = project.task("clean-$fullBuildName") {
-          group 'Clean'
+      Task t = project.task("build-$fullBuildName") { Task task ->
+        task.with {
+          group = 'Build'
+            extensions.extraProperties['builderType'] = builderType
+            extensions.extraProperties['buildName'] = buildName
+            extensions.extraProperties['fullBuildName'] = fullBuildName
+            extensions.extraProperties['cleanTask'] = project.task("clean-$fullBuildName") { Task cleanTask ->
+            cleanTask.group = 'Clean'
+            cleanTask.shouldRunAfter validate
+          }
+          extensions.extraProperties['contextTemplateData'] = new HashMap(templateData)
+          extensions.extraProperties['uuid'] = uuidGenerator.generate()
+          extensions.extraProperties['contextTemplateData']['build_name'] = buildName
+          extensions.extraProperties['contextTemplateData']['build_type'] = builderType
+          extensions.extraProperties['contextTemplateData']['uuid'] = extensions.extraProperties['uuid']
           shouldRunAfter validate
-        }
-        ext.contextTemplateData = new HashMap(templateData)
-        ext.uuid = project.packer.uuidGenerator.generate()
-        ext.contextTemplateData['build_name'] = buildName
-        ext.contextTemplateData['build_type'] = builderType
-        ext.contextTemplateData['uuid'] = uuid
-        shouldRunAfter validate
-        mustRunAfter cleanTask
-        inputs.file templateFile
-        inputs.property 'customVariablesCmdLine', customVariablesCmdLine
-        ext.inputProperties = [:]
-        ext.upToDateWhen = []
-        doLast {
-          project.exec {
-            commandLine(
-              [
-                'packer',
-                'build',
-                "-only=$buildName"
-              ] +
+          mustRunAfter extensions.extraProperties['cleanTask']
+          inputs.file templateFile
+          inputs.property 'customVariablesCmdLine', customVariablesCmdLine
+          extensions.extraProperties['inputProperties'] = [:]
+          extensions.extraProperties['upToDateWhen'] = []
+          doLast {
+            project.exec { ExecSpec execSpec ->
+              execSpec.commandLine(
+                [
+                  'packer',
+                  'build',
+                  "-only=$buildName".toString()
+                ] +
                 customVariablesCmdLine +
-                packerLogLevelArgs(project) +
+                packerLogLevelArgs() +
                 [
                   fileName
                 ]
-            )
+              )
+            }
           }
         }
       }
@@ -175,163 +184,173 @@ class PackerPluginExtension {
       //     t.inputs.file parseString(iso_url, t.contextTemplateData)
       // }
       if (builder['type'] == 'virtualbox-ovf') {
-        t.inputs.file parseString(builder['source_path'], t.contextTemplateData)
+        t.inputs.file parseString((String)builder['source_path'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
       }
       if (builderType == 'virtualbox-iso' || builderType == 'virtualbox-ovf') {
         if (builder.containsKey('floppy_files')) {
-          for (floppy_file in builder['floppy_files']) {
-            t.inputs.file parseString(floppy_file, t.contextTemplateData)
+          for (String floppy_file in builder['floppy_files']) {
+            t.inputs.file parseString(floppy_file, (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
           }
         }
         if (builder.containsKey('http_directory') && builder.containsKey('boot_command')) {
-          Matcher m = HTTP_FILENAME_PATTERN.matcher(parseString(builder['boot_command'].toString(), t.contextTemplateData + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
+          Matcher m = HTTP_FILENAME_PATTERN.matcher(parseString(builder['boot_command'].toString(), (Map<String, String>)t.extensions.extraProperties['contextTemplateData'] + ['.HTTPIP': '{{ .HTTPIP }}', '.HTTPPort': '{{ .HTTPPort }}']))
           if (m.find() && m.group(1) != '') {
-            t.inputs.file project.file(new File(parseString(builder['http_directory'], t.contextTemplateData), m.group(1)))
+            t.inputs.file project.file(new File(parseString((String)builder['http_directory'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData']), m.group(1)))
           }
         }
         // ISO URL
         // if (builder.containsKey('guest_addition_url'))
         //   t.inputs.file parseString(builder['guest_addition_url'], t.contextTemplateData)
         if (builder.containsKey('ssh_key_path')) {
-          t.inputs.file parseString(builder['ssh_key_path'], t.contextTemplateData)
+          t.inputs.file parseString((String) builder['ssh_key_path'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
         }
 
-        String outputDir = parseString(builder['output_directory'] ?: "output-$buildName", t.contextTemplateData)
-        t.ext.VMName = parseString(builder['vm_name'] ?: "packer-$buildName", t.contextTemplateData)
+        String outputDir = parseString((String)(builder['output_directory'] ?: "output-$buildName"), (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
+        t.extensions.extraProperties['VMName'] = parseString((String)(builder['vm_name'] ?: "packer-$buildName"), (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
         // Output filename when no post-processors are used - default
-        t.ext.outputFileName = project.file(new File(outputDir, t.VMName + '.' + (builder['format'] ?: 'ovf'))).toString()
-        project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
-        Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") {
-          commandLine([
-            'VBoxManage',
-            'controlvm',
-            t.VMName,
-            'poweroff'
-          ])
-          ignoreExitValue true
+        t.extensions.extraProperties['outputFileName'] = new File(outputDir, "${ t.extensions.extraProperties['VMName'] }.${ (builder['format'] ?: 'ovf') }").toString()
+        project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.extensions.extraProperties['outputFileName']]))
+        Task powerOffVM = project.task([type: Exec], "powerOff-$fullBuildName") { Exec task ->
+          task.with {
+            commandLine([
+              'VBoxManage',
+              'controlvm',
+              t.extensions.extraProperties['VMName'],
+              'poweroff'
+            ])
+            ignoreExitValue = true
+          }
         }
-        Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") {
-          dependsOn powerOffVM
-          commandLine([
-            'VBoxManage',
-            'unregistervm',
-            t.VMName,
-            '--delete'
-          ])
-          ignoreExitValue true
+        Task unregisterVM = project.task([type: Exec], "unregisterVM-$fullBuildName") { Exec task ->
+          task.with {
+            dependsOn powerOffVM
+            commandLine([
+              'VBoxManage',
+              'unregistervm',
+              t.extensions.extraProperties['VMName'],
+              '--delete'
+            ])
+            ignoreExitValue = true
+          }
         }
-        Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") {
-          dependsOn unregisterVM
-          delete outputDir
+        Task deleteOutputDir = project.task([type: Delete], "deleteOutputDir-$fullBuildName") { Delete task ->
+          task.with {
+            dependsOn unregisterVM
+            delete outputDir
+          }
         }
-        t.cleanTask.dependsOn deleteOutputDir
+        ((Task)t.extensions.extraProperties['cleanTask']).dependsOn deleteOutputDir
       }
 
       // Amazon EBS builder
       if (builderType == 'amazon-ebs') {
-        t.ext.awsEnvironment = [
-          'AWS_ACCESS_KEY_ID': parseString(builder['access_key'], t.contextTemplateData),
-          'AWS_SECRET_ACCESS_KEY': parseString(builder['secret_key'], t.contextTemplateData)
-        ]
-        Map filters
+        t.extensions.extraProperties['awsEnvironment'] = new HashMap<String, String>([
+          'AWS_ACCESS_KEY_ID': parseString((String)builder['access_key'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData']),
+          'AWS_SECRET_ACCESS_KEY': parseString((String)builder['secret_key'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
+        ])
+        Map<String, Object> filters
         List<String> owners = []
         boolean mostRecent = false
         if (builder.containsKey('source_ami')) {
-          filters = ['image-id': [parseString(builder['source_ami'], t.contextTemplateData)]]
+          filters = ['image-id': (Object)[parseString((String)builder['source_ami'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])]]
         } else {
-          filters = builder['source_ami_filter']['filters'].collectEntries { key, values -> [(key): List.isInstance(values) ? values.collect { [parseString(it, t.contextTemplateData)] } : [String.isInstance(values) ? parseString(values, t.contextTemplateData) : values]] }
-          owners = (builder['source_ami_filter']['owners'] ?: []).collect { parseString(it, t.contextTemplateData) }
+          filters = (Map<String, Object>)((Map<String, Object>)builder['source_ami_filter']['filters']).collectEntries { key, values -> [(key): List.isInstance(values) ? ((List<String>)values).collect { [parseString(it, (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])] } : [String.isInstance(values) ? parseString((String)values, (Map<String, String>)t.extensions.extraProperties['contextTemplateData']) : values]] }
+          owners = ((List<String>)(builder['source_ami_filter']['owners'] ?: [])).collect { parseString(it, (Map<String, String>)t.extensions.extraProperties['contextTemplateData']) }
           mostRecent = builder['source_ami_filter']['most_recent'] ?: false
         }
-        t.inputProperties['sourceAMI'] = {
+        ((Map<String, Closure>)t.extensions.extraProperties['inputProperties'])['sourceAMI'] = {
           List res = findAMI(
-            project, t.awsEnvironment,
-            parseString(builder['region'], t.contextTemplateData),
+            (Map<String, Object>)t.extensions.extraProperties['awsEnvironment'],
+            parseString((String)builder['region'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData']),
             owners,
             filters
           )
-          if (res.size > 1 && mostRecent) {
+          if (res.size() > 1 && mostRecent) {
             res = [res[0]]
           }
           project.logger.info(sprintf('gradle-packer-plugin: sourceAMI value %s', [JsonOutput.toJson(res)]))
           JsonOutput.toJson(res)
         }
 
-        t.ext.amiName = parseString(builder['ami_name'], t.contextTemplateData)
-        Map awsContextTemplateData = new HashMap(t.contextTemplateData)
+        t.extensions.extraProperties['amiName'] = parseString((String)builder['ami_name'], (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
+        Map awsContextTemplateData = new HashMap((Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
         awsContextTemplateData['timestamp'] = '*'
         awsContextTemplateData['uuid'] = '*'
-        String amiNameForUpToDate = parseString(builder['ami_name'], awsContextTemplateData)
+        String amiNameForUpToDate = parseString((String)builder['ami_name'], awsContextTemplateData)
         if (!builder.containsKey('ami_regions')) {
           builder['ami_regions'] = []
         }
         builder['ami_regions'] = [builder['region']] + builder['ami_regions']
-        for (region in builder['ami_regions']) {
-          region = parseString(region, t.contextTemplateData)
-          t.upToDateWhen.push {
-            t.ext.outputAMI = findAMI(
-              project, t.awsEnvironment,
+        for (String region in builder['ami_regions']) {
+          region = parseString(region, (Map<String, String>)t.extensions.extraProperties['contextTemplateData'])
+          ((List<Closure<Boolean>>)t.extensions.extraProperties['upToDateWhen']).push {
+            t.extensions.extraProperties['outputAMI'] = findAMI(
+              (Map<String, Object>)t.extensions.extraProperties['awsEnvironment'],
               region,
               ['self'],
-              ['name': [amiNameForUpToDate]]
+              ['name': (Object)[amiNameForUpToDate]]
             )[0]
-            t.ext.outputAMI != null
+            t.extensions.extraProperties['outputAMI'] != null
           }
-          Task unregisterImage = project.task("unregisterImage-$fullBuildName-$region") {
-            onlyIf {
-              ext.AMI = (findAMI(
-                project, t.awsEnvironment,
-                region,
-                ['self'],
-                ['name': [t.amiName]]
-              )[0] ?: [:])['ImageId']
-              ext.AMI != null
-            }
-            doLast {
-              project.exec {
-                environment << t.awsEnvironment
-                commandLine(
-                  [
-                    'aws'
-                  ] +
-                    awsLogLevelArgs(project) +
+          Task unregisterImage = project.task("unregisterImage-$fullBuildName-$region") { Task task ->
+            task.with {
+              onlyIf {
+                extensions.extraProperties['AMI'] = (findAMI(
+                  (Map<String, Object>)t.extensions.extraProperties['awsEnvironment'],
+                  region,
+                  ['self'],
+                  ['name': (Object)[t.extensions.extraProperties['amiName']]]
+                )[0] ?: [:])['ImageId']
+                extensions.extraProperties['AMI'] != null
+              }
+              doLast {
+                project.exec { ExecSpec execSpec ->
+                  execSpec.environment << (Map<String, Object>)t.extensions.extraProperties['awsEnvironment']
+                  execSpec.commandLine(
+                    [
+                      'aws'
+                    ] +
+                    awsLogLevelArgs() +
                     [
                       'ec2', 'deregister-image',
                       '--region', region,
-                      '--image-id', ext.AMI
+                      '--image-id', (String)extensions.extraProperties['AMI']
                     ]
-                )
+                  )
+                }
               }
             }
           }
-          Task waitForUnregisterImage = project.task("waitForUnregisterImage-$fullBuildName-$region") {
-            onlyIf {
-              findAMI(
-                project, t.awsEnvironment,
-                region,
-                ['self'],
-                ['name': [t.amiName]]
-              ).size() > 0
-            }
-            dependsOn unregisterImage
-            doLast {
-              while (findAMI(
-                project, t.awsEnvironment,
-                region,
-                ['self'],
-                ['name': [t.amiName]]
-              ).size() > 0) {
-                TimeUnit.SECONDS.sleep(10)
+          Task waitForUnregisterImage = project.task("waitForUnregisterImage-$fullBuildName-$region") { Task task ->
+            task.with {
+              onlyIf {
+                findAMI(
+                  (Map<String, Object>)t.extensions.extraProperties['awsEnvironment'],
+                  region,
+                  ['self'],
+                  ['name': (Object)[t.extensions.extraProperties['amiName']]]
+                ).size() > 0
+              }
+              dependsOn unregisterImage
+              doLast {
+                while (findAMI(
+                  (Map<String, Object>)t.extensions.extraProperties['awsEnvironment'],
+                  region,
+                  (List<String>)['self'],
+                  ['name': (Object)[t.extensions.extraProperties['amiName']]]
+                ).size() > 0) {
+                  TimeUnit.SECONDS.sleep(10)
+                }
               }
             }
           }
-          t.cleanTask.dependsOn waitForUnregisterImage
+          ((Task)t.extensions.extraProperties['cleanTask']).dependsOn waitForUnregisterImage
         }
         if (builder.containsKey('ssh_private_key_file')) {
-          t.inputs.file parseString(builder['ssh_private_key_file'], t.contextTemplateData)
+          t.inputs.file parseString((String)builder['ssh_private_key_file'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
         }
         if (builder.containsKey('user_data_file')) {
-          t.inputs.file parseString(builder['user_data_file'], t.contextTemplateData)
+          t.inputs.file parseString((String)builder['user_data_file'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
         }
       }
 
@@ -340,13 +359,13 @@ class PackerPluginExtension {
         parentTask.dependsOn t
       }
     }
-    Map processedTasks
+    Map<String, Task> processedTasks
 
     if (inputJSON.containsKey('provisioners')) {
-      for (p in inputJSON['provisioners']) {
+      for (Map<String, Object> p in (List<Map<String, Object>>)inputJSON['provisioners']) {
         if (p.containsKey('only')) {
           processedTasks = [:]
-          for (buildName in p['only']) {
+          for (String buildName in p['only']) {
             processedTasks[buildName] = ts[buildName]
           }
         } else {
@@ -357,10 +376,10 @@ class PackerPluginExtension {
             }
           }
         }
-        for (t in processedTasks.values()) {
+        for (Task t in processedTasks.values()) {
           Map provisioner = new HashMap(p)
           if (provisioner.containsKey('override')) {
-            for (override in provisioner['override'][t.buildName]) {
+            for (Map.Entry<String, String> override in (Map<String, String>)provisioner['override'][(String)t.extensions.extraProperties['buildName']]) {
               provisioner[override.key] = override.value
             }
           }
@@ -369,11 +388,11 @@ class PackerPluginExtension {
           // Shell provisioner
           if (provisioner['type'] == 'shell') {
             if (provisioner.containsKey('script')) {
-              t.inputs.file parseString(provisioner['script'], t.contextTemplateData)
+              t.inputs.file parseString((String)provisioner['script'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             } else {
               if (provisioner.containsKey('scripts')) {
-                for (script in provisioner['scripts']) {
-                  t.inputs.file parseString(script, t.contextTemplateData)
+                for (String script in provisioner['scripts']) {
+                  t.inputs.file parseString(script, (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
                 }
               }
             }
@@ -382,24 +401,24 @@ class PackerPluginExtension {
           // Chef solo provisioner
           if (provisioner['type'] == 'chef-solo') {
             if (provisioner.containsKey('config_template')) {
-              t.inputs.file parseString(provisioner['config_template'], t.contextTemplateData)
+              t.inputs.file parseString((String)provisioner['config_template'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
             if (provisioner.containsKey('cookbook_paths')) {
-              for (cookbook_path in provisioner['cookbook_paths']) {
-                t.inputs.dir parseString(cookbook_path, t.contextTemplateData)
+              for (String cookbook_path in provisioner['cookbook_paths']) {
+                t.inputs.dir parseString(cookbook_path, (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
               }
             }
             if (provisioner.containsKey('data_bags_path')) {
-              t.inputs.dir parseString(provisioner['data_bags_path'], t.contextTemplateData)
+              t.inputs.dir parseString((String)provisioner['data_bags_path'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
             if (provisioner.containsKey('encrypted_data_bag_secret_path')) {
-              t.inputs.file parseString(provisioner['encrypted_data_bag_secret_path'], t.contextTemplateData)
+              t.inputs.file parseString((String)provisioner['encrypted_data_bag_secret_path'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
             if (provisioner.containsKey('environments_path')) {
-              t.inputs.dir parseString(provisioner['environments_path'], t.contextTemplateData)
+              t.inputs.dir parseString((String)provisioner['environments_path'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
             if (provisioner.containsKey('roles_path')) {
-              t.inputs.dir parseString(provisioner['roles_path'], t.contextTemplateData)
+              t.inputs.dir parseString((String)provisioner['roles_path'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
           }
         }
@@ -409,38 +428,38 @@ class PackerPluginExtension {
       Closure processPostProcessors = { Map<String, Object>  p ->
         if (p.containsKey('only')) {
           processedTasks = [:]
-          for (buildName in p['only']) {
+          for (String buildName in p['only']) {
             processedTasks[buildName] = ts[buildName]
           }
         } else {
           processedTasks = new HashMap(ts)
           if (p.containsKey('except')) {
-            for (buildName in p['except']) {
+            for (String buildName in p['except']) {
               processedTasks.remove buildName
             }
           }
         }
-        for (t in processedTasks.values()) {
+        for (Task t in processedTasks.values()) {
           Map postProcessor = new HashMap(p)
 
           // Vagrant post-processor
           // Update: 2015-06-16
           if (postProcessor['type'] == 'vagrant') {
-            for (override in postProcessor['override']) {
+            for (Map<String, String> override in (List<Map<String, String>>)postProcessor['override']) {
               postProcessor[override.key] = override.value
             }
             postProcessor.remove 'override'
 
             if (postProcessor.containsKey('vagrantfile_template')) {
-              t.inputs.file parseString(postProcessor['vagrantfile_template'], t.contextTemplateData)
+              t.inputs.file parseString((String)postProcessor['vagrantfile_template'], (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
             }
             if (postProcessor.containsKey('include')) {
-              for (include in postProcessor['include']) {
-                t.inputs.file parseString(include, t.contextTemplateData)
+              for (String include in postProcessor['include']) {
+                t.inputs.file parseString(include, (Map<String, String>)t.extensions.extraProperties['contextTeplateData'])
               }
             }
             String vagrantProvider
-            switch (t.builderType) {
+            switch (t.extensions.extraProperties['builderType']) {
               case 'virtualbox-iso':
               case 'virtualbox-ovf':
                 vagrantProvider = 'virtualbox'
@@ -449,10 +468,10 @@ class PackerPluginExtension {
                 vagrantProvider = 'aws'
                 break
             }
-            t.ext.outputFileName = parseString(postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', t.contextTemplateData + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': t.buildName])
-            project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.outputFileName]))
-            t.cleanTask.dependsOn project.task([type: Delete], "deleteOutputFile-${t.fullBuildName}") {
-              delete t.outputFileName
+            t.extensions.extraProperties['outputFileName'] = parseString((String)postProcessor['output'] ?: 'packer_{{.BuildName}}_{{.Provider}}.box', (Map<String, String>)t.extensions.extraProperties['contextTeplateData'] + ['.Provider': vagrantProvider, '.ArtifactId': vagrantProvider, '.BuildName': (String)t.extensions.extraProperties['buildName']])
+            project.logger.info(sprintf('gradle-packer-plugin: outputFileName %s', [t.extensions.extraProperties['outputFileName']]))
+            ((Task)t.extensions.extraProperties['cleanTask']).dependsOn project.task([type: Delete], "deleteOutputFile-${t.extensions.extraProperties['fullBuildName']}") { Delete task ->
+              task.delete t.extensions.extraProperties['outputFileName']
             }
           }
         }
@@ -460,66 +479,68 @@ class PackerPluginExtension {
       for (p in inputJSON['post-processors']) {
         if (String.isInstance(p)) { continue }
         if (List.isInstance(p)) {
-          for (p2 in p) { processPostProcessors(p2) }
+          for (Map<String, Object> p2 in (List<Map<String, Object>>)p) { processPostProcessors.call(p2) }
         } else {
-          processPostProcessors(p)
+          processPostProcessors.call((Map<String, Object>)p)
         }
       }
     }
-    Task commonT = project.task("build-$imageName") {
-      group 'Build'
-      ext.cleanTask = project.task("clean-$imageName") {
-        group 'Clean'
+    Task commonT = project.task("build-$imageName") { Task task ->
+      task.with {
+        group = 'Build'
+        extensions.extraProperties['cleanTask'] = project.task("clean-$imageName") { Task cleanTask ->
+          cleanTask.group = 'Clean'
+          cleanTask.shouldRunAfter validate
+        }
         shouldRunAfter validate
-      }
-      shouldRunAfter validate
-      mustRunAfter cleanTask
-      inputs.property 'customVariablesCmdLine', customVariablesCmdLine
-      doLast {
-        project.exec {
-          commandLine(
-            [
-              'packer',
-              'build',
-            ] +
-              customVariablesCmdLine +
-              packerLogLevelArgs(project) +
+        mustRunAfter extensions.extraProperties['cleanTask']
+        inputs.property 'customVariablesCmdLine', customVariablesCmdLine
+        doLast {
+          project.exec { ExecSpec execSpec ->
+            execSpec.commandLine(
               [
-                fileName
-              ]
-          )
+                'packer',
+                'build',
+              ] +
+                customVariablesCmdLine +
+                packerLogLevelArgs() +
+                [
+                  fileName
+                ]
+            )
+          }
         }
       }
     }
-    for (t in ts.values()) {
-      commonT.cleanTask.dependsOn t.cleanTask
+    for (Task t in ts.values()) {
+      ((Task)commonT.extensions.extraProperties['cleanTask']).dependsOn t.extensions.extraProperties['cleanTask']
       for (i in t.inputs.files) {
         commonT.inputs.file i
       }
-      for (i in t.inputProperties) {
+      for (i in (Map<String, Closure>)t.extensions.extraProperties['inputProperties']) {
         t.inputs.property i.key, i.value
-        commonT.inputs.property "${t.buildName}-${i.key}", i.value
+        commonT.inputs.property "${t.extensions.extraProperties['buildName']}-${i.key}", i.value
       }
-      for (o in t.outputs.files) {
+      for (File o in t.outputs.files) {
         commonT.outputs.file o
       }
       Closure u = {
-        if (t.upToDateWhen.size() > 0) {
-          t.upToDateWhen.every { it() }
+        if (((List<Closure<Boolean>>)t.extensions.extraProperties['upToDateWhen']).size() > 0) {
+          ((List<Closure<Boolean>>)t.extensions.extraProperties['upToDateWhen']).every { it.call() }
         } else {
           true
         }
       }
       t.outputs.upToDateWhen u
       commonT.outputs.upToDateWhen u
-      if (t.ext.has('outputFileName')) {
-        project.logger.info(sprintf('gradle-packer-plugin: task %s has outputFileName %s', [t.name, t.outputFileName]))
-        t.outputs.file(t.outputFileName)
+      if (t.extensions.extraProperties.has('outputFileName')) {
+        project.logger.info(sprintf('gradle-packer-plugin: task %s has outputFileName %s', [t.name, t.extensions.extraProperties['outputFileName']]))
+        t.outputs.file(t.extensions.extraProperties['outputFileName'])
       }
     }
   }
 
   void template(String fileName, Task parentTask = null) {
-    processTemplate project, fileName, parentTask
+    processTemplate fileName, parentTask
   }
 }
