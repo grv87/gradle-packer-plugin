@@ -40,7 +40,7 @@ contacts {
 dependencies {
   implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
   implementation group: 'commons-io', name: 'commons-io', version: '2.5'
-  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.4'
+  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
 }
 
 gradlePlugin {
