@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 /*
- * Gradle Settings file for gradle-packer-plugin
+ * Build cache configuration for gradle-packer-plugin
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -17,21 +17,20 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-pluginManagement {
-  repositories {
-    maven {
-      url 'https://fidata.jfrog.io/fidata/plugins-release/'
-      credentials {
-        username = settings.ext.artifactoryUser
-        password = settings.ext.artifactoryPassword
-      }
+buildCache {
+  local.enabled = false
+  remote(HttpBuildCache) {
+    url = 'https://fidata.jfrog.io/fidata/local.gradle.cache/'
+    credentials {
+      username = settings.ext.artifactoryUser
+      password = settings.ext.artifactoryPassword
     }
+    /*
+     * WORKAROUND:
+     * Jenkins doesn't set CI environment variable
+     * https://issues.jenkins-ci.org/browse/JENKINS-36707
+     * <grv87 2018-06-27>
+     */
+    push = System.getenv().with { containsKey('CI') || containsKey('JENKINS_URL') }
   }
 }
-
-rootProject.name = 'gradle-packer-plugin'
-
-ext.rootDir = file('.')
-
-apply from: new File(ext.rootDir, 'gradle/build-cache.gradle')
-apply from: new File(ext.rootDir, 'gradle/feature-previews.gradle')

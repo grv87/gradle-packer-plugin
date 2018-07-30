@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 /*
- * Gradle Settings file for gradle-packer-plugin
+ * Gradle feature previews configuration for gradle-packer-plugin
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -17,21 +17,4 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-pluginManagement {
-  repositories {
-    maven {
-      url 'https://fidata.jfrog.io/fidata/plugins-release/'
-      credentials {
-        username = settings.ext.artifactoryUser
-        password = settings.ext.artifactoryPassword
-      }
-    }
-  }
-}
-
-rootProject.name = 'gradle-packer-plugin'
-
-ext.rootDir = file('.')
-
-apply from: new File(ext.rootDir, 'gradle/build-cache.gradle')
-apply from: new File(ext.rootDir, 'gradle/feature-previews.gradle')
+enableFeaturePreview('STABLE_PUBLISHING')
