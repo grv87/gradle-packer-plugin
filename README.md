@@ -1,4 +1,6 @@
-# gradle-packer-plugin
+gradle-packer-plugin
+====================
+
 This plugin allows to run [Packer](https://www.packer.io/) builds from Gradle.
 
 1.	It parses Packer's templates and creates Gradle tasks to run Packer.
