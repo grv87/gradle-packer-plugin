@@ -41,8 +41,7 @@ import com.fasterxml.uuid.NoArgGenerator
  * `packer` extension for Gradle project
  */
 @CompileStatic
-class PackerPluginExtension {
-  Project project
+class PackerPluginExtension extends PackerToolExtension {
   Map customVariables = [:]
   Date initTime = new Date()
   NoArgGenerator uuidGenerator = Generators.timeBasedGenerator()
@@ -131,8 +130,8 @@ class PackerPluginExtension {
     project.tasks.getByName('validate').dependsOn validate
     Map<String, Task> ts = [:]
     for (Map<String, Object> builder in (List<Map<String, Object>>)inputJSON['builders']) {
-      String builderType = builder['type']
-      String buildName = builder['name'] ?: builderType
+      String builderType = (String)builder['type']
+      String buildName = (String)builder['name'] ?: builderType
       String fullBuildName = "$imageName-$buildName"
       Task t = project.task("build-$fullBuildName") { Task task ->
         task.with {
@@ -504,11 +503,11 @@ class PackerPluginExtension {
                 'packer',
                 'build',
               ] +
-                customVariablesCmdLine +
-                packerLogLevelArgs() +
-                [
-                  fileName
-                ]
+              customVariablesCmdLine +
+              packerLogLevelArgs() +
+              [
+                fileName
+              ]
             )
           }
         }
@@ -542,7 +541,11 @@ class PackerPluginExtension {
     }
   }
 
-  void template(String fileName, Task parentTask = null) {
+  void template(String fileName, Task parentTask = null, Closure taskConfiguration) {
     processTemplate fileName, parentTask
+  }
+
+  PackerPluginExtension(Project project) {
+    super(project)
   }
 }

@@ -33,7 +33,6 @@ class GradlePackerPlugin implements Plugin<Project> {
     if (project.tasks.findByPath('validate') == null) {
       project.task('validate') { Task task -> task.group = 'Validate' }
     }
-    project.extensions.create('packer', PackerPluginExtension)
-    project.extensions.getByType(PackerPluginExtension).project = project
+    project.extensions.create('packer', PackerPluginExtension, project)
   }
 }

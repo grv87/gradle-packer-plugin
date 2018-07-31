@@ -30,7 +30,6 @@ packer {
 
 ## Requirements
 *	[Packer](https://www.packer.io/)
-*	[AWS CLI](https://aws.amazon.com/cli/) – for Amazon builders
 
 ## Task names
 Plugin creates series of tasks for cleaning and running Packer builds.
