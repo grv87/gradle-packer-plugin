@@ -18,17 +18,15 @@
  * permissions and limitations under the License.
  */
 plugins {
-  id 'org.fidata.project.groovy' version '2.1.0'
-  id 'org.fidata.plugin' version '2.1.0'
+  id 'org.fidata.project.groovy' version '3.0.1'
+  id 'org.fidata.plugin' version '3.0.1'
 }
 
-description = 'Run Packer builds from Gradle'
-
 group = 'fidata.org'
-
+description = 'Runs Packer builds from Gradle'
+tags.set(['packer', 'devops', 'vm'])
 license = 'Apache-2.0'
 publicReleases = true
-
 contacts {
   'grv87@yandex.ru' {
     moniker 'Basil Peace'
@@ -71,8 +69,6 @@ stutter {
 
 pluginBundle.plugins {
   packerPlugin {
-    id = 'org.fidata.packer'
     displayName = 'Gradle Packer plugin'
-    tags = ['packer', 'devops', 'vm']
   }
 }
