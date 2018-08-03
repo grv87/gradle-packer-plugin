@@ -19,5 +19,7 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-class Shell {
+import org.fidata.gradle.packer.template.Provisioner
+
+class Shell extends Provisioner {
 }

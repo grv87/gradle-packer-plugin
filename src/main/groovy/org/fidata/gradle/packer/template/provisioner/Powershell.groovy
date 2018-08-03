@@ -19,5 +19,48 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-class Powershell {
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.Provisioner
+
+import java.time.Duration
+
+class Powershell implements Provisioner {
+  Boolean binary
+
+  List<String> inline
+
+  String script
+
+  List<String> scripts
+
+  @JsonProperty('environment_vars')
+  List<String> environmentVars
+
+  @JsonProperty('remote_path')
+  String remotePath
+
+  @JsonProperty('remote_env_var_path')
+  String remoteEnvVarPath
+
+  @JsonProperty('execute_command')
+  String executeCommand
+
+  @JsonProperty('elevated_execute_command')
+  String elevatedExecuteCommand
+
+  @JsonProperty('start_retry_timeout')
+  Duration startRetryTimeout
+
+  EnvVarFormat // TODO
+
+  // elevated_env_var_format
+
+  @JsonProperty('elevated_user')
+  String elevatedUser
+
+  @JsonProperty('elevated_password')
+  String elevatedPassword
+
+  @JsonProperty('valid_exit_codes')
+  List<Integer> validExitCodes
 }

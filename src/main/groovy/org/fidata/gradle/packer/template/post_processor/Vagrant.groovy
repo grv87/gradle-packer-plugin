@@ -19,5 +19,20 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
-class Vagrant {
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.PostProcessor
+
+class Vagrant implements PostProcessor {
+  @JsonProperty('compression_level')
+  Integer compressionLevel
+
+  List<String> include
+
+  @JsonProperty('output')
+  String outputPath
+
+  Map<String, Object> override
+
+  @JsonProperty('vagrantfile_template')
+  String vagrantfileTemplate
 }

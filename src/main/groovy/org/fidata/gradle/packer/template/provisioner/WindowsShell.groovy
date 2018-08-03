@@ -19,5 +19,7 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-class WindowsShell {
+import org.fidata.gradle.packer.template.Provisioner
+
+class WindowsShell extends Provisioner {
 }

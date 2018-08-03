@@ -19,5 +19,16 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-class File {
+import org.fidata.gradle.packer.template.Provisioner
+
+class File implements Provisioner {
+  String source
+
+  List<String> sources
+
+  String destination
+
+  String direction
+
+  Boolean generated
 }

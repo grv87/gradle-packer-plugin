@@ -20,4 +20,17 @@
 package org.fidata.gradle.packer.template
 
 class OnlyExcept {
+  List<String> only
+  List<String> except
+  boolean skip(String n) {
+    if (only.size() > 0) {
+      if (only.contains(n)) { return false }
+      return true
+    }
+    if (except.size() > 0) {
+      if (only.contains(n)) { return true }
+      return false
+    }
+    false
+  }
 }

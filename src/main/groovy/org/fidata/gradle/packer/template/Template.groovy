@@ -19,5 +19,15 @@
  */
 package org.fidata.gradle.packer.template
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 class Template {
+  String description
+  @JsonProperty('min_packer_version')
+  String minVersion
+  Map<String, Variable> variables
+  Map<String, Builder> builders
+  List<Provisioner> provisioners
+  @JsonProperty('post-processors')
+  List<Object> postProcessors
 }

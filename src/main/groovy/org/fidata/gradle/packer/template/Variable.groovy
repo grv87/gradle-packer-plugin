@@ -20,4 +20,6 @@
 package org.fidata.gradle.packer.template
 
 class Variable {
+  String defaultValue
+  Boolean required
 }

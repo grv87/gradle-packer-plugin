@@ -19,5 +19,13 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
-class Manifest {
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.PostProcessor
+
+class Manifest implements PostProcessor {
+  @JsonProperty('output')
+  String outputPath
+
+  @JsonProperty('strip_path')
+  Boolean stripPath
 }

@@ -19,5 +19,7 @@
  */
 package org.fidata.gradle.packer.template.builder
 
-class AmazonEbs {
+import org.fidata.gradle.packer.template.Builder
+
+class AmazonEbs implements Builder {
 }

@@ -19,5 +19,26 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
-class VagrantCloud {
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.PostProcessor
+
+class VagrantCloud implements PostProcessor {
+  String tag
+
+  String version
+
+  @JsonProperty('version_description')
+  String versionDescription
+
+  @JsonProperty('no_release')
+  Boolean noRelease
+
+  @JsonProperty('access_token')
+  String accessToken
+
+  @JsonProperty('vagrant_cloud_url')
+  String vagrantCloudUrl
+
+  @JsonProperty('box_download_url')
+  String boxDownloadUrl
 }

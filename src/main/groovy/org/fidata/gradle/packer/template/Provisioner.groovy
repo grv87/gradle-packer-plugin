@@ -19,5 +19,29 @@
  */
 package org.fidata.gradle.packer.template
 
-class Provisioner {
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.fidata.gradle.packer.template.provisioner.ChefSolo
+import org.fidata.gradle.packer.template.provisioner.File
+import org.fidata.gradle.packer.template.provisioner.Powershell
+import org.fidata.gradle.packer.template.provisioner.Shell
+import org.fidata.gradle.packer.template.provisioner.WindowsShell
+import java.time.Duration
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = 'type'
+)
+@JsonSubTypes([
+  @JsonSubTypes.Type(name = 'chef-solo', value = ChefSolo),
+  @JsonSubTypes.Type(name = 'file', value = File),
+  @JsonSubTypes.Type(name = 'powershell', value = Powershell),
+  @JsonSubTypes.Type(name = 'shell', value = Shell),
+  @JsonSubTypes.Type(name = 'windows-shell', value = WindowsShell),
+])
+interface Provisioner {
+  String type
+  List<Object> override
+  Duration pauseBefore // TODO: Write parser
 }

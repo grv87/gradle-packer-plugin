@@ -19,5 +19,41 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-class ChefSolo {
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.Provisioner
+
+class ChefSolo extends Provisioner {
+  @JsonProperty('chef_environment')
+  String chefEnvironment
+  @JsonProperty('config_template')
+  String configTemplate
+  @JsonProperty('cookbook_paths')
+  List<String> cookbookPaths
+  @JsonProperty('roles_path')
+  String rolesPath
+  @JsonProperty('data_bags_path')
+  String dataBagsPath
+  @JsonProperty('encrypted_data_bag_secret_path')
+  String encryptedDataBagSecretPath
+  @JsonProperty('environments_path')
+  String environmentsPath
+  @JsonProperty('execute_command')
+  String executeCommand
+  @JsonProperty('install_command')
+  String installCommand
+  @JsonProperty('remote_cookbook_paths')
+  String remoteCookbookPaths
+  Object json // TODO
+  @JsonProperty('prevent_sudo')
+  Boolean preventSudo
+  @JsonProperty('run_list')
+  List<String> runList
+  @JsonProperty('skip_install')
+  Boolean skipInstall
+  @JsonProperty('staging_directory')
+  String stagingDirectory
+  @JsonProperty('guest_os_type')
+  String guestOSType
+  @JsonProperty('version')
+  String version
 }

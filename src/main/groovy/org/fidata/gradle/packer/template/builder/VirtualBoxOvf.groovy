@@ -19,5 +19,7 @@
  */
 package org.fidata.gradle.packer.template.builder
 
-class VirtualBoxOvf {
+import org.fidata.gradle.packer.template.Builder
+
+class VirtualBoxOvf implements Builder {
 }

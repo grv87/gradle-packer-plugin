@@ -19,5 +19,23 @@
  */
 package org.fidata.gradle.packer.template
 
-class Builder {
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.fidata.gradle.packer.template.builder.AmazonEbs
+import org.fidata.gradle.packer.template.builder.VirtualBoxIso
+import org.fidata.gradle.packer.template.builder.VirtualBoxOvf
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = 'type'
+)
+@JsonSubTypes([
+  @JsonSubTypes.Type(name = 'amazon-ebs', value = AmazonEbs),
+  @JsonSubTypes.Type(name = 'virtualbox-iso', value = VirtualBoxIso),
+  @JsonSubTypes.Type(name = 'virtualbox-ovf', value = VirtualBoxOvf),
+])
+interface Builder {
+  String name
+  String type
 }

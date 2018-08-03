@@ -19,5 +19,7 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
-class ShellLocal {
+import org.fidata.gradle.packer.template.PostProcessor
+
+class ShellLocal extends org.fidata.gradle.packer.template.common.ShellLocal implements PostProcessor {
 }
