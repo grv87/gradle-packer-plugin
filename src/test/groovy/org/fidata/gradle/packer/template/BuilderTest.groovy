@@ -1,7 +1,7 @@
 package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.fidata.gradle.packer.template.builder.VirtualBoxOvf
+import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxOvf
 import org.junit.Test
 
 class BuilderTest {

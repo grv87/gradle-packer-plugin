@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fidata.gradle.packer.template.builder
+package org.fidata.gradle.packer.template.builder.amazon
 
 import org.fidata.gradle.packer.template.Builder
 

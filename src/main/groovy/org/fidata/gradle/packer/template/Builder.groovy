@@ -21,9 +21,9 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.fidata.gradle.packer.template.builder.AmazonEbs
-import org.fidata.gradle.packer.template.builder.VirtualBoxIso
-import org.fidata.gradle.packer.template.builder.VirtualBoxOvf
+import org.fidata.gradle.packer.template.builder.amazon.AmazonEbs
+import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxIso
+import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxOvf
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,

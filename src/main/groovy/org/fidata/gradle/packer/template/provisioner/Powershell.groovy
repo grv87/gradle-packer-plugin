@@ -51,10 +51,6 @@ class Powershell implements Provisioner {
   @JsonProperty('start_retry_timeout')
   Duration startRetryTimeout
 
-  EnvVarFormat // TODO
-
-  // elevated_env_var_format
-
   @JsonProperty('elevated_user')
   String elevatedUser
 

@@ -19,7 +19,48 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.gradle.packer.template.Provisioner
 
-class Shell extends Provisioner {
+import java.time.Duration
+
+class Shell implements Provisioner {
+  Boolean binary
+
+  List<String> inline
+
+  @JsonProperty('inline_shebang')
+  String inlineShebang
+
+  String script
+
+  List<String> scripts
+
+  @JsonProperty('environment_vars')
+  List<String> environmentVars
+
+  @JsonProperty('remote_folder')
+  String remoteFolder
+
+  @JsonProperty('remote_file')
+  String remoteFile
+
+  @JsonProperty('remote_path') // TODO: defaults to remote_folder/remote_file
+  String remotePath
+
+  @JsonProperty('execute_command')
+  List<String> executeCommand
+
+  @JsonProperty('start_retry_timeout')
+  Duration startRetryTimeout // TODO: parse Raw
+
+  @JsonProperty('skip_clean')
+  Boolean skipClean
+
+  @JsonProperty('expect_disconnect')
+  Boolean expectDisconnect
+
+  @JsonProperty('use_linux_pathing')
+  List<String> useLinuxPathing
+
 }

@@ -19,7 +19,29 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.gradle.packer.template.Provisioner
 
-class WindowsShell extends Provisioner {
+import java.time.Duration
+
+class WindowsShell implements Provisioner {
+  Boolean binary
+
+  List<String> inline
+
+  String script
+
+  List<String> scripts
+
+  @JsonProperty('environment_vars')
+  List<String> vars
+
+  @JsonProperty('remote_path')
+  String remotePath
+
+  @JsonProperty('execute_command')
+  String executeCommand
+
+  @JsonProperty('start_retry_timeout')
+  Duration startRetryTimeout
 }
