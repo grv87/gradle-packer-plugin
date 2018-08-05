@@ -19,14 +19,19 @@
  */
 package org.fidata.gradle.packer.template
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class OnlyExcept {
   List<String> only
   List<String> except
+
   boolean skip(String n) {
     if (only.size() > 0) {
       if (only.contains(n)) { return false }
       return true
     }
+    // TOTEST: if both only and except are provided
     if (except.size() > 0) {
       if (only.contains(n)) { return true }
       return false

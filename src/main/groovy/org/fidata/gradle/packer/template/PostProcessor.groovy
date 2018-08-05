@@ -21,10 +21,14 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.post_processor.Manifest
 import org.fidata.gradle.packer.template.post_processor.ShellLocal
 import org.fidata.gradle.packer.template.post_processor.Vagrant
 import org.fidata.gradle.packer.template.post_processor.VagrantCloud
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -37,7 +41,15 @@ import org.fidata.gradle.packer.template.post_processor.VagrantCloud
   @JsonSubTypes.Type(name = 'vagrant', value = Vagrant),
   @JsonSubTypes.Type(name = 'vagrant-cloud', value = VagrantCloud),
 ])
+@CompileStatic
 interface PostProcessor {
+  @Internal // TODO
+  @JsonUnwrapped
+  OnlyExcept onlyExcept
+
+  @Input // TODO
   String type
+
+  @Internal
   Boolean keepInputArtifacts
 }

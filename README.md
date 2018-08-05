@@ -19,7 +19,7 @@ plugins {
 }
 
 packer {
-	customVariables = [
+	variables = [
 		'packer_output_dir': packerOutputDir,
 		'aws_access_key': awsAccessKey,
 		'aws_secret_key': awsSecretKey
@@ -36,10 +36,10 @@ Plugin creates series of tasks for cleaning and running Packer builds.
 If template has a `name` variable, it is used instead of template
 filename. High-level task names are:
 
-*      `clean-<name variable or template filename>`
-*      `build-<name variable or template filename>`
-*      `clean-<name variable or template filename>-<build name>`
-*      `build-<name variable or template filename>-<build name>`
+*      `packerClean-<name variable or template filename>`
+*      `packerBuild-<name variable or template filename>`
+*      `packerClean-<name variable or template filename>-<build name>`
+*      `packerBuild-<name variable or template filename>-<build name>`
 
 ## Supported Packer configurations:
 *	Builders:

@@ -20,14 +20,49 @@
 package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 
-class Template {
+@CompileStatic
+class Template extends TemplateObject {
+  @Console
   String description
+
   @JsonProperty('min_packer_version')
   String minVersion
+
+  @Internal
   Map<String, Variable> variables
-  Map<String, Builder> builders
+
+  @Nested
+  /* TODO: Map<String, Builder> */ List<Builder> builders
+
+  @Nested
   List<Provisioner> provisioners
+
   @JsonProperty('post-processors')
+  @Nested
   List<Object> postProcessors
+
+  @Override
+  protected void doInterpolate(Context ctx) {
+    for (Builder builder in builders) {
+      ((TemplateObject)builder).interpolate(ctx)
+    }
+    for (Provisioner provisioner in provisioners) {
+      ((TemplateObject)provisioner).interpolate(ctx)
+    }
+    for (Object object in postProcessors) {
+      if (List.isInstance(object)) {
+        for (PostProcessor postProcessor in (List<PostProcessor>)object) {
+          ((TemplateObject)postProcessor).interpolate(ctx)
+        }
+      } else {
+        ((TemplateObject) object).interpolate(ctx)
+      }
+    }
+  }
 }

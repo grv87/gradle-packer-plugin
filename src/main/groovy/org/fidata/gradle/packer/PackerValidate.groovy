@@ -19,11 +19,28 @@
  */
 package org.fidata.gradle.packer
 
+import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.Template
+import org.gradle.api.tasks.Input
+
+@CompileStatic
 class PackerValidate extends PackerWrapperTask {
+  @Input
+  Boolean syntaxOnly = true
+
+  PackerValidate(File templateFile, Closure configureClosure = null) {
+    super(templateFile)
+    group = 'Validate' // TODO: constant
+    configure configureClosure
+  }
+
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     super.configureExecSpec(execSpec)
     execSpec.command 'validate'
+    if (syntaxOnly) {
+      execSpec.cmdArgs << '-syntax-only'
+    }
     execSpec
   }
 }

@@ -19,7 +19,14 @@
  */
 package org.fidata.gradle.packer.template
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class Variable {
   String defaultValue
   Boolean required
+
+  String interpolateForGradle(Context ctx) {
+    // TODO
+  }
 }

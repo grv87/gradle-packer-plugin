@@ -19,16 +19,80 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
+import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.Provisioner
+import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.types.Direction
+import org.fidata.gradle.packer.template.types.TemplateFile
+import org.fidata.gradle.packer.template.types.TemplateString
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 
-class File implements Provisioner {
-  String source
+@CompileStatic
+class File extends TemplateObject implements Provisioner {
+  @Internal
+  TemplateString source
 
-  List<String> sources
+  @Internal
+  List<TemplateString> sources
 
-  String destination
+  @Internal
+  TemplateString destination
 
-  String direction
+  @Internal
+  TemplateString direction
 
-  Boolean generated
+  @Internal
+  Boolean generated // TODO
+
+  @Input
+  Direction direction1
+
+  @Optional
+  @InputFile
+  RegularFileCollection
+  File sourceFile
+
+  @Optional
+  @InputDirectory
+  File sourceDirectory
+
+  @Optional
+  @OutputFile
+  File destinationFile
+
+  @Optional
+  @OutputDirectory
+  File destinationDirectory
+
+  @Override
+  protected void doInterpolate(Context ctx) {
+    direction.interpolate(ctx)
+    direction1 = Direction.forValue(direction.interpolatedValue)
+    switch (direction1) {
+      case Direction.UPLOAD:
+        String sourceFileName
+        if (source) {
+          if (source.value.endsWith('/') || source.value.endsWith('\\')) {
+
+          }
+        }
+
+        break;
+      case Direction.DOWNLOAD:
+
+        break;
+      default:
+        throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction1]))
+    }
+
+
+  }
 }

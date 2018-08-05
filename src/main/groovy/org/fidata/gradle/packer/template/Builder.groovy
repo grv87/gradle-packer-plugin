@@ -21,9 +21,11 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.fidata.gradle.packer.template.builder.amazon.AmazonEbs
-import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxIso
-import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxOvf
+import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.builder.Null
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -31,11 +33,13 @@ import org.fidata.gradle.packer.template.builder.virtualbox.VirtualBoxOvf
   property = 'type'
 )
 @JsonSubTypes([
-  @JsonSubTypes.Type(name = 'amazon-ebs', value = AmazonEbs),
-  @JsonSubTypes.Type(name = 'virtualbox-iso', value = VirtualBoxIso),
-  @JsonSubTypes.Type(name = 'virtualbox-ovf', value = VirtualBoxOvf),
+  @JsonSubTypes.Type(name = 'null', value = Null),
 ])
+@CompileStatic
 interface Builder {
+  @Console
   String name
+
+  @Input // TODO
   String type
 }

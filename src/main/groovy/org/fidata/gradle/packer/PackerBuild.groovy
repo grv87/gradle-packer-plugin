@@ -19,11 +19,57 @@
  */
 package org.fidata.gradle.packer
 
+import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.OnlyExcept
+import org.fidata.gradle.packer.template.Template
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+
+@CompileStatic
 class PackerBuild extends PackerWrapperTask {
+  private Template template
+
+  @Nested
+  @Input
+  public Template getTemplate() {
+    template
+  }
+
+  private OnlyExcept onlyExcept
+
+  @Input
+  @Optional
+  public OnlyExcept getOnlyExcept() {
+    onlyExcept
+  }
+
+  PackerBuild(File templateFile, Template template, OnlyExcept onlyExcept = null, Closure configureClosure = null) {
+    super(templateFile)
+    group = 'Build' // TODO: constant
+    this.template = template
+    this.onlyExcept = onlyExcept
+    configure configureClosure
+    doConfigure() // TODO ?
+  }
+
+  protected void doConfigure() {
+    // TODO
+  }
+
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     super.configureExecSpec(execSpec)
     execSpec.command 'build'
+    if (onlyExcept) {
+      if (onlyExcept.only?.size() > 0) {
+        execSpec.cmdArgs "-only=${ onlyExcept.only.join(',') }"
+      } else {
+        if (onlyExcept.except?.size() > 0) {
+          execSpec.cmdArgs "-except=${ onlyExcept.except.join(',') }"
+        }
+      }
+    }
     execSpec
   }
 }

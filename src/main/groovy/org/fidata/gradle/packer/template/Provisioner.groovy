@@ -21,11 +21,14 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.fidata.gradle.packer.template.provisioner.ChefSolo
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.provisioner.File
-import org.fidata.gradle.packer.template.provisioner.Powershell
-import org.fidata.gradle.packer.template.provisioner.Shell
-import org.fidata.gradle.packer.template.provisioner.WindowsShell
+import org.fidata.gradle.packer.template.types.TemplateString
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+
 import java.time.Duration
 
 @JsonTypeInfo(
@@ -34,14 +37,20 @@ import java.time.Duration
   property = 'type'
 )
 @JsonSubTypes([
-  @JsonSubTypes.Type(name = 'chef-solo', value = ChefSolo),
   @JsonSubTypes.Type(name = 'file', value = File),
-  @JsonSubTypes.Type(name = 'powershell', value = Powershell),
-  @JsonSubTypes.Type(name = 'shell', value = Shell),
-  @JsonSubTypes.Type(name = 'windows-shell', value = WindowsShell),
 ])
+@CompileStatic
 interface Provisioner {
+  @Internal // TODO
+  @JsonUnwrapped
+  OnlyExcept onlyExcept
+
+  @Input // TODO
   String type
-  List<Object> override
+
+  @Nested // TODO
+  Map<TemplateString, Provisioner> override
+
+  @Internal
   Duration pauseBefore // TODO: Write parser
 }

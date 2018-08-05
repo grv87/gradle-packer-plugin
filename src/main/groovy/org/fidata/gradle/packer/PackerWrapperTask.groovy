@@ -20,13 +20,25 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.Internal
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
-class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> {
-  PackerWrapperTask() {
+abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> {
+  private File templateFile
+  @Internal // TODO
+  File getTemplateFile() {
+    templateFile
+  }
+
+  @Internal
+  Map<String, Object> variables
+
+  PackerWrapperTask(File templateFile) {
     super()
     packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)
+    this.templateFile = templateFile
   }
 
   @Override
@@ -36,10 +48,16 @@ class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerTo
 
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
-    execSpec.cmdArgs '--yellow', '--bright' // TODO
+    for (Map.Entry<String, Object> variable in variables) {
+      execSpec.cmdArgs.push '-var'
+      execSpec.cmdArgs.push "${ variable.key }=${ variable.value }".toString()
+    }
+    if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
+      execSpec.cmdArgs.push '-debug'
+    }
+    execSpec.cmdArgs templateFile.toString() // TODO: Should be the last
     execSpec
   }
-
 
   @Override
   protected PackerToolExtension getToolExtension() {
