@@ -32,10 +32,11 @@ class Template extends TemplateObject {
   String description
 
   @JsonProperty('min_packer_version')
+  @Internal
   String minVersion
 
   @Internal
-  Map<String, Variable> variables
+  Map<String, String> variables
 
   @Nested
   /* TODO: Map<String, Builder> */ List<Builder> builders

@@ -25,6 +25,7 @@ import org.fidata.gradle.packer.PackerBuild
 import org.fidata.gradle.packer.PackerToolExtension
 import org.fidata.gradle.packer.PackerValidate
 import org.fidata.gradle.packer.template.Builder
+import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.OnlyExcept
 import org.fidata.gradle.packer.template.Template
 import org.gradle.api.Project
@@ -55,7 +56,6 @@ class PackerPluginExtension extends PackerToolExtension {
     project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
     ObjectMapper mapper = new ObjectMapper()
     Template template = mapper.readValue(file.text, Template)
-    // note: `env` function is not used here
     if (!name) {
       name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString()
     }
@@ -68,8 +68,14 @@ class PackerPluginExtension extends PackerToolExtension {
     TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, configureClosure(taskConfiguration))
     parentTask?.dependsOn buildAllProvider
 
+    Context ctx = new Context()
+    template.variables?.each { Map.Entry<String, String> variable ->
+      ctx.userVariables[variable.key] = variable.value
+    }
     for (/*Map.Entry<String, Builder>*/ Builder builder in template.builders) {
-      String buildName = builder.name ?: builder.type // TODO: interpolate
+      builder.header.interpolate()
+      String buildName =
+        name ?: builder.type // TODO: interpolate
       TaskProvider<PackerBuild> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuild, file, template, new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
     }
   }

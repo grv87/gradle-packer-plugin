@@ -59,10 +59,10 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
     execSpec
   }
 
+  private PackerToolExtension packerToolExtension
+
   @Override
   protected PackerToolExtension getToolExtension() {
-    this.packerToolExtension
+    /*TODO this.*/packerToolExtension
   }
-
-  private PackerToolExtension packerToolExtension
 }

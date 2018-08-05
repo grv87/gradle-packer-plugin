@@ -21,11 +21,13 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.builder.Null
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -37,9 +39,7 @@ import org.gradle.api.tasks.Internal
 ])
 @CompileStatic
 interface Builder {
-  @Console
-  String name
-
-  @Input // TODO
-  String type
+  @JsonUnwrapped
+  @Nested
+  BuilderHeader header
 }

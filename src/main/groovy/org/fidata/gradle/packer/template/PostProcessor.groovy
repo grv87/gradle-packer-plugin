@@ -24,9 +24,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.post_processor.Manifest
-import org.fidata.gradle.packer.template.post_processor.ShellLocal
-import org.fidata.gradle.packer.template.post_processor.Vagrant
-import org.fidata.gradle.packer.template.post_processor.VagrantCloud
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
@@ -37,9 +34,6 @@ import org.gradle.api.tasks.Internal
 )
 @JsonSubTypes([
   @JsonSubTypes.Type(name = 'manifest', value = Manifest),
-  @JsonSubTypes.Type(name = 'shell-local', value = ShellLocal),
-  @JsonSubTypes.Type(name = 'vagrant', value = Vagrant),
-  @JsonSubTypes.Type(name = 'vagrant-cloud', value = VagrantCloud),
 ])
 @CompileStatic
 interface PostProcessor {

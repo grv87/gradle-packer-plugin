@@ -20,9 +20,14 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.Builder
+import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.OnlyExcept
 import org.fidata.gradle.packer.template.Template
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 
@@ -30,17 +35,26 @@ import org.gradle.api.tasks.Optional
 class PackerBuild extends PackerWrapperTask {
   private Template template
 
+  @Internal
+  Template getTemplate() {
+    template
+  }
+
   @Nested
   @Input
-  public Template getTemplate() {
-    template
+  Provider<List<Template>> getInterpolatedTemplates() {
+    for (Builder builder in template.builders) {
+      if (onlyExcept.skip(builder.name))
+    }
+    Context ctx = new Context()
+    template.clone()
   }
 
   private OnlyExcept onlyExcept
 
   @Input
   @Optional
-  public OnlyExcept getOnlyExcept() {
+  OnlyExcept getOnlyExcept() {
     onlyExcept
   }
 
