@@ -41,12 +41,14 @@ class PackerBuild extends PackerWrapperTask {
   }
 
   @Nested
-  @Input
   Provider<List<Template>> getInterpolatedTemplates() {
-    for (Builder builder in template.builders) {
-      if (onlyExcept.skip(builder.name))
-    }
     Context ctx = new Context()
+
+
+
+    for (Builder builder in template.builders) {
+      if (onlyExcept.skip(builder.header.name))
+    }
     template.clone()
   }
 

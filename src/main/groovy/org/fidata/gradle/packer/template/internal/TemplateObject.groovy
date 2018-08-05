@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 
 @CompileStatic
-abstract class TemplateObject implements Serializable {
+abstract class TemplateObject implements Serializable, Cloneable {
   private boolean interpolated = false
 
   boolean isInterpolated() {

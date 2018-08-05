@@ -20,22 +20,28 @@
 package org.fidata.gradle.packer.template
 
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.types.TemplateString
 
 @CompileStatic
-class OnlyExcept {
-  List<String> only
-  List<String> except
+class OnlyExcept extends TemplateObject {
+  List<TemplateString> only
+  List<TemplateString> except
+
+
 
   boolean skip(String n) {
     if (only.size() > 0) {
       if (only.contains(n)) { return false }
       return true
     }
-    // TOTEST: if both only and except are provided
+    // TOTEST: if
     if (except.size() > 0) {
       if (only.contains(n)) { return true }
       return false
     }
     false
   }
+
+
 }

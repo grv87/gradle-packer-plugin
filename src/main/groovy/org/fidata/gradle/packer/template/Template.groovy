@@ -51,11 +51,34 @@ class Template extends TemplateObject {
   @Override
   protected void doInterpolate(Context ctx) {
     for (Builder builder in builders) {
-      ((TemplateObject)builder).interpolate(ctx)
+      ((TemplateObject)builder.header).interpolate(ctx)
     }
+  }
+
+  public Template interpolateBuilder(Context ctx, String builderName) {
+    Template result = new Template()
+    interpolate ctx
+    Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
+    if (!builder) {
+      throw new IllegalArgumentException(sprintf('Builder with name `%s` not found.', [builderName]))
+    }
+    result.builders = [builder]
+
+    ((TemplateObject)builder).interpolate ctx
+
+    ctx.buildType = builder.header.type
+    ctx.buildName = builder.header.interpolatedName
+
+    result.provisioners = new ArrayList()
+
     for (Provisioner provisioner in provisioners) {
-      ((TemplateObject)provisioner).interpolate(ctx)
+      if (!provisioner.onlyExcept?.skip(builderName)) {
+        Provisioner clone = (Provisioner)(((TemplateObject)provisioner).clone())
+        ((TemplateObject)clone).interpolate(ctx)
+        result.provisioners.add clone
+      }
     }
+
     for (Object object in postProcessors) {
       if (List.isInstance(object)) {
         for (PostProcessor postProcessor in (List<PostProcessor>)object) {
@@ -65,5 +88,6 @@ class Template extends TemplateObject {
         ((TemplateObject) object).interpolate(ctx)
       }
     }
+
   }
 }
