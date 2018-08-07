@@ -78,15 +78,21 @@ class PackerBuild extends PackerWrapperTask {
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     super.configureExecSpec(execSpec)
     execSpec.command 'build'
+    execSpec
+  }
+
+  @Override
+  protected List<Object> getCmdArgs() {
     if (onlyExcept) {
       if (onlyExcept.only?.size() > 0) {
-        execSpec.cmdArgs "-only=${ onlyExcept.only.join(',') }"
+        [(Object)"-only=${ onlyExcept.only.join(',') }"]
+      } else if (onlyExcept.except?.size() > 0) {
+        [(Object)"-except=${ onlyExcept.except.join(',') }"]
       } else {
-        if (onlyExcept.except?.size() > 0) {
-          execSpec.cmdArgs "-except=${ onlyExcept.except.join(',') }"
-        }
+        null
       }
+    } else {
+      null
     }
-    execSpec
   }
 }

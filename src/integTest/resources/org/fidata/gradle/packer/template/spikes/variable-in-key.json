@@ -1,4 +1,0 @@
-{
-"variables": {"b": "c", "g": "name"},
-"builders": [{"{{ user `g`}}": "d", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f"}]
-}

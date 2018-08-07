@@ -1,0 +1,59 @@
+#!/usr/bin/env groovy
+/*
+ * Build script for gradle-packer-plugin buildSrc
+ * Copyright © 2018  Basil Peace
+ *
+ * This file is part of gradle-packer-plugin.
+ *
+ * This plugin is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ */
+buildscript {
+  repositories {
+    maven {
+      url 'https://fidata.jfrog.io/fidata/plugins-release/'
+      credentials {
+        new File(file('..'), Project.GRADLE_PROPERTIES).withReader { Reader reader ->
+          Properties properties = new Properties()
+          properties.load(reader)
+          username = properties.getProperty('artifactoryUser')
+          password = properties.getProperty('artifactoryPassword')
+        }
+      }
+    }
+  }
+  dependencies {
+    classpath group: 'org.fidata.project.groovy', name: 'org.fidata.project.groovy.gradle.plugin', version: '3.0.1'
+  }
+}
+
+ext.rootDir = file('..')
+
+apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
+
+apply plugin: 'org.fidata.project.groovy'
+
+dependencyLocking.lockAllConfigurations()
+
+apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
+
+sourceSets.main {
+  groovy.srcDirs = [new File(project.ext.rootDir,  'src/main/groovy')]
+  resources.srcDirs = [new File(project.ext.rootDir, 'src/main/resources')]
+}
+
+apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
+
+
+
+

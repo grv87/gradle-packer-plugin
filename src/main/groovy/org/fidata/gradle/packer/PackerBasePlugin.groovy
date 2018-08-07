@@ -23,15 +23,32 @@ package org.fidata.gradle.packer
 import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 
 /**
  * `org.fidata.packer-base` plugin
  */
 @CompileStatic
 class PackerBasePlugin implements Plugin<Project> {
+  static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
+
   void apply(Project project) {
     for (Class taskClass : [PackerBuild, PackerValidate]) {
       project.extensions.extraProperties[taskClass.simpleName] = taskClass
+    }
+    TaskProvider<Task> packerValidateProvider = project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
+      packerValidate.group = VERIFICATION_GROUP
+      packerValidate.dependsOn project.tasks.withType(PackerValidate)
+    }
+    project.plugins.withType(LifecycleBasePlugin) {
+      project.tasks.named(CHECK_TASK_NAME).configure { Task check ->
+        check.dependsOn packerValidateProvider
+      }
     }
   }
 }

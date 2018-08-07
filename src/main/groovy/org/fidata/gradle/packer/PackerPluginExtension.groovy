@@ -61,10 +61,7 @@ class PackerPluginExtension extends PackerToolExtension {
       // name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
     }
 
-    TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerPlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
-    project.plugins.getPlugin(PackerPlugin).packerValidateProvider.configure { Task packerValidate ->
-      packerValidate.dependsOn validateProvider
-    }
+    TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
 
     TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, configureClosure(taskConfiguration))
     parentTask?.dependsOn buildAllProvider

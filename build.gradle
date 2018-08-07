@@ -21,6 +21,7 @@
 plugins {
   id 'org.fidata.project.groovy' version '3.0.1'
   id 'org.fidata.plugin' version '3.0.1'
+  id 'org.fidata.packer-base'
 }
 
 description = 'Runs Packer builds from Gradle'
@@ -35,32 +36,11 @@ contacts {
   }
 }
 
-dependencies {
-  implementation group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
-  // implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
-  implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
-  // implementation group: 'commons-io', name: 'commons-io', version: '2.5'
-  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
-  implementation group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '[1.0, 2['
-  implementation group: 'com.google.guava', name: 'guava', version: '25.1-jre'
-}
+ext.rootDir = '.'
 
-gradlePlugin {
-  plugins {
-    keygenPlugin {
-      id = 'org.fidata.packer-ифыу'
-      implementationClass = 'org.fidata.gradle.packer.PackerBasePlugin'
-    }
-  }
-  plugins {
-    keygenPlugin {
-      id = 'org.fidata.packer'
-      implementationClass = 'org.fidata.gradle.packer.PackerPlugin'
-    }
-  }
-}
+apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
+
+apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markets.gradle')
 
 tasks.codenarcMain.disabledRules.add 'JavaIoPackageAccess'
 
@@ -77,10 +57,22 @@ plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClassp
 plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets['integTest']
 plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations[sourceSets['integTest'].implementationConfigurationName]
 
+tasks.register('packerValidate-integTest')
+
+for (File f in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
+  fileTree.include '**/*.json'
+}) {
+  TaskProvider<PackerValidate> packerValidateIntegTestFile = tasks.register("packerValidate-integTest-${ f.toPath().fileName }", PackerValidate, f)
+  tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
+    packerValidateIntegTest.dependsOn packerValidateIntegTestFile
+  }
+}
+
 tasks.register('integTest', Test) {
   group = 'Verification'
   description = 'Runs integration tests'
   shouldRunAfter 'test'
+  dependsOn 'packerValidate-integTest'
   testClassesDirs = sourceSets['integTest'].output.classesDirs
   classpath = sourceSets['integTest'].runtimeClasspath
   reports.junitXml.setDestination new File(xmlReportsDir, 'integTest')

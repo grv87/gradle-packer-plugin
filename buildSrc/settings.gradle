@@ -1,0 +1,26 @@
+#!/usr/bin/env groovy
+/*
+ * Gradle Settings file for gradle-packer-plugin buildSrc
+ * Copyright © 2018  Basil Peace
+ *
+ * This file is part of gradle-packer-plugin.
+ *
+ * This plugin is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ */
+ext.rootDir = file('..')
+
+apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
+
+apply from: new File(ext.rootDir, 'gradle/build-cache.gradle')
+apply from: new File(ext.rootDir, 'gradle/feature-previews.gradle')

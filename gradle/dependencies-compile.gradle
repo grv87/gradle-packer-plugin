@@ -1,0 +1,31 @@
+#!/usr/bin/env groovy
+/*
+ * Compile dependencies for gradle-base-plugins
+ * Copyright © 2018  Basil Peace
+ *
+ * This file is part of gradle-packer-plugin.
+ *
+ * This plugin is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ */
+dependencies {
+  implementation group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
+  // implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
+  implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
+  // implementation group: 'commons-io', name: 'commons-io', version: '2.5'
+  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
+  implementation group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '[1.0, 2['
+  implementation group: 'com.google.guava', name: 'guava', version: '25.1-jre'
+}

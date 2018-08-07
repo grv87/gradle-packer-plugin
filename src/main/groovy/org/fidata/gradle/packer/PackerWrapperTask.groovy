@@ -49,14 +49,21 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     for (Map.Entry<String, Object> variable in variables) {
-      execSpec.cmdArgs.push '-var'
-      execSpec.cmdArgs.push "${ variable.key }=${ variable.value }".toString()
+      execSpec.cmdArgs '-var'
+      execSpec.cmdArgs "${ variable.key }=${ variable.value }".toString()
     }
     if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
-      execSpec.cmdArgs.push '-debug'
+      execSpec.cmdArgs '-debug'
     }
-    execSpec.cmdArgs templateFile.toString() // TODO: Should be the last
+    if (cmdArgs?.size() > 0) {
+      execSpec.cmdArgs(cmdArgs.toArray())
+    }
+    execSpec.cmdArgs templateFile.toString() // Should be the last
     execSpec
+  }
+
+  protected List<Object> getCmdArgs() {
+    null
   }
 
   private PackerToolExtension packerToolExtension

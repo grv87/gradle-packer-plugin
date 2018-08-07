@@ -1,7 +1,0 @@
-{
-"variables": {"b": "c", "port": "22"},
-"builders": [
-{"name": "d1", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": "{{ user `port` }}" }
-],
-"post-processors": [["compress"], {"type": "manifest"}]
-}
