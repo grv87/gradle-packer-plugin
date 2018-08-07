@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 /*
- * Gradle plugin markers for gradle-base-plugins
+ * Gradle plugin markers for gradle-packer-plugin
  * Copyright © 2016-2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.

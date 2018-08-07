@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 /*
- * Compile dependencies for gradle-base-plugins
- * Copyright © 2018  Basil Peace
+ * Compile dependencies for gradle-packer-plugin
+ * Copyright Â© 2016-2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
