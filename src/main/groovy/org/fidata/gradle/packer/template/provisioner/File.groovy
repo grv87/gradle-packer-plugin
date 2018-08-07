@@ -36,7 +36,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
-class File extends TemplateObject implements Provisioner {
+class File extends TemplateObject /*extends Provisioner*/ {
   @Internal
   TemplateString source
 

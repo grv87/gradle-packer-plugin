@@ -1,0 +1,5 @@
+{
+"variables": {"b": "c", "type": "manifest", "type2": "compress"},
+"builders": [{"name": "d", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22}],
+"post-processors": [["{{ user `type2` }}"], {"type": "{{ user `type` }}"}]
+}

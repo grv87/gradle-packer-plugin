@@ -46,10 +46,11 @@ class PackerBuild extends PackerWrapperTask {
 
 
 
-    for (Builder builder in template.builders) {
+    /*for (Builder builder in template.builders) {
       if (onlyExcept.skip(builder.header.name))
     }
-    template.clone()
+    template.clone()*/
+    null
   }
 
   private OnlyExcept onlyExcept

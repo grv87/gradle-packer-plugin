@@ -15,8 +15,8 @@ import com.fasterxml.jackson.databind.ser.std.JsonValueSerializer
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.TemplateObject
 
-@JsonSerialize(using = TemplateStringList.TemplateStringListSerializer)
-@JsonDeserialize(using = TemplateStringList.TemplateStringListDeserializer)
+/*@JsonSerialize(using = TemplateStringListSerializer)
+@JsonDeserialize(using = TemplateStringListDeserializer)*/
 class TemplateStringList extends TemplateObject {
   static class ArrayClass extends ArrayList<TemplateString> {}
 

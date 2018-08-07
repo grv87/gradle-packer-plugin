@@ -43,5 +43,8 @@ class OnlyExcept extends TemplateObject {
     false
   }
 
+  @Override
+  protected void doInterpolate(Context ctx) {
 
+  }
 }

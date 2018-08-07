@@ -37,9 +37,9 @@ contacts {
 
 dependencies {
   implementation group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.0, 3['
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.0, 3['
-  // implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.0, 3['
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
+  // implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
   // implementation group: 'commons-io', name: 'commons-io', version: '2.5'
   implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
@@ -50,13 +50,50 @@ dependencies {
 gradlePlugin {
   plugins {
     keygenPlugin {
+      id = 'org.fidata.packer-ифыу'
+      implementationClass = 'org.fidata.gradle.packer.PackerBasePlugin'
+    }
+  }
+  plugins {
+    keygenPlugin {
       id = 'org.fidata.packer'
-      implementationClass = 'org.fidata.gradle.packer.GradlePackerPlugin'
+      implementationClass = 'org.fidata.gradle.packer.PackerPlugin'
     }
   }
 }
 
 tasks.codenarcMain.disabledRules.add 'JavaIoPackageAccess'
+
+sourceSets {
+  integTest {
+    groovy.srcDirs = ['src/integTest/groovy']
+    resources.srcDirs = ['src/integTest/resources']
+    compileClasspath += sourceSets['main'].output
+    runtimeClasspath += output + sourceSets['main'].output
+  }
+}
+
+plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClasspath sourceSets['integTest']
+plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets['integTest']
+plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations[sourceSets['integTest'].implementationConfigurationName]
+
+tasks.register('integTest', Test) {
+  group = 'Verification'
+  description = 'Runs integration tests'
+  shouldRunAfter 'test'
+  testClassesDirs = sourceSets['integTest'].output.classesDirs
+  classpath = sourceSets['integTest'].runtimeClasspath
+  reports.junitXml.setDestination new File(xmlReportsDir, 'integTest')
+  reports.html.setDestination new File(htmlReportsDir, 'integTest')
+}
+
+tasks.named('functionalTest').configure {
+  shouldRunAfter 'integTest'
+}
+
+dependencies {
+  integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
+}
 
 stutter {
   sparse = true
@@ -69,7 +106,11 @@ stutter {
 }
 
 pluginBundle.plugins {
+  packerBasePlugin {
+    displayName = 'Packer base plugin'
+  }
   packerPlugin {
-    displayName = 'Gradle Packer plugin'
+    displayName = 'Packer plugin'
   }
 }
+

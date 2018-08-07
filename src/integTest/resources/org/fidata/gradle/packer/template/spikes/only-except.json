@@ -1,0 +1,17 @@
+{
+"variables": {"b": "c"},
+"builders": [
+{"name": "d1", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22},
+{"name": "d2", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22}
+],
+"provisioners": [
+{
+  "type": "shell",
+  "script": "script.sh",
+  "pause_before": "10s",
+  "only": ["d0"]
+}
+],
+"post-processors": [[
+"compress"], {"type": "manifest"}]
+}

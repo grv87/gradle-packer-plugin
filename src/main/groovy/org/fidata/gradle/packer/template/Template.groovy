@@ -22,6 +22,7 @@ package org.fidata.gradle.packer.template
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.types.TemplateString
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -29,11 +30,11 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Template extends TemplateObject {
   @Console
-  String description
+  TemplateString description
 
   @JsonProperty('min_packer_version')
   @Internal
-  String minVersion
+  TemplateString minVersion
 
   @Internal
   Map<String, String> variables
@@ -56,7 +57,7 @@ class Template extends TemplateObject {
   }
 
   public Template interpolateBuilder(Context ctx, String builderName) {
-    Template result = new Template()
+    /*Template result = new Template()
     interpolate ctx
     Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
     if (!builder) {
@@ -64,7 +65,7 @@ class Template extends TemplateObject {
     }
     result.builders = [builder]
 
-    ((TemplateObject)builder).interpolate ctx
+    // ((TemplateObject)builder).interpolate ctx
 
     ctx.buildType = builder.header.type
     ctx.buildName = builder.header.interpolatedName
@@ -82,12 +83,12 @@ class Template extends TemplateObject {
     for (Object object in postProcessors) {
       if (List.isInstance(object)) {
         for (PostProcessor postProcessor in (List<PostProcessor>)object) {
-          ((TemplateObject)postProcessor).interpolate(ctx)
+          // ((TemplateObject)postProcessor).interpolate(ctx)
         }
       } else {
         ((TemplateObject) object).interpolate(ctx)
       }
-    }
+    }*/
 
   }
 }

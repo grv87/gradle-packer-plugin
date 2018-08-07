@@ -43,7 +43,8 @@ class PackerPlugin implements Plugin<Project> {
   }
 
   void apply(Project project) {
-    TaskProvider<Task> packerValidateProvider project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
+    project.pluginManager.apply PackerBasePlugin
+    TaskProvider<Task> packerValidateProvider = project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
       packerValidate.group = VERIFICATION_GROUP
     }
     project.plugins.withType(LifecycleBasePlugin) {

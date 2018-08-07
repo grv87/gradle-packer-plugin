@@ -6,7 +6,7 @@ import org.gradle.api.Project
 
 @CompileStatic
 class Context {
-  Map<String, String> userVariables = new HashMap<String, String>
+  Map<String, String> userVariables = new HashMap<String, String>()
 
   Map<String, String> env
 
@@ -26,7 +26,7 @@ class Context {
      * There could be errors due to slightly different syntax.
      * However, that most probably won't happen in simple templates.
      */
-    Mustache.compiler().compile(value).execute(contextTemplateData) // TODO
+    // Mustache.compiler().compile(value).execute(contextTemplateData) // TODO
   }
 
   File interpolateFile(String value) {
