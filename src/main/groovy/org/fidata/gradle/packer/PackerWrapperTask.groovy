@@ -22,6 +22,7 @@ package org.fidata.gradle.packer
 import groovy.transform.CompileStatic
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
@@ -29,7 +30,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   private File templateFile
   @Internal // TODO
   File getTemplateFile() {
-    templateFile
+    this.templateFile
   }
 
   @Internal
@@ -69,6 +70,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   private PackerToolExtension packerToolExtension
 
   @Override
+  @Internal // @Nested
   protected PackerToolExtension getToolExtension() {
     /*TODO this.*/packerToolExtension
   }

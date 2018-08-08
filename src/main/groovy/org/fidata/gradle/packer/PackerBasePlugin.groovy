@@ -50,5 +50,6 @@ class PackerBasePlugin implements Plugin<Project> {
         check.dependsOn packerValidateProvider
       }
     }
+    project.extensions.create(PackerToolExtension.NAME, PackerToolExtension, project)
   }
 }

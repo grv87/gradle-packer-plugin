@@ -39,9 +39,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
  * {@code packer} extension for Gradle project
  */
 @CompileStatic
-class PackerPluginExtension extends PackerToolExtension {
+class PackerPluginExtension {
+  private Project project
+
   Map<String, Object> environment = [:]
   Map<String, Object> variables = [:]
+
+  PackerPluginExtension(Project project) {
+    this.project = project
+  }
 
   Closure configureClosure(Closure taskConfiguration) {
     { PackerWrapperTask packerWrapperTask ->
@@ -63,7 +69,7 @@ class PackerPluginExtension extends PackerToolExtension {
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
 
-    TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, configureClosure(taskConfiguration))
+    TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, /*empty OnlyExcept,*/ configureClosure(taskConfiguration))
     parentTask?.dependsOn buildAllProvider
 
     Context ctx = new Context()
@@ -92,9 +98,5 @@ class PackerPluginExtension extends PackerToolExtension {
     for(File file : files) {
       template(file, parentTask, taskConfiguration)
     }
-  }
-
-  PackerPluginExtension(Project project) {
-    super(project)
   }
 }

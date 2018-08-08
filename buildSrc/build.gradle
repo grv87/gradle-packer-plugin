@@ -18,32 +18,30 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-buildscript {
-  repositories {
-    maven {
-      url 'https://fidata.jfrog.io/fidata/plugins-release/'
-      credentials {
-        new File(file('..'), Project.GRADLE_PROPERTIES).withReader { Reader reader ->
-          Properties properties = new Properties()
-          properties.load(reader)
-          username = properties.getProperty('artifactoryUser')
-          password = properties.getProperty('artifactoryPassword')
-        }
-      }
-    }
-  }
-  dependencies {
-    classpath group: 'org.fidata.project.groovy', name: 'org.fidata.project.groovy.gradle.plugin', version: '3.0.1'
-  }
+// Minimal set of plugins enough to compile plugins
+plugins {
+  id 'groovy'
+  id 'java-library'
+  id 'java-gradle-plugin'
 }
+
+group = 'org.fidata.gradle'
 
 ext.rootDir = file('..')
 
 apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
-apply plugin: 'org.fidata.project.groovy'
-
 dependencyLocking.lockAllConfigurations()
+
+repositories {
+  maven {
+    url 'https://fidata.jfrog.io/fidata/libs-release/'
+    credentials {
+      username = project.ext.artifactoryUser
+      password = project.ext.artifactoryPassword
+    }
+  }
+}
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
@@ -53,7 +51,3 @@ sourceSets.main {
 }
 
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
-
-
-
-

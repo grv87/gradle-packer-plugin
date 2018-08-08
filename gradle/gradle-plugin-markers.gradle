@@ -20,13 +20,11 @@
  */
 gradlePlugin {
   plugins {
-    keygenPlugin {
+    packerBasePlugin {
       id = 'org.fidata.packer-base'
       implementationClass = 'org.fidata.gradle.packer.PackerBasePlugin'
     }
-  }
-  plugins {
-    keygenPlugin {
+    packerPlugin {
       id = 'org.fidata.packer'
       implementationClass = 'org.fidata.gradle.packer.PackerPlugin'
     }

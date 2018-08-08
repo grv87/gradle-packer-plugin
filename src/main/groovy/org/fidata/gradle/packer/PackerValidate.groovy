@@ -24,6 +24,7 @@ import org.fidata.gradle.packer.template.Template
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import javax.inject.Inject
 
 @CompileStatic
 class PackerValidate extends PackerWrapperTask {
@@ -31,12 +32,14 @@ class PackerValidate extends PackerWrapperTask {
   Boolean syntaxOnly = true
   @InputFile
   File getTemplateFile() {
-    templateFile
+    super.templateFile
   }
 
-  PackerValidate(File templateFile, Closure configureClosure = null) {
+  @Inject
+  PackerValidate(File templateFile, Closure configureClosure) {
     super(templateFile)
     configure configureClosure
+    outputs.upToDateWhen { true }
   }
 
   @Override
@@ -47,6 +50,7 @@ class PackerValidate extends PackerWrapperTask {
   }
 
   @Override
+  @Internal
   protected List<Object> getCmdArgs() {
     if (syntaxOnly) {
       [(Object)'-syntax-only']

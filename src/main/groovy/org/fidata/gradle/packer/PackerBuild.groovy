@@ -31,13 +31,15 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 
+import javax.inject.Inject
+
 @CompileStatic
 class PackerBuild extends PackerWrapperTask {
   private Template template
 
   @Internal
   Template getTemplate() {
-    template
+    this.template
   }
 
   @Nested
@@ -61,6 +63,7 @@ class PackerBuild extends PackerWrapperTask {
     onlyExcept
   }
 
+  @Inject
   PackerBuild(File templateFile, Template template, OnlyExcept onlyExcept = null, Closure configureClosure = null) {
     super(templateFile)
     group = 'Build' // TODO: constant
@@ -82,6 +85,7 @@ class PackerBuild extends PackerWrapperTask {
   }
 
   @Override
+  @Internal
   protected List<Object> getCmdArgs() {
     if (onlyExcept) {
       if (onlyExcept.only?.size() > 0) {

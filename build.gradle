@@ -40,7 +40,7 @@ ext.rootDir = '.'
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
-apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markets.gradle')
+apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
 
 tasks.codenarcMain.disabledRules.add 'JavaIoPackageAccess'
 
@@ -59,12 +59,12 @@ plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations[s
 
 tasks.register('packerValidate-integTest')
 
-for (File f in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
+for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
 }) {
-  TaskProvider<PackerValidate> packerValidateIntegTestFile = tasks.register("packerValidate-integTest-${ f.toPath().fileName }", PackerValidate, f)
+  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ singleTemplateFile.toPath().fileName }", ext.PackerValidate, singleTemplateFile, {})
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
-    packerValidateIntegTest.dependsOn packerValidateIntegTestFile
+    packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }
 }
 
