@@ -9,15 +9,15 @@ import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 @CompileStatic
 class InterpolableString extends InterpolablePrimitive<String> {
   @JsonValue
-  String value
+  String rawValue
 
   @JsonCreator
   InterpolableString(String value) {
-    this.value = value
+    this.rawValue = value
   }
 
   @Override
   protected String doInterpolatePrimitive(Context ctx) {
-    ctx.interpolateString(value)
+    ctx.interpolateString(rawValue)
   }
 }

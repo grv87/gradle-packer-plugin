@@ -19,17 +19,27 @@ import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 @CompileStatic
 class InterpolableStringArray extends InterpolablePrimitive<List<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
+  Object rawValue
 
-  List<InterpolableString> array
-  InterpolableString variable
+  @Override
+  protected List<String> doInterpolatePrimitive(Context ctx) {
+    List<String> result
+    if (ArrayClass.isInstance(rawValue)) {
+      new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate(ctx); it.interpolatedValue })
+    } else {
+      ((InterpolableString)rawValue).interpolate(ctx)
+      ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
+    }
+  }
 
   static class InterpolableStringListSerializer extends JsonSerializer<InterpolableStringArray> {
     @Override
     void serialize(InterpolableStringArray value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      if (value.variable) {
-        serializers.findValueSerializer(InterpolableString).serialize value.variable, gen, serializers
+      Object rawValue = value.rawValue
+      if (ArrayClass.isInstance(rawValue)) {
+        serializers.findValueSerializer(ArrayClass).serialize rawValue, gen, serializers
       } else {
-        serializers.findValueSerializer(ArrayClass).serialize value.array, gen, serializers
+        serializers.findValueSerializer(InterpolableString).serialize rawValue, gen, serializers
       }
     }
   }
@@ -37,21 +47,15 @@ class InterpolableStringArray extends InterpolablePrimitive<List<String>> {
   static class InterpolableStringListDeserializer extends JsonDeserializer<InterpolableStringArray> {
     @Override
     InterpolableStringArray deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      Object rawValue
       if (jp.currentToken == JsonToken.START_ARRAY) {
-        return new InterpolableStringArray(
-          array: jp.readValueAs(ArrayClass)
-        )
+        rawValue = jp.readValueAs(ArrayClass)
       } else {
-        return new InterpolableStringArray(
-          variable: jp.readValueAs(InterpolableString)
-        )
+        rawValue = jp.readValueAs(InterpolableString)
       }
+      return new InterpolableStringArray(
+        rawValue: rawValue
+      )
     }
-  }
-
-  @Override
-  protected List<String> doInterpolatePrimitive(Context ctx) {
-    // TODO
-    null
   }
 }

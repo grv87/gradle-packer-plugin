@@ -18,24 +18,25 @@ import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 @JsonDeserialize(using = InterpolableBooleanDeserializer)
 @CompileStatic
 class InterpolableBoolean extends InterpolablePrimitive<Boolean> {
-  Object value
+  Object rawValue
 
   @Override
   protected Boolean doInterpolatePrimitive(Context ctx) {
-    if (Boolean.isInstance(value)) {
-      (Boolean)value
+    if (Boolean.isInstance(rawValue)) {
+      (Boolean)rawValue
     } else {
-      ctx.interpolateString((String)value).toBoolean() // TOTEST
+      ctx.interpolateString((String)rawValue).toBoolean() // TOTEST
     }
   }
 
   static class InterpolableBooleanSerializer extends JsonSerializer<InterpolableBoolean> {
     @Override
     void serialize(InterpolableBoolean value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      if (Integer.isInstance(value.value)) {
-        gen.writeNumber((Integer)value.value)
+      Object rawValue = value.rawValue
+      if (Integer.isInstance(rawValue)) {
+        gen.writeNumber((Integer)rawValue)
       } else {
-        gen.writeString((String)value.value)
+        gen.writeString((String)rawValue)
       }
     }
   }
@@ -43,15 +44,15 @@ class InterpolableBoolean extends InterpolablePrimitive<Boolean> {
   static class InterpolableBooleanDeserializer extends JsonDeserializer<InterpolableBoolean> {
     @Override
     InterpolableBoolean deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      Object rawValue
       if (jp.currentToken == JsonToken.VALUE_TRUE || jp.currentToken == JsonToken.VALUE_FALSE) {
-        return new InterpolableBoolean(
-          value: jp.readValueAs(Boolean)
-        )
+        rawValue = jp.readValueAs(Boolean)
       } else {
-        return new InterpolableBoolean(
-          value: jp.readValueAs(String)
-        )
+        rawValue = jp.readValueAs(String)
       }
+      return new InterpolableBoolean(
+        rawValue: rawValue
+      )
     }
   }
 }

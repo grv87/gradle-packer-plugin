@@ -1,5 +1,6 @@
 package org.fidata.gradle.packer.template.types
 
+import com.fasterxml.jackson.annotation.JsonValue
 import go.time.DurationAdapter
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
@@ -9,10 +10,11 @@ import java.time.Duration
 
 @CompileStatic
 class InterpolableDuration extends InterpolablePrimitive<Duration> {
-  String value
+  @JsonValue
+  String rawValue
 
   @Override
   protected Duration doInterpolatePrimitive(Context ctx) {
-    DurationAdapter.parseDuration(ctx.interpolateString(value))
+    DurationAdapter.parseDuration(ctx.interpolateString(rawValue))
   }
 }

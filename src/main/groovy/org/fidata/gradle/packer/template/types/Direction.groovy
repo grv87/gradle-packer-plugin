@@ -3,6 +3,7 @@ package org.fidata.gradle.packer.template.types
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
+import java.util.zip.DataFormatException
 
 @CompileStatic
 enum Direction {
@@ -16,11 +17,11 @@ enum Direction {
   }
 
   @JsonCreator
-  public static Direction forValue(String value) {
+  public static Direction forValue(String value) throws DataFormatException {
     if (value == value.toLowerCase()) {
       valueOf(value.toUpperCase())
     } else {
-      // TODO: not found exception
+      throw new DataFormatException(sprintf('%s if not a valid direction value', [value])) // TODO
     }
   }
 }

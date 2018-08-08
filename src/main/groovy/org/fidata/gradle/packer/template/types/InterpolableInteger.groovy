@@ -18,24 +18,25 @@ import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 @JsonDeserialize(using = InterpolableIntegerDeserializer)
 @CompileStatic
 class InterpolableInteger extends InterpolablePrimitive<Integer> {
-  Object value
+  Object rawValue
 
   @Override
   protected Integer doInterpolatePrimitive(Context ctx) {
-    if (Integer.isInstance(value)) {
-      (Integer)value
+    if (Integer.isInstance(rawValue)) {
+      (Integer)rawValue
     } else {
-      ctx.interpolateString((String)value).toInteger()
+      ctx.interpolateString((String)rawValue).toInteger()
     }
   }
 
   static class InterpolableIntegerSerializer extends JsonSerializer<InterpolableInteger> {
     @Override
     void serialize(InterpolableInteger value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      if (Integer.isInstance(value.value)) {
-        gen.writeNumber((Integer)value.value)
+      Object rawValue = value.rawValue
+      if (Integer.isInstance(rawValue)) {
+        gen.writeNumber((Integer)rawValue)
       } else {
-        gen.writeString((String)value.value)
+        gen.writeString((String)rawValue)
       }
     }
   }
@@ -43,15 +44,15 @@ class InterpolableInteger extends InterpolablePrimitive<Integer> {
   static class InterpolableIntegerDeserializer extends JsonDeserializer<InterpolableInteger> {
     @Override
     InterpolableInteger deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      Object rawValue
       if (jp.currentToken == JsonToken.VALUE_NUMBER_INT) {
-        return new InterpolableInteger(
-          value: jp.readValueAs(Integer)
-        )
+        rawValue = jp.readValueAs(Integer)
       } else {
-        return new InterpolableInteger(
-          value: jp.readValueAs(String)
-        )
+        rawValue = jp.readValueAs(String)
       }
+      return new InterpolableInteger(
+        rawValue: rawValue
+      )
     }
   }
 }
