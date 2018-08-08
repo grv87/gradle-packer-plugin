@@ -1,7 +1,10 @@
 
 package go.time
 
+import java.text.ParseException
 import java.time.Duration
+import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 
 final class DurationAdapter {
   /**
@@ -129,6 +132,84 @@ final class DurationAdapter {
     return w
   }
 
+  static Exception errLeadingInt() {
+    new DateTimeParseException('time: bad [0-9]*')
+  } // never printed
+
+  /**
+   * Сonsumes the leading [0-9]* from s.
+   * @param s
+   * @return
+   */
+  static Tuple2<Long, String> leadingInt(String s) {
+    Long x = 0
+    int i
+    for (i = 0; i < s.length(); i++) {
+      char c = s.charAt(i)
+      if (c < ('0' as char) || c > ('9' as char)) {
+        break
+      }
+      if (x > (1<<63-1)/10) {
+        // overflow
+        throw errLeadingInt()
+      }
+      x = x*10 + Long.parseLong(c.toString()) - '0' // ???
+      if (x < 0) {
+        // overflow
+        throw errLeadingInt()
+      }
+    }
+    return new Tuple2(x, s[i..-1])
+  }
+
+  /**
+   * Сonsumes the leading [0-9]* from s.
+   * It is used only for fractions, so does not return an error on overflow,
+   * it just stops accumulating precision.
+   * @param s
+   * @return
+   */
+  static Tuple2<Tuple2<Long, Double>, String> leadingFraction(String s) {
+    Long x = 0
+    Double scale = 1
+    String rem
+    int i
+    boolean overflow = false
+    for (i = 0; i < s.length(); i++) {
+      char c = s.charAt(i)
+      if (c < ('0' as char) || c > ('9' as char)) {
+        break
+      }
+      if (overflow) {
+        continue
+      }
+      if (x > (1<<63-1)/10) {
+        // It's possible for overflow to give a positive number, so take care.
+        overflow = true
+        continue
+      }
+      Long y = x*10 + Long.parseLong(c.toString()) - '0' // ??
+      if (y < 0) {
+        overflow = true
+        continue
+      }
+      x = y
+      scale *= 10
+    }
+    return new Tuple2(new Tuple2(x, scale), s[i..-1])
+  }
+
+  static Map<String, ChronoUnit> unitMap = [
+    "ns": ChronoUnit.NANOS,
+    "us": ChronoUnit.MICROS,
+    "µs": ChronoUnit.MICROS, // U+00B5 = micro symbol
+    "μs": ChronoUnit.MICROS, // U+03BC = Greek letter mu
+    "ms": ChronoUnit.MILLIS,
+    "s":  ChronoUnit.SECONDS,
+    "m":  ChronoUnit.MINUTES,
+    "h":  ChronoUnit.HOURS,
+  ]
+
   /**
    * Parses a duration string.
    * A duration string is a possibly signed sequence of
@@ -140,100 +221,100 @@ final class DurationAdapter {
    */
   static Duration parseDuration(String s) {
     // [-+]?([0-9]*(\.[0-9]*)?[a-z]+)+
-    orig := s
-    var d int64
-    neg := false
+    String orig = s
+    new StringReader(s).withReader { Reader r ->
+      Long d
+      boolean neg = false
 
-    // Consume [-+]?
-    if s != "" {
-      c := s[0]
-      if c == '-' || c == '+' {
-        neg = c == '-'
-        s = s[1:]
-      }
-    }
-    // Special case: if all that is left is "0", this is zero.
-    if s == "0" {
-      return 0, nil
-    }
-    if s == "" {
-      return 0, errors.New("time: invalid duration " + orig)
-    }
-    for s != "" {
-      var (
-        v, f  int64       // integers before, after decimal point
-        scale float64 = 1 // value = v + f/scale
-      )
-
-      var err error
-
-      // The next character must be [0-9.]
-      if !(s[0] == '.' || '0' <= s[0] && s[0] <= '9') {
-        return 0, errors.New("time: invalid duration " + orig)
-      }
-      // Consume [0-9]*
-      pl := len(s)
-      v, s, err = leadingInt(s)
-      if err != nil {
-        return 0, errors.New("time: invalid duration " + orig)
-      }
-      pre := pl != len(s) // whether we consumed anything before a period
-
-      // Consume (\.[0-9]*)?
-      post := false
-      if s != "" && s[0] == '.' {
-        s = s[1:]
-        pl := len(s)
-        f, scale, s = leadingFraction(s)
-        post = pl != len(s)
-      }
-      if !pre && !post {
-        // no digits (e.g. ".s" or "-.s")
-        return 0, errors.New("time: invalid duration " + orig)
-      }
-
-      // Consume unit.
-      i := 0
-      for ; i < len(s); i++ {
-        c := s[i]
-        if c == '.' || '0' <= c && c <= '9' {
-          break
+      // Consume [-+]?
+      if (!s.empty) {
+        char c = s.charAt(0)
+        if (c == ('-' as char) || c == ('+' as char)) {
+          neg = c == ('-' as char)
+          s = s[1..-1]
         }
       }
-      if i == 0 {
-        return 0, errors.New("time: missing unit in duration " + orig)
+      // Special case: if all that is left is "0", this is zero.
+      if (s == "0") {
+        return Duration.ZERO
       }
-      u := s[:i]
-      s = s[i:]
-      unit, ok := unitMap[u]
-      if !ok {
-        return 0, errors.New("time: unknown unit " + u + " in duration " + orig)
+      if (s.empty) {
+        throw new DateTimeParseException("time: invalid duration " + orig)
       }
-      if v > (1<<63-1)/unit {
-        // overflow
-        return 0, errors.New("time: invalid duration " + orig)
-      }
-      v *= unit
-      if f > 0 {
-        // float64 is needed to be nanosecond accurate for fractions of hours.
-        // v >= 0 && (f*unit/scale) <= 3.6e+12 (ns/h, h is the largest unit)
-        v += int64(float64(f) * (float64(unit) / scale))
-        if v < 0 {
+      while (!s.empty) {
+        long v, f // integers before, after decimal point
+        double scale = 1 // value = v + f/scale
+
+        // The next character must be [0-9.]
+        if (!(s[0] == '.' || '0' <= s[0] && s[0] <= '9')) {
+          throw new DateTimeParseException("time: invalid duration " + orig)
+        }
+        // Consume [0-9]*
+        int pl = s.length()
+        try {
+          (v, s) = leadingInt(s)
+        } catch {
+          throw new DateTimeParseException("time: invalid duration " + orig)
+        }
+        bool pre = pl != s.length() // whether we consumed anything before a period
+
+        // Consume (\.[0-9]*)?
+        bool post = false
+        if (!s.empty && s.charAr(0) == ('.' as char)) {
+          s = s[1..-1]
+          pl = s.length()
+          (f, scale, s) = leadingFraction(s)
+          post = pl != s.length()
+        }
+        if (!pre && !post) {
+          // no digits (e.g. ".s" or "-.s")
+          throw new DateTimeParseException("time: invalid duration " + orig)
+        }
+
+        // Consume unit.
+        int i
+        for (i = 0; i < s.length(); i++) {
+          char c = s.charAt(i)
+          if (c == ('.' as char) || ('0' as char) <= c && c <= ('9' as char)) {
+            break
+          }
+        }
+        if (i == 0) {
+          throw new DateTimeParseException("time: missing unit in duration " + orig)
+        }
+        u = s[0..i]
+        s = s[i..-1]
+        try {
+          ChronoUnit unit = unitMap[u]
+        } catch { // TODO
+          throw new DateTimeParseException("time: unknown unit " + u + " in duration " + orig)
+        }
+        if (v > (1 << 63 - 1) / unit) {
           // overflow
-          return 0, errors.New("time: invalid duration " + orig)
+          throw new DateTimeParseException("time: invalid duration " + orig)
+        }
+        v *= unit
+        if (f > 0) {
+          // float64 is needed to be nanosecond accurate for fractions of hours.
+          // v >= 0 && (f*unit/scale) <= 3.6e+12 (ns/h, h is the largest unit)
+          v += int64(float64(f) * (float64(unit) / scale))
+          if (v < 0) {
+            // overflow
+            throw new DateTimeParseException("time: invalid duration " + orig)
+          }
+        }
+        d += v
+        if (d < 0) {
+          // overflow
+          throw new DateTimeParseException("time: invalid duration " + orig)
         }
       }
-      d += v
-      if d < 0 {
-        // overflow
-        return 0, errors.New("time: invalid duration " + orig)
-      }
-    }
 
-    if neg {
-      d = -d
+      if (neg) {
+        d = -d
+      }
+      Duration.ofNanos(d)
     }
-    return Duration(d), nil
   }
 
   // Suppress default constructor for noninstantiability
