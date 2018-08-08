@@ -21,33 +21,30 @@ package org.fidata.gradle.packer.template.provisioner
 
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.Provisioner
-import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.Direction
-import org.fidata.gradle.packer.template.types.TemplateFile
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
-class File extends TemplateObject /*extends Provisioner*/ {
+class File extends InterpolableObject /*extends Provisioner*/ {
   @Internal
-  TemplateString source
+  InterpolableString source
 
   @Internal
-  List<TemplateString> sources
+  List<InterpolableString> sources
 
   @Internal
-  TemplateString destination
+  InterpolableString destination
 
   @Internal
-  TemplateString direction
+  InterpolableString direction
 
   @Internal
   Boolean generated // TODO

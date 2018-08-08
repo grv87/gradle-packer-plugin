@@ -1,0 +1,30 @@
+gradle-packer-plugin
+Copyright © 2016-2018  Basil Peace
+
+This plugin is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
+
+This plugin is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Test fixtures in src/test/resources/packer_templates directory
+are copied from original Packer code.
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0 that can be found in licenses/packer file.
+If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+
+Package `go.time` contains code translated
+from Go `time` package to Java.
+Copyright 2009, 2010 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the licenses/go file.

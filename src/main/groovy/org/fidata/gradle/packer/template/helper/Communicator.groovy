@@ -3,139 +3,142 @@ package org.fidata.gradle.packer.template.helper
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.TemplateObject
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.types.InterpolableBoolean
+import org.fidata.gradle.packer.template.types.InterpolableDuration
+import org.fidata.gradle.packer.template.types.InterpolableInteger
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Internal
 
 import java.time.Duration
 
 @CompileStatic
-class Communicator extends TemplateObject {
+class Communicator extends InterpolableObject {
   // SSH
   @JsonProperty('ssh_host')
   @Internal
-  TemplateString sshHost
+  InterpolableString sshHost
 
   @JsonProperty('ssh_port')
   @Internal
-  Integer sshPort
+  InterpolableInteger sshPort
 
   @JsonProperty('ssh_username')
   @Internal
-  TemplateString sshUsername
+  InterpolableString sshUsername
 
   @JsonProperty('ssh_password')
   @Internal
-  TemplateString sshPassword
+  InterpolableString sshPassword
 
   @JsonProperty('ssh_private_key_file')
   @Internal
-  TemplateString sshPrivateKey
+  InterpolableString sshPrivateKey
 
   @JsonProperty('ssh_pty')
   @Internal
-  Boolean sshPty
+  InterpolableBoolean sshPty
 
   @JsonProperty('ssh_timeout')
   @Internal
-  Duration sshTimeout
+  InterpolableDuration sshTimeout
 
   @JsonProperty('ssh_agent_auth')
   @Internal
-  Boolean sshAgentAuth
+  InterpolableBoolean sshAgentAuth
 
   @JsonProperty('ssh_disable_agent_forwarding')
   @Internal
-  Boolean sshDisableAgentForwarding
+  InterpolableBoolean sshDisableAgentForwarding
 
   @JsonProperty('ssh_handshake_attempts')
   @Internal
-  Integer sshHandshakeAttempts
+  InterpolableInteger sshHandshakeAttempts
 
   @JsonProperty('ssh_bastion_host')
   @Internal
-  TemplateString sshBastionHost
+  InterpolableString sshBastionHost
 
   @JsonProperty('ssh_bastion_port')
   @Internal
-  Integer sshBastionPort
+  InterpolableInteger sshBastionPort
 
   @JsonProperty('ssh_bastion_agent_auth')
   @Internal
-  Boolean sshBastionAgentAuth
+  InterpolableBoolean sshBastionAgentAuth
 
   @JsonProperty('ssh_bastion_username')
   @Internal
-  TemplateString sshBastionUsername
+  InterpolableString sshBastionUsername
 
   @JsonProperty('ssh_bastion_password')
   @Internal
-  TemplateString sshBastionPassword
+  InterpolableString sshBastionPassword
 
   @JsonProperty('ssh_bastion_private_key_file')
   @Internal
-  TemplateString sshBastionPrivateKey
+  InterpolableString sshBastionPrivateKey
 
   @JsonProperty('ssh_file_transfer_method')
   @Internal
-  TemplateString sshFileTransferMethod
+  InterpolableString sshFileTransferMethod
 
   @JsonProperty('ssh_proxy_host')
   @Internal
-  TemplateString sshProxyHost
+  InterpolableString sshProxyHost
 
   @JsonProperty('ssh_proxy_port')
   @Internal
-  Integer sshProxyPort
+  InterpolableInteger sshProxyPort
 
   @JsonProperty('ssh_proxy_username')
   @Internal
-  TemplateString sshProxyUsername
+  InterpolableString sshProxyUsername
 
   @JsonProperty('ssh_proxy_password')
   @Internal
-  TemplateString sshProxyPassword
+  InterpolableString sshProxyPassword
 
   @JsonProperty('ssh_keep_alive_interval')
   @Internal
-  Duration sshKeepAliveInterval
+  InterpolableDuration sshKeepAliveInterval
 
   @JsonProperty('ssh_read_write_timeout')
   @Internal
-  Duration sshReadWriteTimeout
+  InterpolableDuration sshReadWriteTimeout
 
   // WinRM
   @JsonProperty('winrm_username')
   @Internal
-  TemplateString winRMUser
+  InterpolableString winRMUser
 
   @JsonProperty('winrm_password')
   @Internal
-  TemplateString winRMPassword
+  InterpolableString winRMPassword
 
   @JsonProperty('winrm_host')
   @Internal
-  TemplateString winRMHost
+  InterpolableString winRMHost
 
   @JsonProperty('winrm_port')
   @Internal
-  String winRMPort
+  InterpolableString winRMPort
 
   @JsonProperty('winrm_timeout')
   @Internal
-  Duration winRMTimeout
+  InterpolableDuration winRMTimeout
 
   @JsonProperty('winrm_use_ssl')
   @Internal
-  Boolean winRMUseSSL
+  InterpolableBoolean winRMUseSSL
 
   @JsonProperty('winrm_insecure')
   @Internal
-  Boolean winRMInsecure
+  InterpolableBoolean winRMInsecure
 
   @JsonProperty('winrm_use_ntlm')
   @Internal
-  Boolean winRMUseNTLM
+  InterpolableBoolean winRMUseNTLM
 
   @Override
   protected void doInterpolate(Context ctx) {

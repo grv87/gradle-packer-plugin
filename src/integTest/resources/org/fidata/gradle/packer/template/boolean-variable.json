@@ -1,13 +1,16 @@
 {
+	"variables": {
+		"ssh_agent_auth": "true"
+	},
 	"builders": [
 		{
 			"name": "builder-null",
 			"type": "null",
-			"ssh_username": "username",
+			"ssh_username": "user `ssh_username`",
 			"ssh_host": "0.0.0.0",
 			"ssh_password": "password",
 			"ssh_port": 22,
-			"ssh_agent_auth": true
+			"ssh_agent_auth": "{{ user `ssh_agent_auth` }}"
 		}
 	]
 }

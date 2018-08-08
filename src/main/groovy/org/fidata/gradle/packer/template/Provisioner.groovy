@@ -23,12 +23,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.provisioner.File
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 
 import java.time.Duration
 
@@ -41,7 +40,7 @@ import java.time.Duration
   @JsonSubTypes.Type(name = 'file', value = File),
 ])
 @CompileStatic
-class Provisioner extends TemplateObject {
+class Provisioner extends InterpolableObject {
   @Internal // TODO
   @JsonUnwrapped
   OnlyExcept onlyExcept
@@ -50,15 +49,15 @@ class Provisioner extends TemplateObject {
   String type
 
   @Internal
-  Map<TemplateString, Object /* TODO */> override
+  Map<InterpolableString, Object /* TODO */> override
 
   @Internal
   Duration pauseBefore // TODO: Write parser
 
   @Override
   protected void doInterpolate(Context ctx) {
-    /*for (Map.Entry<TemplateString, Object>
-      TemplateString buildName, Provisioner provisioner : override) {
+    /*for (Map.Entry<InterpolableString, Object>
+      InterpolableString buildName, Provisioner provisioner : override) {
       TODO: apply override
     }*/
   }

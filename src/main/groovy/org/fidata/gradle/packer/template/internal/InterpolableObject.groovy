@@ -4,11 +4,11 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 
 @CompileStatic
-abstract class TemplateObject implements Serializable, Cloneable {
+abstract class InterpolableObject implements Serializable, Cloneable {
   private boolean interpolated = false
 
   boolean isInterpolated() {
-    interpolated
+    this.interpolated
   }
 
   public void interpolate(Context ctx) {

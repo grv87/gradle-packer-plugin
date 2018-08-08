@@ -20,13 +20,13 @@
 package org.fidata.gradle.packer.template
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.internal.TemplateObject
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.types.InterpolableString
 
 @CompileStatic
-class OnlyExcept extends TemplateObject {
-  List<TemplateString> only
-  List<TemplateString> except
+class OnlyExcept extends InterpolableObject {
+  List<InterpolableString> only
+  List<InterpolableString> except
 
 
 

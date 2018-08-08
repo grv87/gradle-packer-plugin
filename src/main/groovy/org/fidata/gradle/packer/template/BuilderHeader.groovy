@@ -1,14 +1,13 @@
 package org.fidata.gradle.packer.template
 
-import org.fidata.gradle.packer.template.internal.TemplateObject
-import org.fidata.gradle.packer.template.types.TemplateString
-import org.gradle.api.tasks.Console
+import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
-class BuilderHeader extends TemplateObject {
+class BuilderHeader extends InterpolableObject {
   @Internal
-  TemplateString name
+  InterpolableString name
 
   @Input // TODO
   String type

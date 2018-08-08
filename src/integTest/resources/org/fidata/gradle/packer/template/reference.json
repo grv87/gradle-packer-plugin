@@ -1,9 +1,0 @@
-{
-"variables": {"b": "c"},
-"builders": [
-{"name": "d1", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22},
-{"name": "d2", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22},
-{"name": "d3", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22},
-{"name": "d4", "type": "null", "ssh_username": "e", "ssh_host": "0.0.0.0", "ssh_password": "f", "ssh_port": 22}
-]
-}

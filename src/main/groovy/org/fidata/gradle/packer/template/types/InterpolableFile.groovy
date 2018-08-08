@@ -2,10 +2,10 @@ package org.fidata.gradle.packer.template.types
 
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.TemplateObject
+import org.fidata.gradle.packer.template.internal.InterpolableObject
 
 @CompileStatic
-class TemplateFile extends TemplateObject {
+class InterpolableFile extends InterpolableObject {
   String value
 
   private File interpolatedValue
@@ -21,7 +21,7 @@ class TemplateFile extends TemplateObject {
 
   @Override
   boolean equals(Object obj) {
-    this.class.isInstance(obj) && ((TemplateFile)obj).interpolatedValue == interpolatedValue
+    this.class.isInstance(obj) && ((InterpolableFile)obj).interpolatedValue == interpolatedValue
   }
 
   private static final long serialVersionUID = 1L
@@ -33,6 +33,6 @@ class TemplateFile extends TemplateObject {
     interpolatedValue
   }
 
-  /* TOTEST TemplateFile() {
+  /* TOTEST InterpolableFile() {
   }*/
 }

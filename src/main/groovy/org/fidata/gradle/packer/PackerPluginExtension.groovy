@@ -21,14 +21,9 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.PackerBuild
-import org.fidata.gradle.packer.PackerToolExtension
-import org.fidata.gradle.packer.PackerValidate
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.OnlyExcept
-import org.fidata.gradle.packer.template.Template
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.Interpolable
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
@@ -62,7 +57,7 @@ class PackerPluginExtension {
   void template(String name, File file, Task parentTask = null, Closure taskConfiguration = null) {
     project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
     ObjectMapper mapper = new ObjectMapper()
-    Template template = mapper.readValue(file.text, Template)
+    Interpolable template = mapper.readValue(file.text, Interpolable)
     if (!name) {
       // name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
     }
@@ -80,7 +75,7 @@ class PackerPluginExtension {
       // builder.header.interpolate() TODO
       String buildName =
         name ?: builder.header.type // TODO: interpolate
-      TaskProvider<PackerBuild> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuild, file, template, /*new OnlyExcept(only: [new TemplateString(buildName)]), TODO*/ configureClosure(taskConfiguration))
+      TaskProvider<PackerBuild> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuild, file, template, /*new OnlyExcept(only: [new InterpolableString(buildName)]), TODO*/ configureClosure(taskConfiguration))
     }
   }
 

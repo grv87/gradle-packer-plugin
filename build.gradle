@@ -71,7 +71,7 @@ for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fi
 tasks.register('integTest', Test) {
   group = 'Verification'
   description = 'Runs integration tests'
-  shouldRunAfter 'test'
+  shouldRunAfter 'test' // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
   dependsOn 'packerValidate-integTest'
   testClassesDirs = sourceSets['integTest'].output.classesDirs
   classpath = sourceSets['integTest'].runtimeClasspath
@@ -79,11 +79,13 @@ tasks.register('integTest', Test) {
   reports.html.setDestination new File(htmlReportsDir, 'integTest')
 }
 
+// WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
 tasks.named('functionalTest').configure {
   shouldRunAfter 'integTest'
 }
 
 dependencies {
+  integTestImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
 }
 

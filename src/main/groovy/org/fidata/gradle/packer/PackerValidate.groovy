@@ -20,7 +20,6 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Template
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal

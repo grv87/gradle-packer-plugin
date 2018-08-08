@@ -1,5 +1,5 @@
 /*
- * Template class
+ * Interpolable class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -21,20 +21,20 @@ package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.internal.TemplateObject
-import org.fidata.gradle.packer.template.types.TemplateString
+import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
 @CompileStatic
-class Template extends TemplateObject {
+class Interpolable extends InterpolableObject {
   @Console
-  TemplateString description
+  InterpolableString description
 
   @JsonProperty('min_packer_version')
   @Internal
-  TemplateString minVersion
+  InterpolableString minVersion
 
   @Internal
   Map<String, String> variables
@@ -52,12 +52,12 @@ class Template extends TemplateObject {
   @Override
   protected void doInterpolate(Context ctx) {
     for (Builder builder in builders) {
-      ((TemplateObject)builder.header).interpolate(ctx)
+      ((InterpolableObject)builder.header).interpolate(ctx)
     }
   }
 
-  public Template interpolateBuilder(Context ctx, String builderName) {
-    /*Template result = new Template()
+  public Interpolable interpolateBuilder(Context ctx, String builderName) {
+    /*Interpolable result = new Interpolable()
     interpolate ctx
     Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
     if (!builder) {
@@ -65,7 +65,7 @@ class Template extends TemplateObject {
     }
     result.builders = [builder]
 
-    // ((TemplateObject)builder).interpolate ctx
+    // ((InterpolableObject)builder).interpolate ctx
 
     ctx.buildType = builder.header.type
     ctx.buildName = builder.header.interpolatedName
@@ -74,8 +74,8 @@ class Template extends TemplateObject {
 
     for (Provisioner provisioner in provisioners) {
       if (!provisioner.onlyExcept?.skip(builderName)) {
-        Provisioner clone = (Provisioner)(((TemplateObject)provisioner).clone())
-        ((TemplateObject)clone).interpolate(ctx)
+        Provisioner clone = (Provisioner)(((InterpolableObject)provisioner).clone())
+        ((InterpolableObject)clone).interpolate(ctx)
         result.provisioners.add clone
       }
     }
@@ -83,10 +83,10 @@ class Template extends TemplateObject {
     for (Object object in postProcessors) {
       if (List.isInstance(object)) {
         for (PostProcessor postProcessor in (List<PostProcessor>)object) {
-          // ((TemplateObject)postProcessor).interpolate(ctx)
+          // ((InterpolableObject)postProcessor).interpolate(ctx)
         }
       } else {
-        ((TemplateObject) object).interpolate(ctx)
+        ((InterpolableObject) object).interpolate(ctx)
       }
     }*/
 

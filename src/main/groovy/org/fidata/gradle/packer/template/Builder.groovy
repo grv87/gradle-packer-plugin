@@ -24,9 +24,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.builder.Null
-import org.gradle.api.tasks.Console
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
 @JsonTypeInfo(
@@ -35,7 +32,7 @@ import org.gradle.api.tasks.Nested
   property = 'type'
 )
 @JsonSubTypes([
-  @JsonSubTypes.Type(name = 'null', value = Null),
+  @JsonSubTypes.Type(Null),
 ])
 @CompileStatic
 interface Builder {
