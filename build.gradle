@@ -1,6 +1,4 @@
 #!/usr/bin/env groovy
-import org.apache.commons.io.FilenameUtils
-
 /*
  * Build script for gradle-packer-plugin
  * Copyright © 2016-2018  Basil Peace
@@ -60,6 +58,8 @@ plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets['integTes
 plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations[sourceSets['integTest'].implementationConfigurationName]
 
 tasks.register('packerValidate-integTest')
+
+import org.apache.commons.io.FilenameUtils
 
 for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
