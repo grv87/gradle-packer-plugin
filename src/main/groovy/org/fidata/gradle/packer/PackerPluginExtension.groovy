@@ -23,7 +23,7 @@ package org.fidata.gradle.packer
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.Interpolable
+import org.fidata.gradle.packer.template.Template
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
@@ -57,7 +57,7 @@ class PackerPluginExtension {
   void template(String name, File file, Task parentTask = null, Closure taskConfiguration = null) {
     project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
     ObjectMapper mapper = new ObjectMapper()
-    Interpolable template = mapper.readValue(file.text, Interpolable)
+    Template template = mapper.readValue(file.text, Template)
     if (!name) {
       // name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
     }

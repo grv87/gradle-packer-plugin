@@ -1,5 +1,5 @@
 /*
- * Interpolable class
+ * Template class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -28,7 +28,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
 @CompileStatic
-class Interpolable extends InterpolableObject {
+class Template extends InterpolableObject {
   @Console
   InterpolableString description
 
@@ -56,8 +56,8 @@ class Interpolable extends InterpolableObject {
     }
   }
 
-  public Interpolable interpolateBuilder(Context ctx, String builderName) {
-    /*Interpolable result = new Interpolable()
+  public Template interpolateBuilder(Context ctx, String builderName) {
+    /*Template result = new Template()
     interpolate ctx
     Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
     if (!builder) {

@@ -22,7 +22,7 @@ package org.fidata.gradle.packer
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.OnlyExcept
-import org.fidata.gradle.packer.template.Interpolable
+import org.fidata.gradle.packer.template.Template
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -33,15 +33,15 @@ import javax.inject.Inject
 
 @CompileStatic
 class PackerBuild extends PackerWrapperTask {
-  private Interpolable template
+  private Template template
 
   @Internal
-  Interpolable getTemplate() {
+  Template getTemplate() {
     this.template
   }
 
   @Nested
-  Provider<List<Interpolable>> getInterpolatedTemplates() {
+  Provider<List<Template>> getInterpolatedTemplates() {
     Context ctx = new Context()
 
 
@@ -62,7 +62,7 @@ class PackerBuild extends PackerWrapperTask {
   }
 
   @Inject
-  PackerBuild(File templateFile, Interpolable template, OnlyExcept onlyExcept = null, Closure configureClosure = null) {
+  PackerBuild(File templateFile, Template template, OnlyExcept onlyExcept = null, Closure configureClosure = null) {
     super(templateFile)
     group = 'Build' // TODO: constant
     this.template = template
