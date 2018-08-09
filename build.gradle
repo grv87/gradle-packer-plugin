@@ -19,6 +19,7 @@
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
 plugins {
+  id 'org.fidata.project.java' version '3.0.1'
   id 'org.fidata.project.groovy' version '3.0.1'
   id 'org.fidata.plugin' version '3.0.1'
   id 'org.fidata.packer-base'
@@ -87,6 +88,8 @@ tasks.named('functionalTest').configure {
 }
 
 dependencies {
+  testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
+
   integTestImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
 }

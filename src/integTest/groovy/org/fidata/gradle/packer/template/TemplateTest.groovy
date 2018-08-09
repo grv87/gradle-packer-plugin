@@ -34,11 +34,11 @@ import org.apache.commons.io.FilenameUtils
 class TemplateTest {
   @Test
   @Parameters
-  @TestCaseName('{index}: {1}')
+  @TestCaseName('{1}')
   void testParser(final File templateFile, final String testName) {
     ObjectMapper mapper = new ObjectMapper()
-    Interpolable template = mapper.readValue(templateFile, Interpolable)
-    assert Interpolable.isInstance(template)
+    Template template = mapper.readValue(templateFile, Template)
+    assert Template.isInstance(template)
   }
 
   static Object[] parametersForTestParser() {

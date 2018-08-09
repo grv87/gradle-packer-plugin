@@ -77,7 +77,8 @@ class File extends InterpolableObject /*extends Provisioner*/ {
       case Direction.UPLOAD:
         String sourceFileName
         if (source) {
-          if (source.value.endsWith('/') || source.value.endsWith('\\')) {
+          source.interpolate(ctx)
+          if (source.interpolatedValue.endsWith('/') || source.interpolatedValue.endsWith('\\')) {
 
           }
         }

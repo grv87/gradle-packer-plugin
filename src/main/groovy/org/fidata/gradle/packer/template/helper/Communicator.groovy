@@ -122,7 +122,7 @@ class Communicator extends InterpolableObject {
 
   @JsonProperty('winrm_port')
   @Internal
-  InterpolableString winRMPort
+  InterpolableInteger winRMPort
 
   @JsonProperty('winrm_timeout')
   @Internal
