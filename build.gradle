@@ -1,4 +1,6 @@
 #!/usr/bin/env groovy
+import org.apache.commons.io.FilenameUtils
+
 /*
  * Build script for gradle-packer-plugin
  * Copyright © 2016-2018  Basil Peace
@@ -62,7 +64,7 @@ tasks.register('packerValidate-integTest')
 for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
 }) {
-  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ singleTemplateFile.toPath().fileName }", ext.PackerValidate, singleTemplateFile, {})
+  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile, {})
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
     packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }
