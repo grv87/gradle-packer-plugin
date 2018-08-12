@@ -23,7 +23,6 @@ class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<S
 
   @Override
   protected List<String> doInterpolatePrimitive(Context ctx) {
-    List<String> result
     if (ArrayClass.isInstance(rawValue)) {
       new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate ctx; it.interpolatedValue })
     } else if (InterpolableString.isInstance(rawValue)) {
