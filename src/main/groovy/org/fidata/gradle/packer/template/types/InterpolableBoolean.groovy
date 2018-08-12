@@ -1,6 +1,7 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
@@ -23,22 +24,31 @@ class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
   protected Boolean doInterpolatePrimitive(Context ctx) {
     if (Boolean.isInstance(rawValue)) {
       (Boolean)rawValue
+    } else if (InterpolableString.isInstance(rawValue)) {
+      ((InterpolableString)rawValue).interpolate ctx
+      ((InterpolableString)rawValue).interpolatedValue.toBoolean() // TOTEST
     } else {
-      ctx.interpolateString((String)rawValue).toBoolean() // TOTEST
+      throw new IllegalStateException(sprintf('Invalid interpolable boolean raw value: %s', [rawValue]))
     }
   }
 
   static class InterpolableBooleanDeserializer extends JsonDeserializer<InterpolableBoolean> {
     @Override
     InterpolableBoolean deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      Object rawValue
-      if (jp.currentToken == JsonToken.VALUE_TRUE || jp.currentToken == JsonToken.VALUE_FALSE) {
-        rawValue = jp.readValueAs(Boolean)
-      } else {
-        rawValue = jp.readValueAs(String)
+      Class rawValueClass
+      switch (jp.currentToken) {
+        case JsonToken.VALUE_TRUE:
+        case JsonToken.VALUE_FALSE:
+          rawValueClass = Boolean
+          break
+        case JsonToken.VALUE_STRING:
+          rawValueClass = InterpolableString
+          break
+        default:
+          throw new JsonParseException(jp, 'invalid boolean value')
       }
       return new InterpolableBoolean(
-        rawValue: rawValue
+        rawValue: jp.readValueAs(rawValueClass)
       )
     }
   }

@@ -26,9 +26,11 @@ class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<S
     List<String> result
     if (ArrayClass.isInstance(rawValue)) {
       new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate ctx; it.interpolatedValue })
-    } else {
+    } else if (InterpolableString.isInstance(rawValue)) {
       ((InterpolableString)rawValue).interpolate ctx
       ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
+    } else {
+      throw new IllegalStateException(sprintf('Invalid interpolable string array raw value: %s', [rawValue]))
     }
   }
 

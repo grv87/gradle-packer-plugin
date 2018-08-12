@@ -8,14 +8,15 @@ import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 import java.time.Duration
 
 @CompileStatic
-class InterpolableDuration extends InterpolableSinglePrimitive<String, Duration> {
+class InterpolableDuration extends InterpolableSinglePrimitive<InterpolableString, Duration> {
   @JsonCreator
-  InterpolableDuration(String rawValue) {
+  InterpolableDuration(InterpolableString rawValue) {
     super(rawValue)
   }
 
   @Override
   protected Duration doInterpolatePrimitive(Context ctx) {
-    parseDuration(ctx.interpolateString(rawValue))
+    rawValue.interpolate ctx
+    parseDuration(rawValue.interpolatedValue)
   }
 }

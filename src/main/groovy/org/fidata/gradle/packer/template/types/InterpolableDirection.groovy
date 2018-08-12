@@ -7,14 +7,15 @@ import org.fidata.gradle.packer.template.enums.Direction
 import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
 @CompileStatic
-class InterpolableDirection extends InterpolableSinglePrimitive<String, Direction> {
+class InterpolableDirection extends InterpolableSinglePrimitive<InterpolableString, Direction> {
   @JsonCreator
-  InterpolableDirection(String rawValue) {
+  InterpolableDirection(InterpolableString rawValue) {
     super(rawValue)
   }
 
   @Override
   protected Direction doInterpolatePrimitive(Context ctx) {
-    Direction.forValue(ctx.interpolateString(rawValue))
+    rawValue.interpolate ctx
+    Direction.forValue(rawValue.interpolatedValue)
   }
 }

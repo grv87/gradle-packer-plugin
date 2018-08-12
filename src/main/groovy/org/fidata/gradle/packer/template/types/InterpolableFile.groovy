@@ -6,14 +6,15 @@ import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
 @CompileStatic
-class InterpolableFile extends InterpolableSinglePrimitive<String, File> {
+class InterpolableFile extends InterpolableSinglePrimitive<InterpolableString, File> {
   @JsonCreator
-  InterpolableFile(String rawValue) {
+  InterpolableFile(InterpolableString rawValue) {
     super(rawValue)
   }
 
   @Override
   protected File doInterpolatePrimitive(Context ctx) {
-    ctx.interpolateFile(rawValue)
+    rawValue.interpolate ctx
+    ctx.interpolateFile(rawValue.interpolatedValue) // TODO
   }
 }

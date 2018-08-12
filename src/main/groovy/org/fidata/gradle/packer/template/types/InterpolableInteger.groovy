@@ -1,6 +1,7 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
@@ -23,22 +24,30 @@ class InterpolableInteger extends InterpolableSinglePrimitive<Object, Integer> {
   protected Integer doInterpolatePrimitive(Context ctx) {
     if (Integer.isInstance(rawValue)) {
       (Integer)rawValue
+    } else if (InterpolableString.isInstance(rawValue)) {
+      ((InterpolableString)rawValue).interpolate ctx
+      ((InterpolableString)rawValue).interpolatedValue.toInteger()
     } else {
-      ctx.interpolateString((String)rawValue).toInteger()
+      throw new IllegalStateException(sprintf('Invalid interpolable integer raw value: %s', [rawValue]))
     }
   }
 
   static class InterpolableIntegerDeserializer extends JsonDeserializer<InterpolableInteger> {
     @Override
     InterpolableInteger deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      Object rawValue
-      if (jp.currentToken == JsonToken.VALUE_NUMBER_INT) {
-        rawValue = jp.readValueAs(Integer)
-      } else {
-        rawValue = jp.readValueAs(String)
+      Class rawValueClass
+      switch (jp.currentToken) {
+        case JsonToken.VALUE_NUMBER_INT:
+          rawValueClass = Integer
+          break
+        case JsonToken.VALUE_STRING:
+          rawValueClass = InterpolableString
+          break
+        default:
+          throw new JsonParseException(jp, 'invalid integer value')
       }
       return new InterpolableInteger(
-        rawValue: rawValue
+        rawValue: jp.readValueAs(rawValueClass)
       )
     }
   }
