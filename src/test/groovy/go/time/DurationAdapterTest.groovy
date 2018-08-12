@@ -50,8 +50,8 @@ final class DurationAdapterTest {
       ['4m5.001s', Duration.ofMinutes(4) + Duration.ofMillis(5001)],
       ['5h6m7.001s', Duration.ofHours(5) + Duration.ofMinutes(6) + Duration.ofMillis(7001)],
       ['8m0.000000001s', Duration.ofMinutes(8) + Duration.ofNanos(1)],
-      ['2562047h47m16.854775807s', Duration.ofNanos((1L << 63) - 1L /*Long.MAX_VALUE*/)],
-      ['-2562047h47m16.854775808s', Duration.ofNanos(-1L << 63 /*Long.MIN_VALUE*/)],
+      ['2562047h47m16.854775807s', Duration.ofNanos(/*(1L << 63) - 1L*/ Long.MAX_VALUE)],
+      ['-2562047h47m16.854775808s', Duration.ofNanos(/*-1L << 63*/ Long.MIN_VALUE)],
     ].collect { it.toArray() }.toArray()
   }
 
