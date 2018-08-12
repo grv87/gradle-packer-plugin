@@ -33,15 +33,6 @@ import java.util.concurrent.TimeUnit;
 public final class DurationAdapter {
   // Common durations. There is no definition for units of Day or larger
   // to avoid confusion across daylight savings time zone transitions.
-  //
-  // To count the number of units in a Duration, divide: // TODO
-  //	second := time.Second
-  //	fmt.Print(int64(second/time.Millisecond)) // prints 1000
-  //
-  // To convert an integer number of units to a Duration, multiply:
-  //	seconds := 10
-  //	fmt.Print(time.Duration(seconds)*time.Second) // prints 10s
-  //
   public final static Duration NANOSECOND = Duration.of(1, ChronoUnit.NANOS);
   public final static Duration MICROSECOND = Duration.of(1, ChronoUnit.MICROS);
   public final static Duration MILLISECOND = Duration.of(1, ChronoUnit.MILLIS);
@@ -49,16 +40,17 @@ public final class DurationAdapter {
   public final static Duration MINUTE = Duration.of(1, ChronoUnit.MINUTES);
   public final static Duration HOUR = Duration.of(1, ChronoUnit.HOURS);
 
-  final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1);
-  final static UnsignedLong SECONDS_PER_MINUTE_ULONG = UnsignedLong.valueOf(SECONDS_PER_MINUTE);
-  final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1);
-  final static UnsignedLong MINUTES_PER_HOUR_ULONG = UnsignedLong.valueOf(MINUTES_PER_HOUR);
   final static long NANOSECONDS_PER_MICROSECOND = TimeUnit.MICROSECONDS.toNanos(1);
-  final static UnsignedLong NANOSECONDS_PER_MICROSECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MICROSECOND);
   final static long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
-  final static UnsignedLong NANOSECONDS_PER_MILLISECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MILLISECOND);
   final static long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
+  final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1);
+  final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1);
+
+  final static UnsignedLong NANOSECONDS_PER_MICROSECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MICROSECOND);
+  final static UnsignedLong NANOSECONDS_PER_MILLISECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MILLISECOND);
   final static UnsignedLong NANOSECONDS_PER_SECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_SECOND);
+  final static UnsignedLong SECONDS_PER_MINUTE_ULONG = UnsignedLong.valueOf(SECONDS_PER_MINUTE);
+  final static UnsignedLong MINUTES_PER_HOUR_ULONG = UnsignedLong.valueOf(MINUTES_PER_HOUR);
 
   private final static long NUMERAL_SYSTEM_BASE = 10L;
   private final static UnsignedLong NUMERAL_SYSTEM_BASE_ULONG = UnsignedLong.valueOf(NUMERAL_SYSTEM_BASE);
@@ -78,7 +70,7 @@ public final class DurationAdapter {
 
     /*
      * Don't use Duration.toNanos() since it causes overflow
-     * on values near to the end of range
+     * on values near the end of the range
      */
     long s = d.getSeconds();
     UnsignedLong n = UnsignedLong.valueOf(d.getNano());
@@ -282,8 +274,7 @@ public final class DurationAdapter {
       throw new DateTimeParseException("time: invalid duration " + s, s, w);
     }
     while (w < l) {
-      long v;
-      long f = 0L; // integers before, after decimal point
+      long v, f = 0L; // integers before, after decimal point
       double scale = 1D; // value = v + f/scale
 
       // The next character must be [0-9.]
@@ -364,7 +355,7 @@ public final class DurationAdapter {
     return Duration.ofNanos(d);
   }
 
-  private final static Map<String, Long> unitMap = new HashMap<String, Long>();
+  private final static Map<String, Long> unitMap = new HashMap<>();
 
   static {
     unitMap.put("ns", NANOSECOND.toNanos());
