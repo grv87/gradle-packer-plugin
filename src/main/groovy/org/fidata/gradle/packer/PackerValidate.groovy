@@ -20,6 +20,7 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.OnlyExcept
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -35,7 +36,7 @@ class PackerValidate extends PackerWrapperTask {
   }
 
   @Inject
-  PackerValidate(File templateFile, Closure configureClosure) {
+  PackerValidate(File templateFile, Closure configureClosure = null) {
     super(templateFile)
     configure configureClosure
     outputs.upToDateWhen { true }

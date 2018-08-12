@@ -1,4 +1,5 @@
 {
+	"min_packer_version": "0.1.0",
 	"builders": [
 		{
 			"name": "builder-null",
@@ -8,12 +9,5 @@
 			"ssh_port": 22,
 			"ssh_agent_auth": true
 		}
-	],
-	"post-processors": [
-		[
-			{
-				"type": "manifest"
-			}
-		]
 	]
 }

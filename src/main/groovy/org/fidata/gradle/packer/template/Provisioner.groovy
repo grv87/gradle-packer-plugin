@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.provisioner.File
+import org.fidata.gradle.packer.template.types.InterpolableDuration
 import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -52,7 +53,7 @@ abstract class Provisioner extends InterpolableObject {
   Map<InterpolableString, Object /* TODO */> override
 
   @Internal
-  Duration pauseBefore // TODO: Write parser
+  InterpolableDuration pauseBefore // TODO: Write parser
 
   @Override
   protected void doInterpolate(Context ctx) {

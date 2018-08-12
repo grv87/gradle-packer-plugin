@@ -58,8 +58,10 @@ class PackerPluginExtension {
     project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
     ObjectMapper mapper = new ObjectMapper()
     Template template = mapper.readValue(file.text, Template)
+    Context ctx = new Context()
+
     if (!name) {
-      // name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
+      name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
     }
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
@@ -67,7 +69,6 @@ class PackerPluginExtension {
     TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, /*empty OnlyExcept,*/ configureClosure(taskConfiguration))
     parentTask?.dependsOn buildAllProvider
 
-    Context ctx = new Context()
     template.variables?.each { Map.Entry<String, String> variable ->
       ctx.userVariables[variable.key] = variable.value
     }

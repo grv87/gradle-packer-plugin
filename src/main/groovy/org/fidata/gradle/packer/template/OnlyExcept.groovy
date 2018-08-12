@@ -24,9 +24,9 @@ import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableString
 
 @CompileStatic
-class OnlyExcept extends InterpolableObject {
-  List<InterpolableString> only
-  List<InterpolableString> except
+class OnlyExcept {
+  List<String> only
+  List<String> except
 
   boolean skip(String n) {
     if (only.size() > 0) {
@@ -38,9 +38,5 @@ class OnlyExcept extends InterpolableObject {
       if (only.contains(n)) { return true }
     }
     false
-  }
-
-  @Override
-  protected void doInterpolate(Context ctx) {
   }
 }

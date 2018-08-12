@@ -20,6 +20,6 @@ class BuilderHeader extends InterpolableObject {
 
   @Override
   protected void doInterpolate(Context ctx) {
-    name.interpolate(ctx)
+    name.interpolate ctx
   }
 }

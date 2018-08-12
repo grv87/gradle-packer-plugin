@@ -9,11 +9,11 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
+import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
 @JsonDeserialize(using = InterpolableBooleanDeserializer)
 @CompileStatic
-class InterpolableBoolean extends InterpolablePrimitive<Object, Boolean> {
+class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
   @JsonCreator
   InterpolableBoolean(Object rawValue) {
     super(rawValue)

@@ -19,16 +19,14 @@
  */
 package org.fidata.gradle.packer
 
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.OnlyExcept
 import org.fidata.gradle.packer.template.Template
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-
 import javax.inject.Inject
 
 @CompileStatic
@@ -53,20 +51,11 @@ class PackerBuild extends PackerWrapperTask {
     null
   }
 
-  private OnlyExcept onlyExcept
-
-  @Input
-  @Optional
-  OnlyExcept getOnlyExcept() {
-    onlyExcept
-  }
-
   @Inject
-  PackerBuild(File templateFile, Template template, OnlyExcept onlyExcept = null, Closure configureClosure = null) {
+  PackerBuild(File templateFile, Template template, Closure configureClosure = null) {
     super(templateFile)
-    group = 'Build' // TODO: constant
+    group = BUILD_GROUP
     this.template = template
-    this.onlyExcept = onlyExcept
     configure configureClosure
     doConfigure() // TODO ?
   }

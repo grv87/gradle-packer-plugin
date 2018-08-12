@@ -6,15 +6,7 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 
 @CompileStatic
-abstract class InterpolablePrimitive<Source, Target> extends InterpolableObject {
-  @JsonValue
-  Source rawValue
-
-  @JsonCreator
-  InterpolablePrimitive(Source rawValue) {
-    this.rawValue = rawValue
-  }
-
+abstract class InterpolablePrimitive<Target> extends InterpolableObject {
   private Target interpolatedValue
 
   Target getInterpolatedValue() {

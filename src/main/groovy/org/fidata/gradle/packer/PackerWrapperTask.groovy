@@ -20,9 +20,12 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.OnlyExcept
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
@@ -32,6 +35,10 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   File getTemplateFile() {
     this.templateFile
   }
+
+  @Input
+  @Optional
+  OnlyExcept onlyExcept
 
   @Internal
   Map<String, Object> variables
@@ -49,6 +56,11 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
 
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
+    if (onlyExcept?.only?.size() > 0) {
+      execSpec.cmdArgs "-only=${ onlyExcept.only.join(',')}"
+    } else if (onlyExcept?.except?.size() > 0) {
+      execSpec.cmdArgs "-except=${ onlyExcept.except.join(',')}"
+    }
     for (Map.Entry<String, Object> variable in variables) {
       execSpec.cmdArgs '-var'
       execSpec.cmdArgs "${ variable.key }=${ variable.value }".toString()

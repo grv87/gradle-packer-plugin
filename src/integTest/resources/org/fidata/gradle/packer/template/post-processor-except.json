@@ -10,10 +10,11 @@
 		}
 	],
 	"post-processors": [
-		[
-			{
-				"type": "manifest"
-			}
-		]
+		{
+			"type": "manifest",
+			"except": [
+				"builder-null"
+			]
+		}
 	]
 }

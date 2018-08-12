@@ -8,7 +8,6 @@
 			"type": "null",
 			"ssh_username": "user `ssh_username`",
 			"ssh_host": "0.0.0.0",
-			"ssh_password": "password",
 			"ssh_port": 22,
 			"ssh_agent_auth": true
 		}

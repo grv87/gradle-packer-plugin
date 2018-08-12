@@ -44,6 +44,6 @@ abstract class Builder extends InterpolableObject {
 
   @Override
   protected void doInterpolate(Context ctx) {
-    // TODO
+    header.interpolate ctx
   }
 }

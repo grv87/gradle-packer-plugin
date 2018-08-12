@@ -72,12 +72,12 @@ class File extends Provisioner {
 
   @Override
   protected void doInterpolate(Context ctx) {
-    direction.interpolate(ctx)
+    direction.interpolate ctx
     switch (direction.interpolatedValue) {
       case Direction.UPLOAD:
         String sourceFileName
         if (source) {
-          source.interpolate(ctx)
+          source.interpolate ctx
           if (source.interpolatedValue.endsWith('/') || source.interpolatedValue.endsWith('\\')) {
 
           }

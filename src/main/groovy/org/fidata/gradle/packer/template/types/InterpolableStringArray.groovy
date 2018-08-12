@@ -9,11 +9,11 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
+import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
 @JsonDeserialize(using = InterpolableStringListDeserializer)
 @CompileStatic
-class InterpolableStringArray extends InterpolablePrimitive<Object, List<String>> {
+class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
 
   @JsonCreator
@@ -25,9 +25,9 @@ class InterpolableStringArray extends InterpolablePrimitive<Object, List<String>
   protected List<String> doInterpolatePrimitive(Context ctx) {
     List<String> result
     if (ArrayClass.isInstance(rawValue)) {
-      new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate(ctx); it.interpolatedValue })
+      new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate ctx; it.interpolatedValue })
     } else {
-      ((InterpolableString)rawValue).interpolate(ctx)
+      ((InterpolableString)rawValue).interpolate ctx
       ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
     }
   }

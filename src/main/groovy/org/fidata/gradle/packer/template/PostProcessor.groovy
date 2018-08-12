@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.post_processor.Manifest
+import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
@@ -46,7 +47,7 @@ abstract class PostProcessor extends InterpolableObject {
   String type
 
   @Internal
-  Boolean keepInputArtifacts
+  InterpolableBoolean keepInputArtifacts
 
   @Override
   protected void doInterpolate(Context ctx) {

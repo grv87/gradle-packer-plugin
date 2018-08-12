@@ -31,11 +31,11 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Template extends InterpolableObject {
   @Console
-  InterpolableString description
+  String description
 
   @JsonProperty('min_packer_version')
   @Internal
-  InterpolableString minVersion
+  String minVersion
 
   @Internal
   Map<String, String> variables
@@ -52,8 +52,9 @@ class Template extends InterpolableObject {
 
   @Override
   protected void doInterpolate(Context ctx) {
+    super.doInterpolate ctx // TOTEST
     for (Builder builder in builders) {
-      ((InterpolableObject)builder.header).interpolate(ctx)
+      builder.header.interpolate ctx
     }
   }
 
@@ -76,7 +77,7 @@ class Template extends InterpolableObject {
     for (Provisioner provisioner in provisioners) {
       if (!provisioner.onlyExcept?.skip(builderName)) {
         Provisioner clone = (Provisioner)(((InterpolableObject)provisioner).clone())
-        ((InterpolableObject)clone).interpolate(ctx)
+        ((InterpolableObject)clone).interpolate ctx
         result.provisioners.add clone
       }
     }
@@ -84,10 +85,10 @@ class Template extends InterpolableObject {
     for (Object object in postProcessors) {
       if (List.isInstance(object)) {
         for (PostProcessor postProcessor in (List<PostProcessor>)object) {
-          // ((InterpolableObject)postProcessor).interpolate(ctx)
+          // ((InterpolableObject)postProcessor).interpolate ctx
         }
       } else {
-        ((InterpolableObject) object).interpolate(ctx)
+        ((InterpolableObject) object).interpolate ctx
       }
     }*/
   }
