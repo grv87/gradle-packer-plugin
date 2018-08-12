@@ -20,12 +20,18 @@
 package org.fidata.gradle.packer.template.post_processor
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.PostProcessor
 
-class Manifest implements PostProcessor {
+class Manifest extends PostProcessor {
   @JsonProperty('output')
   String outputPath
 
   @JsonProperty('strip_path')
   Boolean stripPath
+
+  @Override
+  protected void doInterpolate(Context ctx) {
+    // TODO super.doInterpolate(ctx)
+  }
 }

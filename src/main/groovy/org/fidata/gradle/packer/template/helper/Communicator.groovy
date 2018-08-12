@@ -10,8 +10,6 @@ import org.fidata.gradle.packer.template.types.InterpolableInteger
 import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Internal
 
-import java.time.Duration
-
 @CompileStatic
 class Communicator extends InterpolableObject {
   // SSH

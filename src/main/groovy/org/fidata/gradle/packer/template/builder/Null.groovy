@@ -11,7 +11,7 @@ import org.gradle.api.tasks.Nested
 
 @CompileStatic
 @JsonTypeName('null')
-class Null extends InterpolableObject implements Builder {
+class Null extends Builder {
   @Nested
   @JsonUnwrapped
   Communicator commConfig

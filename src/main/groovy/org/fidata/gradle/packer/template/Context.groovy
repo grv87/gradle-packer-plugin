@@ -6,7 +6,7 @@ import org.gradle.api.Project
 
 @CompileStatic
 class Context {
-  Map<String, String> userVariables = new HashMap<String, String>()
+  Map<String, String> userVariables = [:]
 
   Map<String, String> env
 

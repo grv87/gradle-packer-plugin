@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
  */
 @CompileStatic
 class PackerPluginExtension {
-  private Project project
+  private final Project project
 
   Map<String, Object> environment = [:]
   Map<String, Object> variables = [:]
@@ -84,13 +84,13 @@ class PackerPluginExtension {
   }
 
   void template(Map<String, File> files, Task parentTask = null, Closure taskConfiguration = null) {
-    for(Map.Entry<String, File> fileEntry : files) {
+    for (Map.Entry<String, File> fileEntry : files) {
       template(fileEntry.key, fileEntry.value, parentTask, taskConfiguration)
     }
   }
 
   void template(List<File> files, Task parentTask = null, Closure taskConfiguration = null) {
-    for(File file : files) {
+    for (File file : files) {
       template(file, parentTask, taskConfiguration)
     }
   }

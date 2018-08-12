@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableString
+import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -47,7 +48,7 @@ class Template extends InterpolableObject {
 
   @JsonProperty('post-processors')
   @Nested
-  List<Object> postProcessors
+  List<PostProcessorArrayDefinition> postProcessors
 
   @Override
   protected void doInterpolate(Context ctx) {
@@ -56,7 +57,7 @@ class Template extends InterpolableObject {
     }
   }
 
-  public Template interpolateBuilder(Context ctx, String builderName) {
+  Template interpolateBuilder(Context ctx, String builderName) {
     /*Template result = new Template()
     interpolate ctx
     Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
@@ -89,6 +90,5 @@ class Template extends InterpolableObject {
         ((InterpolableObject) object).interpolate(ctx)
       }
     }*/
-
   }
 }

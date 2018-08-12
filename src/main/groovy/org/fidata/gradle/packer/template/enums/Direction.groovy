@@ -1,4 +1,4 @@
-package org.fidata.gradle.packer.template.types
+package org.fidata.gradle.packer.template.enums
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
@@ -12,12 +12,12 @@ enum Direction {
 
   @Override
   @JsonValue
-  String toString(){
+  String toString() {
     this.name().toLowerCase()
   }
 
   @JsonCreator
-  public static Direction forValue(String value) throws DataFormatException {
+  static Direction forValue(String value) throws DataFormatException {
     if (value == value.toLowerCase()) {
       valueOf(value.toUpperCase())
     } else {

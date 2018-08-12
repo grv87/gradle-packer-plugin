@@ -30,6 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Java port of functions for Duration formatting and parsing
+ * from {@code go/time} package
+ */
 public final class DurationAdapter {
   // Common durations. There is no definition for units of Day or larger
   // to avoid confusion across daylight savings time zone transitions.

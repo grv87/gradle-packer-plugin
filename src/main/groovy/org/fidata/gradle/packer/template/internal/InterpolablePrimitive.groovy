@@ -1,13 +1,23 @@
 package org.fidata.gradle.packer.template.internal
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 
 @CompileStatic
-abstract class InterpolablePrimitive<T> extends InterpolableObject {
-  private T interpolatedValue
+abstract class InterpolablePrimitive<Source, Target> extends InterpolableObject {
+  @JsonValue
+  Source rawValue
 
-  T getInterpolatedValue() {
+  @JsonCreator
+  InterpolablePrimitive(Source rawValue) {
+    this.rawValue = rawValue
+  }
+
+  private Target interpolatedValue
+
+  Target getInterpolatedValue() {
     this.interpolatedValue
   }
 
@@ -16,7 +26,7 @@ abstract class InterpolablePrimitive<T> extends InterpolableObject {
     interpolatedValue = doInterpolatePrimitive(ctx)
   }
 
-  abstract protected T doInterpolatePrimitive(Context ctx)
+  abstract protected Target doInterpolatePrimitive(Context ctx)
 
   @Override
   boolean equals(Object obj) {

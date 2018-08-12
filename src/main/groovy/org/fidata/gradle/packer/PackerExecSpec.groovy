@@ -26,8 +26,16 @@ import org.ysb33r.grolifant.api.exec.ExternalExecutable
 
 @CompileStatic
 class PackerExecSpec extends AbstractCommandExecSpec {
+  /*
+   * WORKAROUND:
+   * Without setter there is an exception:
+   * [Static type checking] - Cannot assign value of type java.lang.String to variable of type
+   * org.ysb33r.grolifant.api.exec.ResolvableExecutable
+   * <grv87 2018-08-12>
+   */
+  @SuppressWarnings('UnnecessarySetter')
   PackerExecSpec(Project project, ExternalExecutable registry) {
     super(project, registry)
-    setExecutable('packer')
+    setExecutable 'packer'
   }
 }

@@ -21,9 +21,13 @@ package org.fidata.gradle.packer.template.provisioner
 
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.types.Direction
+import org.fidata.gradle.packer.template.Provisioner
+import org.fidata.gradle.packer.template.enums.Direction
+import org.fidata.gradle.packer.template.types.InterpolableBoolean
+import org.fidata.gradle.packer.template.types.InterpolableDirection
+import org.fidata.gradle.packer.template.types.InterpolableFile
 import org.fidata.gradle.packer.template.types.InterpolableString
+import org.fidata.gradle.packer.template.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -33,47 +37,43 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
-class File extends InterpolableObject /*extends Provisioner*/ {
+class File extends Provisioner {
   @Internal
   InterpolableString source
 
   @Internal
-  List<InterpolableString> sources
+  InterpolableStringArray sources
 
   @Internal
   InterpolableString destination
 
-  @Internal
-  InterpolableString direction
-
-  @Internal
-  Boolean generated // TODO
-
   @Input
-  Direction direction1
+  InterpolableDirection direction
+
+  @Internal
+  InterpolableBoolean generated // TODO
 
   @Optional
   @InputFile
   RegularFileCollection
-  File sourceFile
+  InterpolableFile sourceFile
 
   @Optional
   @InputDirectory
-  File sourceDirectory
+  InterpolableFile sourceDirectory
 
   @Optional
   @OutputFile
-  File destinationFile
+  InterpolableFile destinationFile
 
   @Optional
   @OutputDirectory
-  File destinationDirectory
+  InterpolableFile destinationDirectory
 
   @Override
   protected void doInterpolate(Context ctx) {
     direction.interpolate(ctx)
-    direction1 = Direction.forValue(direction.interpolatedValue)
-    switch (direction1) {
+    switch (direction.interpolatedValue) {
       case Direction.UPLOAD:
         String sourceFileName
         if (source) {
@@ -83,12 +83,12 @@ class File extends InterpolableObject /*extends Provisioner*/ {
           }
         }
 
-        break;
+        break
       case Direction.DOWNLOAD:
 
-        break;
+        break
       default:
-        throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction1]))
+        throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.interpolatedValue]))
     }
 
 

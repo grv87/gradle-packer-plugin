@@ -1,19 +1,15 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 
 @CompileStatic
-class InterpolableString extends InterpolablePrimitive<String> {
-  @JsonValue
-  String rawValue
-
+class InterpolableString extends InterpolablePrimitive<String, String> {
   @JsonCreator
-  InterpolableString(String value) {
-    this.rawValue = value
+  InterpolableString(String rawValue) {
+    super(rawValue)
   }
 
   @Override

@@ -27,7 +27,7 @@ import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> {
-  private File templateFile
+  private final File templateFile
   @Internal // TODO
   File getTemplateFile() {
     this.templateFile
@@ -44,7 +44,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
 
   @Override
   protected PackerExecSpec createExecSpec() {
-    new PackerExecSpec(project, getToolExtension().getResolver())
+    new PackerExecSpec(project, toolExtension.resolver)
   }
 
   @Override

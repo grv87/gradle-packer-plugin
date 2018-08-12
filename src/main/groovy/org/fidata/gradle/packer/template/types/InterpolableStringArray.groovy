@@ -1,25 +1,25 @@
 package org.fidata.gradle.packer.template.types
 
-import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 
-@JsonSerialize(using = InterpolableStringListSerializer)
 @JsonDeserialize(using = InterpolableStringListDeserializer)
 @CompileStatic
-class InterpolableStringArray extends InterpolablePrimitive<List<String>> {
+class InterpolableStringArray extends InterpolablePrimitive<Object, List<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
-  Object rawValue
+
+  @JsonCreator
+  InterpolableStringArray(Object rawValue) {
+    super(rawValue)
+  }
 
   @Override
   protected List<String> doInterpolatePrimitive(Context ctx) {
@@ -29,18 +29,6 @@ class InterpolableStringArray extends InterpolablePrimitive<List<String>> {
     } else {
       ((InterpolableString)rawValue).interpolate(ctx)
       ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
-    }
-  }
-
-  static class InterpolableStringListSerializer extends JsonSerializer<InterpolableStringArray> {
-    @Override
-    void serialize(InterpolableStringArray value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      Object rawValue = value.rawValue
-      if (ArrayClass.isInstance(rawValue)) {
-        serializers.findValueSerializer(ArrayClass).serialize rawValue, gen, serializers
-      } else {
-        serializers.findValueSerializer(InterpolableString).serialize rawValue, gen, serializers
-      }
     }
   }
 

@@ -28,8 +28,6 @@ class OnlyExcept extends InterpolableObject {
   List<InterpolableString> only
   List<InterpolableString> except
 
-
-
   boolean skip(String n) {
     if (only.size() > 0) {
       if (only.contains(n)) { return false }
@@ -38,13 +36,11 @@ class OnlyExcept extends InterpolableObject {
     // TOTEST: if
     if (except.size() > 0) {
       if (only.contains(n)) { return true }
-      return false
     }
     false
   }
 
   @Override
   protected void doInterpolate(Context ctx) {
-
   }
 }

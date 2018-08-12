@@ -40,7 +40,7 @@ import java.time.Duration
   @JsonSubTypes.Type(name = 'file', value = File),
 ])
 @CompileStatic
-class Provisioner extends InterpolableObject {
+abstract class Provisioner extends InterpolableObject {
   @Internal // TODO
   @JsonUnwrapped
   OnlyExcept onlyExcept

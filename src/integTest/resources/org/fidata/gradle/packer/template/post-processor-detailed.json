@@ -1,0 +1,18 @@
+{
+	"builders": [
+		{
+			"name": "builder-null",
+			"type": "null",
+			"ssh_username": "username",
+			"ssh_host": "0.0.0.0",
+			"ssh_password": "password",
+			"ssh_port": 22,
+			"ssh_agent_auth": true
+		}
+	],
+	"post-processors": [
+		{
+			"type": "manifest"
+		}
+	]
+}

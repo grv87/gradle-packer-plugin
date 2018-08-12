@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.post_processor.Manifest
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -36,7 +37,7 @@ import org.gradle.api.tasks.Internal
   @JsonSubTypes.Type(name = 'manifest', value = Manifest),
 ])
 @CompileStatic
-interface PostProcessor {
+abstract class PostProcessor extends InterpolableObject {
   @Internal // TODO
   @JsonUnwrapped
   OnlyExcept onlyExcept
@@ -46,4 +47,9 @@ interface PostProcessor {
 
   @Internal
   Boolean keepInputArtifacts
+
+  @Override
+  protected void doInterpolate(Context ctx) {
+    // TODO
+  }
 }

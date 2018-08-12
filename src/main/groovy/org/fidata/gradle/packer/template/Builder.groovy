@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.builder.Null
+import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.utils.BuilderHeader
 import org.gradle.api.tasks.Nested
 
 @JsonTypeInfo(
@@ -35,8 +37,13 @@ import org.gradle.api.tasks.Nested
   @JsonSubTypes.Type(Null),
 ])
 @CompileStatic
-interface Builder {
+abstract class Builder extends InterpolableObject {
   @JsonUnwrapped
   @Nested
   BuilderHeader header
+
+  @Override
+  protected void doInterpolate(Context ctx) {
+    // TODO
+  }
 }

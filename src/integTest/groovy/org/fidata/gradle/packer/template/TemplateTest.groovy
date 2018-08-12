@@ -1,5 +1,5 @@
 /*
- * Integration test for parsing Interpolable and nested objects
+ * Integration test for parsing Packer templates with Jackson
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -29,19 +29,22 @@ import junitparams.naming.TestCaseName
 import org.junit.Test
 import org.apache.commons.io.FilenameUtils
 
+/**
+ * Tests for parsing Packer templates with Jackson
+ */
 @RunWith(JUnitParamsRunner)
 @CompileStatic
 class TemplateTest {
   @Test
   @Parameters
   @TestCaseName('{1}')
-  void testParser(final File templateFile, final String testName) {
+  void testParser(final File templateFile, final String ignored) {
     ObjectMapper mapper = new ObjectMapper()
     Template template = mapper.readValue(templateFile, Template)
     assert Template.isInstance(template)
   }
 
   static Object[] parametersForTestParser() {
-    ClassPath.from(TemplateTest.class.classLoader).getResources().findAll { it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [new File(it.url().toURI()), FilenameUtils.getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
+    ClassPath.from(TemplateTest.classLoader).resources.findAll { it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [new File(it.url().toURI()), FilenameUtils.getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
   }
 }

@@ -1,24 +1,23 @@
 package org.fidata.gradle.packer.template.types
 
-import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolablePrimitive
 
-@JsonSerialize(using = InterpolableIntegerSerializer)
 @JsonDeserialize(using = InterpolableIntegerDeserializer)
 @CompileStatic
-class InterpolableInteger extends InterpolablePrimitive<Integer> {
-  Object rawValue
+class InterpolableInteger extends InterpolablePrimitive<Object, Integer> {
+  @JsonCreator
+  InterpolableInteger(Object rawValue) {
+    super(rawValue)
+  }
 
   @Override
   protected Integer doInterpolatePrimitive(Context ctx) {
@@ -26,18 +25,6 @@ class InterpolableInteger extends InterpolablePrimitive<Integer> {
       (Integer)rawValue
     } else {
       ctx.interpolateString((String)rawValue).toInteger()
-    }
-  }
-
-  static class InterpolableIntegerSerializer extends JsonSerializer<InterpolableInteger> {
-    @Override
-    void serialize(InterpolableInteger value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      Object rawValue = value.rawValue
-      if (Integer.isInstance(rawValue)) {
-        gen.writeNumber((Integer)rawValue)
-      } else {
-        gen.writeString((String)rawValue)
-      }
     }
   }
 

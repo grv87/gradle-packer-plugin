@@ -47,7 +47,8 @@ tasks.withType(JavaCompile).configureEach { JavaCompile javaCompile ->
 
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
 
-tasks.codenarcMain.disabledRules.add 'JavaIoPackageAccess'
+tasks.named('codenarcMain').configure { disabledRules.add 'JavaIoPackageAccess' }
+tasks.named('codenarcBuildSrc').configure { disabledRules.add 'JavaIoPackageAccess' }
 
 sourceSets {
   integTest {
@@ -69,7 +70,7 @@ import org.apache.commons.io.FilenameUtils
 for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
 }) {
-  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile, {})
+  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile) { }
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
     packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }
@@ -82,8 +83,8 @@ tasks.register('integTest', Test) {
   dependsOn 'packerValidate-integTest'
   testClassesDirs = sourceSets['integTest'].output.classesDirs
   classpath = sourceSets['integTest'].runtimeClasspath
-  reports.junitXml.setDestination new File(xmlReportsDir, 'integTest')
-  reports.html.setDestination new File(htmlReportsDir, 'integTest')
+  reports.junitXml.destination = new File(xmlReportsDir, 'integTest')
+  reports.html.destination = new File(htmlReportsDir, 'integTest')
 }
 
 // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
