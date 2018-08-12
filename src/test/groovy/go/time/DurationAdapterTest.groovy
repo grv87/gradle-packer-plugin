@@ -22,6 +22,8 @@
  */
 package go.time
 
+import org.junit.Ignore
+
 import static org.hamcrest.Matchers.startsWith
 import groovy.transform.CompileStatic
 import junitparams.naming.TestCaseName
@@ -41,17 +43,17 @@ final class DurationAdapterTest {
 
   static final Object[] durationTests() {
     [
-      ["0s", Duration.ZERO],
-      ["1ns", Duration.ofNanos(1)],
-      ["1.1µs", Duration.ofNanos(1100)],
-      ["2.2ms", Duration.ofNanos(2200 * 1000)],
-      ["3.3s", Duration.ofMillis(3300)],
-      ["4m5s", Duration.ofMinutes(4) + Duration.ofSeconds(5)],
-      ["4m5.001s", Duration.ofMinutes(4) + Duration.ofMillis(5001)],
-      ["5h6m7.001s", Duration.ofHours(5) + Duration.ofMinutes(6) + Duration.ofMillis(7001)],
-      ["8m0.000000001s", Duration.ofMinutes(8) + Duration.ofNanos(1)],
-      ["2562047h47m16.854775807s", Duration.ofNanos(/*(1L << 63) - 1L*/Long.MAX_VALUE)],
-      ["-2562047h47m16.854775808s", Duration.ofNanos(/*-1L << 63*/Long.MIN_VALUE)],
+      ['0s', Duration.ZERO],
+      ['1ns', Duration.ofNanos(1)],
+      ['1.1µs', Duration.ofNanos(1100)],
+      ['2.2ms', Duration.ofNanos(2200 * 1000)],
+      ['3.3s', Duration.ofMillis(3300)],
+      ['4m5s', Duration.ofMinutes(4) + Duration.ofSeconds(5)],
+      ['4m5.001s', Duration.ofMinutes(4) + Duration.ofMillis(5001)],
+      ['5h6m7.001s', Duration.ofHours(5) + Duration.ofMinutes(6) + Duration.ofMillis(7001)],
+      ['8m0.000000001s', Duration.ofMinutes(8) + Duration.ofNanos(1)],
+      ['2562047h47m16.854775807s', Duration.ofNanos((1L << 63) - 1L /*Long.MAX_VALUE*/)],
+      ['-2562047h47m16.854775808s', Duration.ofNanos(-1L << 63 /*Long.MIN_VALUE*/)],
     ].collect { it.toArray() }.toArray()
   }
 
@@ -60,8 +62,8 @@ final class DurationAdapterTest {
   @TestCaseName('string("{1}") == {0}')
   void testString(final String expected, final Duration d) {
     assert DurationAdapter.string(d) == expected
-    if (d.toNanos() > 0) {
-      assert DurationAdapter.string(Duration.ofNanos(-d.toNanos())) == "-$expected"
+    if (!(d.negative || d.zero)) {
+      assert DurationAdapter.string(d.negated()/*Duration.ofSeconds(-d.seconds, -d.nano)*/) == "-$expected"
     }
   }
 
@@ -99,7 +101,7 @@ final class DurationAdapterTest {
       // composite durations
       ["3h30m", true, Duration.ofHours(3) + Duration.ofMinutes(30)],
       ["10.5s4m", true, Duration.ofMinutes(4) + Duration.ofSeconds(10) + Duration.ofMillis(500)],
-      ["-2m3.4s", true, Duration.ofMinutes(-2) + Duration.ofSeconds(-3) + Duration.ofMillis(-400)],
+      ["-2m3.4s", true, (Duration.ofMinutes(2) + Duration.ofSeconds(3) + Duration.ofMillis(400)).negated()],
       ["1h2m3s4ms5us6ns", true, Duration.ofHours(1) + Duration.ofMinutes(2) + Duration.ofSeconds(3) + Duration.ofMillis(4) + Duration.ofNanos(5 * 1000 + 6)],
       ["39h9m14.425s", true, Duration.ofHours(39) + Duration.ofMinutes(9) + Duration.ofSeconds(14) + Duration.ofMillis(425)],
       // large value
@@ -107,40 +109,40 @@ final class DurationAdapterTest {
       // more than 9 digits after decimal point, see https://golang.org/issue/6617
       ["0.3333333333333333333h", true, Duration.ofMinutes(20)],
       // 9007199254740993 = 1<<53+1 cannot be stored precisely in a float64
-      ["9007199254740993ns", true, Duration.ofNanos(1<<53 + 1)],
+      ["9007199254740993ns", true, Duration.ofNanos((1L << 53) + 1)],
       // largest duration that can be represented by int64 in nanoseconds
-      ["9223372036854775807ns", true, Duration.ofNanos(1<<63 - 1)],
-      ["9223372036854775.807us", true, Duration.ofNanos(1<<63 - 1)],
-      ["9223372036s854ms775us807ns", true, Duration.ofNanos(1<<63 - 1)],
+      ["9223372036854775807ns", true, Duration.ofNanos((1L << 63) - 1)],
+      ["9223372036854775.807us", true, Duration.ofNanos((1L << 63) - 1)],
+      ["9223372036s854ms775us807ns", true, Duration.ofNanos((1L << 63) - 1)],
       // large negative value
-      ["-9223372036854775807ns", true, Duration.ofNanos(-1<<63 + 1)],
+      ["-9223372036854775807ns", true, Duration.ofNanos((-1L << 63) + 1)],
       // huge string; issue 15011.
       ["0.100000000000000000000h", true, Duration.ofMinutes(6)],
       // This value tests the first overflow check in leadingFraction.
-      ["0.830103483285477580700h", true, Duration.ofMinutes(49) + Duration.ofSeconds(480) + Duration.ofNanos(372539827)],
+      ["0.830103483285477580700h", true, Duration.ofMinutes(49) + Duration.ofSeconds(48) + Duration.ofNanos(372539827)],
   
       // errors
-      ["", false, 0],
-      ["3", false, 0],
-      ["-", false, 0],
-      ["s", false, 0],
-      [".", false, 0],
-      ["-.", false, 0],
-      [".s", false, 0],
-      ["+.s", false, 0],
-      ["3000000h", false, 0],                  // overflow
-      ["9223372036854775808ns", false, 0],     // overflow
-      ["9223372036854775.808us", false, 0],    // overflow
-      ["9223372036854ms775us808ns", false, 0], // overflow
+      ["", false, null],
+      ["3", false, null],
+      ["-", false, null],
+      ["s", false, null],
+      [".", false, null],
+      ["-.", false, null],
+      [".s", false, null],
+      ["+.s", false, null],
+      ["3000000h", false, null],                  // overflow
+      ["9223372036854775808ns", false, null],     // overflow
+      ["9223372036854775.808us", false, null],    // overflow
+      ["9223372036854ms775us808ns", false, null], // overflow
       // largest negative value of type int64 in nanoseconds should fail
       // see https://go-review.googlesource.com/#/c/2461/
-      ["-9223372036854775808ns", false, 0],
-    ].collect { (it + [it[1] ? "== ${ it[2] }" : 'throws DateTimeParseException']).toArray() }.toArray()
+      ["-9223372036854775808ns", false, null],
+    ].collect { (it + [it[1] ? "== ${ it[2] }".toString() : 'throws DateTimeParseException']).toArray() }.toArray()
   }
 
   @Test
   @Parameters(method = 'parseDurationTests')
-  @TestCaseName('testParseDuration("{0}") {4}')
+  @TestCaseName('parseDuration("{0}") {3}')
   void testParseDuration(final String in_, final boolean ok, final Duration want, final String test) {
     if (ok) {
       assert DurationAdapter.parseDuration(in_) == want

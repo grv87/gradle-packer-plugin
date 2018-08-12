@@ -22,6 +22,8 @@
  */
 package go.time;
 
+import com.google.common.primitives.UnsignedLong;
+
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
@@ -29,6 +31,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public final class DurationAdapter {
+  private static UnsignedLong SECONDS_PER_MINUTE = UnsignedLong.valueOf(60);
+  private static UnsignedLong MINUTES_PER_SECOND = UnsignedLong.valueOf(60);
+  private static UnsignedLong NANOSECONDS_PER_SECOND = UnsignedLong.valueOf(1000000000L);
+  private static UnsignedLong NUMERAL_SYSTEM_BASE = UnsignedLong.valueOf(10);
+
   /**
    * Returns a string representing the duration in the form "72h3m0.5s".
    * Leading zero units are omitted. As a special case, durations less than one
@@ -38,29 +45,30 @@ public final class DurationAdapter {
   public static String string(Duration d) {
     // Largest time is 2540400h10m10.000000000s
     StringBuilder buf = new StringBuilder();
-    long u = d.getSeconds(); // d.toNanos();
-    long s = d.getNano();
-    boolean neg = u < 0L;
+    long s = d.getSeconds(); // d.toNanos();
+    long n = d.getNano();
+    UnsignedLong u;
+    boolean neg = s < 0L;
     if (neg) {
-      u = -u;
-      s = -s;
+      u = UnsignedLong.valueOf(-s).times(NANOSECONDS_PER_SECOND).minus(UnsignedLong.valueOf(n));
+    } else {
+      u = UnsignedLong.valueOf(s).times(NANOSECONDS_PER_SECOND).plus(UnsignedLong.valueOf(n));
     }
-    u = u * 1000000000L + s;
 
-    if (u < TimeUnit.SECONDS.toNanos(1)) {
+    if (u.compareTo(UnsignedLong.valueOf(TimeUnit.SECONDS.toNanos(1))) < 0) {
       // Special case: if duration is smaller than a second,
       // use smaller units, like 1.2ms
       int prec;
       buf.append('s');
-      if (u == 0L) {
+      if (u.equals(UnsignedLong.ZERO)) {
         return "0s";
       }
 
-      if (u < TimeUnit.MICROSECONDS.toNanos(1)) {
+      if (u.compareTo(UnsignedLong.valueOf(TimeUnit.MICROSECONDS.toNanos(1))) < 0) {
         // print nanoseconds
         prec = 0;
         buf.append('n');
-      } else if (u < TimeUnit.MILLISECONDS.toNanos(1)) {
+      } else if (u.compareTo(UnsignedLong.valueOf(TimeUnit.MILLISECONDS.toNanos(1))) < 0) {
         // print microseconds
         prec = 3;
         // U+00B5 'µ' micro sign == 0xC2 0xB5
@@ -79,18 +87,18 @@ public final class DurationAdapter {
       u = fmtFrac(buf, u, 9);
 
       // u is now integer seconds
-      fmtInt(buf, u % 60L);
-      u /= 60L;
+      fmtInt(buf, u.mod(SECONDS_PER_MINUTE));
+      u = u.dividedBy(SECONDS_PER_MINUTE);
 
       // u is now integer minutes
-      if (u > 0L) {
+      if (u.compareTo(UnsignedLong.ZERO) > 0) {
         buf.append('m');
-        fmtInt(buf, u % 60L);
-        u /= 60L;
+        fmtInt(buf, u.mod(MINUTES_PER_SECOND));
+        u = u.dividedBy(MINUTES_PER_SECOND);
 
         // u is now integer hours
         // Stop at hours because days can be different lengths.
-        if (u > 0L) {
+        if (u.compareTo(UnsignedLong.ZERO) > 0) {
           buf.append('h');
           fmtInt(buf, u);
         }
@@ -113,18 +121,18 @@ public final class DurationAdapter {
    *
    * @return
    */
-  private static long fmtFrac(StringBuilder buf, long v, int prec) {
+  private static UnsignedLong fmtFrac(StringBuilder buf, UnsignedLong v, int prec) {
     // Omit trailing zeros up to and including decimal point.
     boolean print = false;
     for (int i = 0; i < prec; i++) {
-      long digit = v % 10L;
+      int digit = v.mod(NUMERAL_SYSTEM_BASE).intValue();
       print = print || digit != 0L;
       if (print) {
         char c = (char)(digit + '0');
         buf.append(c);
       }
 
-      v /= 10L;
+      v = v.dividedBy(NUMERAL_SYSTEM_BASE);
     }
 
     if (print) {
@@ -138,21 +146,21 @@ public final class DurationAdapter {
    * Formats v into the tail of buf.
    * It returns the index where the output begins.
    */
-  private static void fmtInt(StringBuilder buf, long v) {
-    if (v == 0L) {
+  private static void fmtInt(StringBuilder buf, UnsignedLong v) {
+    if (v.equals(UnsignedLong.ZERO)) {
       buf.append('0');
     } else {
-      while (v > 0L) {
-        char c = (char)(v % 10L + '0');
+      while (v.compareTo(UnsignedLong.ZERO) > 0) {
+        char c = (char)(v.mod(NUMERAL_SYSTEM_BASE).intValue() + '0');
         buf.append(c);
-        v /= 10L;
+        v = v.dividedBy(NUMERAL_SYSTEM_BASE);
       }
 
     }
 
   }
 
-  public static DateTimeParseException errLeadingInt(CharSequence parsedData, int errorIndex) throws DateTimeParseException {
+  private static DateTimeParseException errLeadingInt(CharSequence parsedData, int errorIndex) throws DateTimeParseException {
     return new DateTimeParseException("time: bad [0-9]*", parsedData, errorIndex);
   }
 
@@ -162,7 +170,7 @@ public final class DurationAdapter {
    * @param s
    * @return
    */
-  public static Object[] leadingInt(String s, int w) throws DateTimeParseException {
+  private static Object[] leadingInt(String s, int w) throws DateTimeParseException {
     long x = 0L;
     int i;
     for (i = w; i < s.length(); i++){
@@ -171,12 +179,12 @@ public final class DurationAdapter {
         break;
       }
 
-      if (x > (1L << 63L - 1L) / 10L) {
+      if (x > Long.MAX_VALUE / NUMERAL_SYSTEM_BASE.longValue()) {
         // overflow
         throw errLeadingInt(s, w);
       }
 
-      x = x * 10L + c - '0';
+      x = x * NUMERAL_SYSTEM_BASE.longValue() + c - '0';
       if (x < 0L) {
         // overflow
         throw errLeadingInt(s, w);
@@ -195,7 +203,7 @@ public final class DurationAdapter {
    * @param s
    * @return
    */
-  public static Object[] leadingFraction(String s, int w) {
+  private static Object[] leadingFraction(String s, int w) {
     long x = 0L;
     double scale = 1D;
     String rem;
@@ -211,23 +219,23 @@ public final class DurationAdapter {
         continue;
       }
 
-      if (x > (1L << 63L - 1L) / 10L) {
+      if (x > Long.MAX_VALUE / NUMERAL_SYSTEM_BASE.longValue()) {
         // It's possible for overflow to give a positive number, so take care.
         overflow = true;
         continue;
       }
 
-      long y = x * 10L + c - '0';
+      long y = x * NUMERAL_SYSTEM_BASE.longValue() + c - '0';
       if (y < 0L) {
         overflow = true;
         continue;
       }
 
       x = y;
-      scale *= 10D;
+      scale *= NUMERAL_SYSTEM_BASE.doubleValue();
     }
 
-    return new Object[]{x, scale, w};
+    return new Object[]{x, scale, i};
   }
 
   /**
@@ -329,7 +337,7 @@ public final class DurationAdapter {
       }
 
       w = i;
-      if (v > (1L << 63L - 1L) / unit) {
+      if (v > Long.MAX_VALUE / unit) {
         // overflow
         throw new DateTimeParseException("time: invalid duration " + s, s, w_v);
       }
