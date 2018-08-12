@@ -1,3 +1,4 @@
+#!/usr/bin/env groovy
 /*
  * Java port of tests for functions for Duration formatting and parsing
  * from go/time package
@@ -22,19 +23,16 @@
  */
 package go.time
 
-import org.junit.Ignore
-
 import static org.hamcrest.Matchers.startsWith
-import groovy.transform.CompileStatic
+import java.time.Duration
+import java.time.format.DateTimeParseException
+import junitparams.JUnitParamsRunner
+import junitparams.Parameters
 import junitparams.naming.TestCaseName
 import org.junit.Rule
 import org.junit.Test
-import junitparams.JUnitParamsRunner
 import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
-import junitparams.Parameters
-import java.time.Duration
-import java.time.format.DateTimeParseException
 
 @RunWith(JUnitParamsRunner)
 final class DurationAdapterTest {
@@ -91,9 +89,15 @@ final class DurationAdapterTest {
       ["100.00100s", true, Duration.ofSeconds(100) + Duration.ofMillis(1)],
       // different units
       ["10ns", true, Duration.ofNanos(10)],
-      ["11us", true, Duration.ofNanos(11 * 1000 /* TODO */)],
-      ["12µs", true, Duration.ofNanos(12 * 1000 /* TODO */)], // U+00B5
-      ["12μs", true, Duration.ofNanos(12 * 1000 /* TODO */)], // U+03BC
+      /*
+       * WORKAROUND:
+       * There is no `Duration.toMicros` static method yet.
+       * https://bugs.openjdk.java.net/browse/JDK-8196003
+       * <grv87 2018-08-12>
+       */
+      ["11us", true, Duration.ofNanos(11 * DurationAdapter.NANOSECONDS_PER_MICROSECOND)],
+      ["12µs", true, Duration.ofNanos(12 * DurationAdapter.NANOSECONDS_PER_MICROSECOND)], // U+00B5
+      ["12μs", true, Duration.ofNanos(12 * DurationAdapter.NANOSECONDS_PER_MICROSECOND)], // U+03BC
       ["13ms", true, Duration.ofMillis(13)],
       ["14s", true, Duration.ofSeconds(14)],
       ["15m", true, Duration.ofMinutes(15)],
@@ -111,11 +115,11 @@ final class DurationAdapterTest {
       // 9007199254740993 = 1<<53+1 cannot be stored precisely in a float64
       ["9007199254740993ns", true, Duration.ofNanos((1L << 53) + 1)],
       // largest duration that can be represented by int64 in nanoseconds
-      ["9223372036854775807ns", true, Duration.ofNanos((1L << 63) - 1)],
-      ["9223372036854775.807us", true, Duration.ofNanos((1L << 63) - 1)],
-      ["9223372036s854ms775us807ns", true, Duration.ofNanos((1L << 63) - 1)],
+      ["9223372036854775807ns", true, Duration.ofNanos(/*(1L << 63) - 1*/ Long.MAX_VALUE)],
+      ["9223372036854775.807us", true, Duration.ofNanos(/*(1L << 63) - 1*/ Long.MAX_VALUE)],
+      ["9223372036s854ms775us807ns", true, Duration.ofNanos(/*(1L << 63) - 1*/ Long.MAX_VALUE)],
       // large negative value
-      ["-9223372036854775807ns", true, Duration.ofNanos((-1L << 63) + 1)],
+      ["-9223372036854775807ns", true, Duration.ofNanos(/*(-1L << 63) + 1)*/ Long.MIN_VALUE + 1)],
       // huge string; issue 15011.
       ["0.100000000000000000000h", true, Duration.ofMinutes(6)],
       // This value tests the first overflow check in leadingFraction.
@@ -162,7 +166,7 @@ final class DurationAdapterTest {
       Duration d0 = Duration.ofMillis(rand.nextInt())
       String s = DurationAdapter.string(d0)
       Duration d1 = DurationAdapter.parseDuration(s)
-      assert d0.equals(d1) // TOCHECK: Groovy
+      assert d0 == d1
     }
   }
 }
