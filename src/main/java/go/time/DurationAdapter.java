@@ -1,3 +1,25 @@
+/*
+ * Java port of functions for Duration formatting and parsing
+ * from go/time package
+ * Port is made from version go1.10.3
+ * Copyright © 2018  Basil Peace
+ * Copyright 2009, 2010 The Go Authors. All rights reserved.
+ *
+ * This file is part of gradle-packer-plugin.
+ *
+ * This plugin is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This plugin is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package go.time;
 
 import java.time.Duration;
@@ -174,8 +196,8 @@ public final class DurationAdapter {
    * @return
    */
   public static Object[] leadingFraction(String s, int w) {
-    Long x = 0L;
-    Double scale = 1D;
+    long x = 0L;
+    double scale = 1D;
     String rem;
     int i;
     boolean overflow = false;
@@ -273,7 +295,7 @@ public final class DurationAdapter {
         pl = w;
         Object[] res = leadingFraction(s, w);
         f = (long) res[0];
-        scale = (int) res[1];
+        scale = (double) res[1];
         w = (int) res[2];
         post = pl != w;
       }
@@ -298,7 +320,7 @@ public final class DurationAdapter {
         throw new DateTimeParseException("time: missing unit in duration " + s, s, w);
       }
 
-      String u = s.substring(w, i - 1);
+      String u = s.substring(w, i);
       long unit;
       try {
         unit = unitMap.get(u);

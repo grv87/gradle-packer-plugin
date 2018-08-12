@@ -41,6 +41,10 @@ ext.rootDir = '.'
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
+tasks.withType(JavaCompile).configureEach { JavaCompile javaCompile ->
+  javaCompile.options.encoding = 'UTF-8'
+}
+
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
 
 tasks.codenarcMain.disabledRules.add 'JavaIoPackageAccess'
@@ -89,6 +93,7 @@ tasks.named('functionalTest').configure {
 
 dependencies {
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
+  testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
 
   integTestImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
