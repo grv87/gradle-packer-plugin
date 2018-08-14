@@ -1,12 +1,12 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.amazonaws:aws-java-sdk-core:1.11.385
-com.amazonaws:aws-java-sdk-ec2:1.11.385
-com.amazonaws:jmespath-java:1.11.385
+com.amazonaws:aws-java-sdk-core:1.11.386
+com.amazonaws:aws-java-sdk-ec2:1.11.386
+com.amazonaws:jmespath-java:1.11.386
 com.athaydes:spock-reports:1.6.0
 com.fasterxml.jackson.core:jackson-annotations:2.9.6
-com.fasterxml.jackson.core:jackson-core:2.9.6
+com.fasterxml.jackson.core:jackson-core:2.10.0-SNAPSHOT
 com.fasterxml.jackson.core:jackson-databind:2.6.7.1
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.6.7
 com.fasterxml.uuid:java-uuid-generator:3.1.5
