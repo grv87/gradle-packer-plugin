@@ -17,27 +17,42 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fidata.gradle.packer
+package org.fidata.gradle.packer.tasks
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.OnlyExcept
+import org.fidata.gradle.packer.PackerExecSpec
+import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
+import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
+import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import javax.inject.Inject
 
 @CompileStatic
-class PackerValidate extends PackerWrapperTask {
+class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
   @Input
   Boolean syntaxOnly = true
+  @Internal
+  @Override
+  List<Object> getCmdArgs() {
+    List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
+    if (syntaxOnly) {
+      cmdArgs.add 0, '-syntax-only' // Template should be the last, so we insert in the start
+    }
+    cmdArgs
+  }
+
   @InputFile
+  @Override
   File getTemplateFile() {
-    super.templateFile
+    this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile
   }
 
   @Inject
   PackerValidate(File templateFile, Closure configureClosure = null) {
-    super(templateFile)
+    super()
+    this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile = templateFile
     configure configureClosure
     outputs.upToDateWhen { true }
   }
@@ -47,15 +62,5 @@ class PackerValidate extends PackerWrapperTask {
     super.configureExecSpec(execSpec)
     execSpec.command 'validate'
     execSpec
-  }
-
-  @Override
-  @Internal
-  protected List<Object> getCmdArgs() {
-    if (syntaxOnly) {
-      [(Object)'-syntax-only']
-    } else {
-      null
-    }
   }
 }

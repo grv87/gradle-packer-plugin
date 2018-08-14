@@ -70,7 +70,7 @@ import org.apache.commons.io.FilenameUtils
 for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
 }) {
-  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile) { syntaxOnly = false }
+  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile) { syntaxOnly = true }
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
     packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }
@@ -118,4 +118,3 @@ pluginBundle.plugins {
     displayName = 'Packer plugin'
   }
 }
-

@@ -17,12 +17,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fidata.gradle.packer
+package org.fidata.gradle.packer.tasks
+
+import org.gradle.api.logging.LogLevel
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
+import org.fidata.gradle.packer.PackerExecSpec
+import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
+import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
+import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.OnlyExcept
 import org.fidata.gradle.packer.template.Template
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
@@ -30,7 +35,22 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @CompileStatic
-class PackerBuild extends PackerWrapperTask {
+class PackerBuild extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
+  @Internal
+  @Override
+  List<Object> getCmdArgs() {
+    List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
+    if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
+      cmdArgs.add 0, '-debug' // Template should be the last, so we insert in the start
+    }
+    cmdArgs
+  }
+
+  @Override
+  void setTemplateFile(File templateFile) {
+    throw new UnsupportedOperationException('Setting templateFile property on PackerBuild task after its creation is not supported')
+  }
+
   private Template template
 
   @Internal
@@ -41,9 +61,6 @@ class PackerBuild extends PackerWrapperTask {
   @Nested
   Provider<List<Template>> getInterpolatedTemplates() {
     Context ctx = new Context()
-
-
-
     /*for (Builder builder in template.builders) {
       if (onlyExcept.skip(builder.header.name))
     }
@@ -53,9 +70,10 @@ class PackerBuild extends PackerWrapperTask {
 
   @Inject
   PackerBuild(File templateFile, Template template, Closure configureClosure = null) {
-    super(templateFile)
+    super()
+    // this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile = templateFile
     group = BUILD_GROUP
-    this.template = template
+    // this.template = template // TODO: It is not necesary to pass both template and templateFile
     configure configureClosure
     doConfigure() // TODO ?
   }
@@ -69,21 +87,5 @@ class PackerBuild extends PackerWrapperTask {
     super.configureExecSpec(execSpec)
     execSpec.command 'build'
     execSpec
-  }
-
-  @Override
-  @Internal
-  protected List<Object> getCmdArgs() {
-    if (onlyExcept) {
-      if (onlyExcept.only?.size() > 0) {
-        [(Object)"-only=${ onlyExcept.only.join(',') }"]
-      } else if (onlyExcept.except?.size() > 0) {
-        [(Object)"-except=${ onlyExcept.except.join(',') }"]
-      } else {
-        null
-      }
-    } else {
-      null
-    }
   }
 }

@@ -21,6 +21,10 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.tasks.PackerBuild
+import org.fidata.gradle.packer.tasks.PackerValidate
+import org.fidata.gradle.packer.tasks.PackerWrapperTask
+import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.Template
@@ -49,7 +53,7 @@ class PackerPluginExtension {
       environment?.each { Map.Entry<String, Object> environmentEntry ->
         packerWrapperTask.environment.put environmentEntry.key, StringUtils.stringize(environmentEntry.value)
       }
-      packerWrapperTask.variables = variables
+      ((PackerVarArgument)packerWrapperTask).variables = variables // TODO
       packerWrapperTask.configure taskConfiguration
     }
   }
@@ -60,9 +64,9 @@ class PackerPluginExtension {
     Template template = mapper.readValue(file.text, Template)
     Context ctx = new Context()
 
-    if (!name) {
+    /*if (!name) {
       name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
-    }
+    }*/
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
 

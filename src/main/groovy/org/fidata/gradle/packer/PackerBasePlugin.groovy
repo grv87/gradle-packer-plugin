@@ -22,6 +22,8 @@ package org.fidata.gradle.packer
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+import org.fidata.gradle.packer.tasks.PackerBuild
+import org.fidata.gradle.packer.tasks.PackerValidate
 import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
