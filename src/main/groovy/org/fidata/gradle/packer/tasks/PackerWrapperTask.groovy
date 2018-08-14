@@ -31,19 +31,6 @@ import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> implements PackerArgument {
-  @Console // TODO
-  Boolean machineReadable = false
-
-  @Internal
-  @Override
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = PackerArgument.super.getCmdArgs()
-    if (machineReadable) {
-      cmdArgs.add '-machine-readable'
-    }
-    cmdArgs
-  }
-
   PackerWrapperTask() {
     super()
     packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)

@@ -19,6 +19,7 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
@@ -35,7 +36,7 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @CompileStatic
-class PackerBuild extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
+class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
   @Internal
   @Override
   List<Object> getCmdArgs() {
