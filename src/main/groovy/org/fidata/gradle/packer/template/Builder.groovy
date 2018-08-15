@@ -22,11 +22,20 @@ package org.fidata.gradle.packer.template
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.sun.javaws.exceptions.InvalidArgumentException
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.builder.Null
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.utils.BuilderHeader
 import org.gradle.api.tasks.Nested
+import org.omg.CORBA.DynAnyPackage.Invalid
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -46,4 +55,6 @@ abstract class Builder extends InterpolableObject {
   protected void doInterpolate(Context ctx) {
     header.interpolate ctx
   }
+
+  static TypedDynamicDeserializer
 }

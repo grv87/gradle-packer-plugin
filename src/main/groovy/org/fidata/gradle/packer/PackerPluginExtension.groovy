@@ -21,7 +21,7 @@
 package org.fidata.gradle.packer
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.tasks.PackerBuild
+import org.fidata.gradle.packer.tasks.PackerBuildAutoConfigurable
 import org.fidata.gradle.packer.tasks.PackerValidate
 import org.fidata.gradle.packer.tasks.PackerWrapperTask
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
@@ -60,8 +60,7 @@ class PackerPluginExtension {
 
   void template(String name, File file, Task parentTask = null, Closure taskConfiguration = null) {
     project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
-    ObjectMapper mapper = new ObjectMapper()
-    Template template = mapper.readValue(file.text, Template)
+    Template template = Template.readFromFile(file)
     Context ctx = new Context()
 
     /*if (!name) {
@@ -70,7 +69,7 @@ class PackerPluginExtension {
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
 
-    TaskProvider<PackerBuild> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuild, file, template, /*empty OnlyExcept,*/ configureClosure(taskConfiguration))
+    TaskProvider<PackerBuildAutoConfigurable> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuildAutoConfigurable, file, template, /*empty OnlyExcept,*/ configureClosure(taskConfiguration))
     parentTask?.dependsOn buildAllProvider
 
     template.variables?.each { Map.Entry<String, String> variable ->
@@ -80,7 +79,7 @@ class PackerPluginExtension {
       // builder.header.interpolate() TODO
       String buildName =
         name ?: builder.header.type // TODO: interpolate
-      TaskProvider<PackerBuild> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuild, file, template, /*new OnlyExcept(only: [new InterpolableString(buildName)]), TODO*/ configureClosure(taskConfiguration))
+      TaskProvider<PackerBuildAutoConfigurable> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuildAutoConfigurable, file, template, /*new OnlyExcept(only: [new InterpolableString(buildName)]), TODO*/ configureClosure(taskConfiguration))
     }
   }
 

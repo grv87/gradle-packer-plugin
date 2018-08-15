@@ -20,6 +20,7 @@
 package org.fidata.gradle.packer.template
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableString
@@ -27,6 +28,8 @@ import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
 @CompileStatic
 class Template extends InterpolableObject {
@@ -91,5 +94,19 @@ class Template extends InterpolableObject {
         ((InterpolableObject) object).interpolate ctx
       }
     }*/
+  }
+
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+  static {
+    objectMapper.registerModule(new AfterburnerModule())
+    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+  }
+
+  static Template readFromFile(File file) {
+    Template template
+    file.withInputStream { InputStream inputStream ->
+      template = objectMapper.readValue(inputStream, Template)
+    }
+    template
   }
 }

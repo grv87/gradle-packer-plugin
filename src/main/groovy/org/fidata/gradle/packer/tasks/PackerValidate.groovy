@@ -27,12 +27,16 @@ import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
+
 import javax.inject.Inject
 
 @CompileStatic
 class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
   @Input
+  @Optional
   Boolean syntaxOnly = true
+
   @Internal
   @Override
   List<Object> getCmdArgs() {
@@ -49,17 +53,14 @@ class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgume
     this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile
   }
 
-  @Inject
-  PackerValidate(File templateFile, Closure configureClosure = null) {
+  PackerValidate() {
     super()
-    this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile = templateFile
-    configure configureClosure
     outputs.upToDateWhen { true }
   }
 
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
-    super.configureExecSpec(execSpec)
+    execSpec = super.configureExecSpec(execSpec)
     execSpec.command 'validate'
     execSpec
   }

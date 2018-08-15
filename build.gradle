@@ -70,7 +70,10 @@ import org.apache.commons.io.FilenameUtils
 for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
   fileTree.include '**/*.json'
 }) {
-  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate, singleTemplateFile) { syntaxOnly = true }
+  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate) {
+    templateFile = singleTemplateFile
+    syntaxOnly = true
+  }
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
     packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }
@@ -102,16 +105,6 @@ dependencies {
 
   integTestImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: 'latest.release'
-
-  functionalTestImplementation group: 'cglib', name: 'cglib-nodep', version: '[3.2, 4['
-  /* WORKAROUND: https://github.com/spockframework/spock/issues/769 */
-  functionalTestImplementation(group: 'org.spockframework', name: 'spock-core', version: '1.2-groovy-2.4-SNAPSHOT') {
-    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
-  }
-  functionalTestImplementation group: 'org.objenesis', name: 'objenesis', version: '[1.2, 2['
-  functionalTestImplementation('com.blogspot.toomuchcoding:spock-subjects-collaborators-extension:1.2.1') {
-    exclude group: 'org.codehaus.groovy', module: 'groovy-all'
-  }
 }
 
 stutter {
