@@ -16,9 +16,4 @@ class Null extends Builder {
   protected void doInterpolate(Context ctx) {
     commConfig.interpolate ctx
   }
-
-  static {
-    // registry.register('null', Null)
-    registerSubtype('null', Null)
-  }
 }

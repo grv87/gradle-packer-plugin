@@ -12,11 +12,13 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.PostProcessor
 import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.gradle.api.tasks.Internal
 
 @JsonDeserialize(using = PostProcessorsDefinitionDeserializer)
 @CompileStatic
 class PostProcessorDefinition extends InterpolableObject {
   @JsonValue
+  @Internal
   Object rawValue
 
   @Override

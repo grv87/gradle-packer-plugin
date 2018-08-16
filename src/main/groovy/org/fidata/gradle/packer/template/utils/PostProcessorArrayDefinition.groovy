@@ -10,12 +10,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.gradle.api.tasks.Internal
 
 @JsonDeserialize(using = PostProcessorArrayDefinitionDeserializer)
 @CompileStatic
 class PostProcessorArrayDefinition extends InterpolableObject {
   static class ArrayClass extends ArrayList<PostProcessorDefinition> {}
   @JsonValue
+  @Internal
   Object rawValue
 
   @Override

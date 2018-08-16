@@ -21,7 +21,7 @@ package org.fidata.gradle.packer.template
 
 import com.google.common.reflect.ClassPath
 import junitparams.JUnitParamsRunner
-import org.fidata.gradle.packer.template.builder.Null
+import org.fidata.gradle.packer.PackerBasePlugin
 import org.junit.runner.RunWith
 import groovy.transform.CompileStatic
 import junitparams.Parameters
@@ -39,12 +39,16 @@ class TemplateTest {
   @Parameters
   @TestCaseName('{1}')
   void testParser(final File templateFile, final String ignored) {
-    this.class.classLoader.loadClass('org.fidata.gradle.packer.template.builder.Null')
-    Template template = Template.objectMapper.readValue(templateFile, Template)
+    PackerBasePlugin.registerBuiltInPackerPlugins()
+    Template template = Template.mapper.readValue(templateFile, Template)
     assert Template.isInstance(template)
 
-    /*s = new String()
-    mapper.writeValue()*/
+    Writer writer = new StringWriter()
+    Template.mapper.writeValue(writer, template)
+    assert writer.toString().length() > 0
+
+    Template template2 = Template.mapper.readValue(writer.toString(), Template)
+    assert Template.isInstance(template2)
   }
 
   static Object[] parametersForTestParser() {

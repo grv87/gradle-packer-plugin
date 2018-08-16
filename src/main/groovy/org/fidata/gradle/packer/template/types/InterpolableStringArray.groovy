@@ -1,23 +1,21 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
-@JsonDeserialize(using = InterpolableStringArrayDeserializer)
 @CompileStatic
 class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
 
   @JsonCreator
-  InterpolableStringArray(Object rawValue) {
+  InterpolableStringArray(ArrayClass rawValue) {
+    super(rawValue)
+  }
+
+  @JsonCreator
+  InterpolableStringArray(InterpolableString rawValue) {
     super(rawValue)
   }
 
@@ -30,25 +28,6 @@ class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<S
       ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
     } else {
       throw new IllegalStateException(sprintf('Invalid interpolable string array raw value: %s', [rawValue]))
-    }
-  }
-
-  static class InterpolableStringArrayDeserializer extends StdDeserializer<InterpolableStringArray> {
-    @Override
-    InterpolableStringArray deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      Object rawValue
-      if (jp.currentToken == JsonToken.START_ARRAY) {
-        rawValue = jp.readValueAs(ArrayClass)
-      } else {
-        rawValue = jp.readValueAs(InterpolableString)
-      }
-      return new InterpolableStringArray(
-        rawValue: rawValue
-      )
-    }
-
-    InterpolableStringArrayDeserializer() {
-      super(InterpolableStringArray)
     }
   }
 }

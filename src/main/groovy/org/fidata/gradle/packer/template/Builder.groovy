@@ -19,7 +19,6 @@
  */
 package org.fidata.gradle.packer.template
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import groovy.transform.CompileStatic
@@ -42,7 +41,7 @@ abstract class Builder extends InterpolableObject {
     header.interpolate ctx
   }
 
-  protected static registerSubtype(String type, Class<? extends Builder> builderClass) {
-    Template.objectMapper.registerSubtypes(new NamedType(builderClass, type))
+  static registerSubtype(String type, Class<? extends Builder> aClass) {
+    Template.mapper.registerSubtypes(new NamedType(aClass, type))
   }
 }

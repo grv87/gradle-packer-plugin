@@ -20,9 +20,11 @@
 package org.fidata.gradle.packer.template.post_processor
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.PostProcessor
 
+@CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')
   String outputPath

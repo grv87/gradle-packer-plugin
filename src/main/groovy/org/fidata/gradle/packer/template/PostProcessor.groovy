@@ -19,12 +19,11 @@
  */
 package org.fidata.gradle.packer.template
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.post_processor.Manifest
 import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -34,9 +33,6 @@ import org.gradle.api.tasks.Internal
   include = JsonTypeInfo.As.PROPERTY,
   property = 'type'
 )
-@JsonSubTypes([
-  @JsonSubTypes.Type(name = 'manifest', value = Manifest),
-])
 @CompileStatic
 abstract class PostProcessor extends InterpolableObject {
   @Internal // TODO
@@ -52,5 +48,9 @@ abstract class PostProcessor extends InterpolableObject {
   @Override
   protected void doInterpolate(Context ctx) {
     // TODO
+  }
+
+  static registerSubtype(String type, Class<? extends PostProcessor> aClass) {
+    Template.mapper.registerSubtypes(new NamedType(aClass, type))
   }
 }

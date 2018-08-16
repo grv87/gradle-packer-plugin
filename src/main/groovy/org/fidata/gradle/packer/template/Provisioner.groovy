@@ -19,27 +19,21 @@
  */
 package org.fidata.gradle.packer.template
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.provisioner.File
 import org.fidata.gradle.packer.template.types.InterpolableDuration
 import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-
-import java.time.Duration
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.PROPERTY,
   property = 'type'
 )
-@JsonSubTypes([
-  @JsonSubTypes.Type(name = 'file', value = File),
-])
 @CompileStatic
 abstract class Provisioner extends InterpolableObject {
   @Internal // TODO
@@ -61,5 +55,9 @@ abstract class Provisioner extends InterpolableObject {
       InterpolableString buildName, Provisioner provisioner : override) {
       TODO: apply override
     }*/
+  }
+
+  static registerSubtype(String type, Class<? extends Provisioner> aClass) {
+    Template.mapper.registerSubtypes(new NamedType(aClass, type))
   }
 }

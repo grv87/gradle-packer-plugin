@@ -19,12 +19,11 @@
  */
 package org.fidata.gradle.packer.template
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
 import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.types.InterpolableString
 import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
@@ -50,6 +49,7 @@ class Template extends InterpolableObject {
   @Nested
   List<Provisioner> provisioners
 
+  @JsonProperty('post-processors')
   @Nested
   List<PostProcessorArrayDefinition> postProcessors
 
@@ -97,16 +97,17 @@ class Template extends InterpolableObject {
   }
 
   // @PackageScope
-  static final ObjectMapper objectMapper = new ObjectMapper()
+  static final ObjectMapper mapper = new ObjectMapper()
   static {
-    objectMapper.registerModule(new AfterburnerModule())
-    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+    mapper.registerModule(new AfterburnerModule())
+    mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
   static Template readFromFile(File file) {
     Template template
     file.withInputStream { InputStream inputStream ->
-      template = objectMapper.readValue(inputStream, Template)
+      template = mapper.readValue(inputStream, Template)
     }
     template
   }

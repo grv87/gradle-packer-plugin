@@ -20,6 +20,13 @@
  */
 package org.fidata.gradle.packer
 
+import org.fidata.gradle.packer.template.Builder
+import org.fidata.gradle.packer.template.PostProcessor
+import org.fidata.gradle.packer.template.Provisioner
+import org.fidata.gradle.packer.template.builder.Null
+import org.fidata.gradle.packer.template.post_processor.Manifest
+import org.fidata.gradle.packer.template.provisioner.File
+
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import org.fidata.gradle.packer.tasks.PackerBuild
@@ -39,6 +46,8 @@ class PackerBasePlugin implements Plugin<Project> {
   static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
 
   void apply(Project project) {
+    registerBuiltInPackerPlugins()
+
     for (Class taskClass : [PackerBuild, PackerValidate]) {
       project.extensions.extraProperties[taskClass.simpleName] = taskClass
     }
@@ -52,5 +61,23 @@ class PackerBasePlugin implements Plugin<Project> {
       }
     }
     project.extensions.create(PackerToolExtension.NAME, PackerToolExtension, project)
+  }
+
+  static void registerBuiltInPackerPlugins() {
+    [
+      'null': Null,
+    ].each { String key, Class<? extends Builder> value ->
+      Builder.registerSubtype key, value
+    }
+    [
+      'file': File,
+    ].each { String key, Class<? extends Provisioner> value ->
+      Provisioner.registerSubtype key, value
+    }
+    [
+      'manifest': Manifest,
+    ].each { String key, Class<? extends PostProcessor> value ->
+      PostProcessor.registerSubtype key, value
+    }
   }
 }
