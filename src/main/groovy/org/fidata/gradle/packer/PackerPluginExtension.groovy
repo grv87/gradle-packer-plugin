@@ -32,7 +32,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 import org.ysb33r.grolifant.api.StringUtils
-import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * {@code packer} extension for Gradle project

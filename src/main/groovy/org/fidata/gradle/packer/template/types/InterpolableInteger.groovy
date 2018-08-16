@@ -6,13 +6,13 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
 
-@JsonDeserialize(using = InterpolableIntegerDeserializer)
+// @JsonDeserialize(using = InterpolableIntegerDeserializer)
 @CompileStatic
 class InterpolableInteger extends InterpolableSinglePrimitive<Object, Integer> {
   @JsonCreator
@@ -32,7 +32,17 @@ class InterpolableInteger extends InterpolableSinglePrimitive<Object, Integer> {
     }
   }
 
-  static class InterpolableIntegerDeserializer extends JsonDeserializer<InterpolableInteger> {
+  @JsonCreator
+  InterpolableInteger(Integer rawValue) {
+    super(rawValue)
+  }
+
+  @JsonCreator
+  InterpolableInteger(InterpolableString rawValue) {
+    super(rawValue)
+  }
+
+  /*static class InterpolableIntegerDeserializer extends StdDeserializer<InterpolableInteger> {
     @Override
     InterpolableInteger deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
       Class rawValueClass
@@ -50,5 +60,9 @@ class InterpolableInteger extends InterpolableSinglePrimitive<Object, Integer> {
         rawValue: jp.readValueAs(rawValueClass)
       )
     }
-  }
+
+    InterpolableIntegerDeserializer() {
+      super(InterpolableInteger)
+    }
+  }*/
 }

@@ -22,6 +22,7 @@ package org.fidata.gradle.packer.template
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableString
 import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
@@ -49,7 +50,6 @@ class Template extends InterpolableObject {
   @Nested
   List<Provisioner> provisioners
 
-  @JsonProperty('post-processors')
   @Nested
   List<PostProcessorArrayDefinition> postProcessors
 
@@ -96,7 +96,8 @@ class Template extends InterpolableObject {
     }*/
   }
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
+  // @PackageScope
+  static final ObjectMapper objectMapper = new ObjectMapper()
   static {
     objectMapper.registerModule(new AfterburnerModule())
     objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)

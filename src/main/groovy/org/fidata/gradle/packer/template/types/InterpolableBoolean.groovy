@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
@@ -32,7 +32,7 @@ class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
     }
   }
 
-  static class InterpolableBooleanDeserializer extends JsonDeserializer<InterpolableBoolean> {
+  static class InterpolableBooleanDeserializer extends StdDeserializer<InterpolableBoolean> {
     @Override
     InterpolableBoolean deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
       Class rawValueClass
@@ -50,6 +50,10 @@ class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
       return new InterpolableBoolean(
         rawValue: jp.readValueAs(rawValueClass)
       )
+    }
+
+    InterpolableBooleanDeserializer() {
+      super(InterpolableBoolean)
     }
   }
 }

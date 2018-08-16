@@ -27,7 +27,6 @@ class Manifest extends PostProcessor {
   @JsonProperty('output')
   String outputPath
 
-  @JsonProperty('strip_path')
   Boolean stripPath
 
   @Override
