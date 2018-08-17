@@ -19,6 +19,7 @@
  */
 package org.fidata.gradle.packer.template
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -52,6 +53,13 @@ class Template extends InterpolableObject {
   @JsonProperty('post-processors')
   @Nested
   List<PostProcessorArrayDefinition> postProcessors
+
+  @JsonCreator
+  Template() {
+  }
+
+  Template(Context ctx) {
+  }
 
   @Override
   protected void doInterpolate(Context ctx) {

@@ -45,6 +45,19 @@ tasks.withType(JavaCompile).configureEach { JavaCompile javaCompile ->
   javaCompile.options.encoding = 'UTF-8'
 }
 
+/*
+ * WORKAROUND:
+ * https://github.com/DanySK/javadoc.io-linker/issues/5
+ * `org.danilopianini.javadoc.io-linker` plugin doesn't work with `java-library` plugin
+ * <grv87 2018-06-23>
+ */
+afterEvaluate {
+  jvm.javadocLinks['org.ysb33r.grolifant'] = uri("https://ysb33rorg.gitlab.io/grolifant/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'org.ysb33r.gradle' && it.moduleName == 'grolifant' }.moduleVersion }/api/")
+  jvm.javadocLinks['com.fasterxml.jackson.databind'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-core' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+  jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+  jvm.javadocLinks['com.rits'] = uri("http://javadoc.io/doc/uk.com.robust-it/cloning/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'uk.com.robust-it' && it.moduleName == 'cloning' }.moduleVersion }/")
+}
+
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
 
 tasks.named('codenarcMain').configure { disabledRules.add 'JavaIoPackageAccess' }
