@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import groovy.transform.CompileStatic
+import org.fidata.gradle.packer.template.annotations.Inline
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableDuration
-import org.fidata.gradle.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
@@ -35,7 +35,7 @@ import org.gradle.api.tasks.Internal
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner extends InterpolableObject {
+abstract class Provisioner<P extends Configuration> extends InterpolableObject {
   @Internal // TODO
   @JsonUnwrapped
   OnlyExcept onlyExcept
@@ -43,14 +43,27 @@ abstract class Provisioner extends InterpolableObject {
   @Input // TODO
   String type
 
-  @Internal
-  Map<InterpolableString, Object /* TODO */> override
+  abstract static class Configuration extends InterpolableObject {
+    @Internal
+    InterpolableDuration pauseBefore
+
+    @Override
+    protected void doInterpolate() {
+      pauseBefore.interpolate context
+    }
+  }
 
   @Internal
-  InterpolableDuration pauseBefore // TODO: Write parser
+  Map<String, ? extends P> override
+
+  @Inline
+  P configuration
 
   @Override
-  protected void doInterpolate(Context ctx) {
+  protected void doInterpolate() {
+    configuration.interpolate context
+    // override[context.buildName]
+
     /*for (Map.Entry<InterpolableString, Object>
       InterpolableString buildName, Provisioner provisioner : override) {
       TODO: apply override

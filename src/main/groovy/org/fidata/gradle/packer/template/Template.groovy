@@ -19,6 +19,7 @@
  */
 package org.fidata.gradle.packer.template
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -31,8 +32,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
-
-import java.lang.reflect.Field
 
 @CompileStatic
 class Template extends InterpolableObject {
@@ -60,32 +59,59 @@ class Template extends InterpolableObject {
   Template() {
   }*/
 
+  Context envContext
+
+  @JsonIgnore
+  @Internal
+  Context getEnvContext() {
+    this.envContext
+  }
+
+  Context variablesContext
+
+  @JsonIgnore
+  @Internal
+  Context getVariablesContext() {
+    this.variablesContext
+  }
+
   @Override
-  protected void doInterpolate(Context ctx) {
-    super.doInterpolate ctx // TOTEST
+  protected void doInterpolate() {
+    super.doInterpolate() // TOTEST
+
+    envContext = new Context(null, context.env, null, context.templateFile, context.task)
+    variables.each.interpolate envContext
+
+    Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
+      [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
+    }
+    Context variablesContext = new Context(userVariables, null, null, context.templateFile, context.task)
     for (Builder builder in builders) {
-      builder.header.interpolate ctx
+      builder.header.interpolate variablesContext
     }
   }
 
-  Template interpolateBuilder(Context ctx, String builderName) {
-    interpolate ctx
+  Template interpolateBuilder(String buildName) {
+    interpolate context
     Template result = new Template()
-    Builder builder = builders.find { Builder builder -> builder.header.name.interpolatedValue == builderName }
+    Builder builder = builders.find { Builder builder -> builder.header.buildName == buildName }
     if (!builder) {
-      throw new IllegalArgumentException(sprintf('Builder with name `%s` not found.', [builderName]))
+      throw new IllegalArgumentException(sprintf('Build with name `%s` not found.', [buildName]))
     }
     result.builders = [builder]
-
-    ctx.buildType = builder.header.type
-    ctx.buildName = builder.header.name.interpolatedValue
+    Context buildCtx = variablesContext.addTemplateVariables([
+      'BuildName': buildName,
+      'BuilderType': builder.header.type,
+    ])
 
     result.provisioners = new ArrayList()
 
+    /*
+    TODO
     for (Provisioner provisioner in provisioners) {
-      if (!provisioner.onlyExcept?.skip(builderName)) {
+      if (!provisioner.onlyExcept?.skip(buildName)) {
         Provisioner clone = (Provisioner)(((InterpolableObject)provisioner).clone())
-        ((InterpolableObject)clone).interpolate ctx
+        ((InterpolableObject)clone).interpolate context
         result.provisioners.add clone
       }
     }
@@ -93,12 +119,14 @@ class Template extends InterpolableObject {
     for (Object object in postProcessors) {
       if (List.isInstance(object)) {
         for (PostProcessor postProcessor in (List<PostProcessor>)object) {
-          // ((InterpolableObject)postProcessor).interpolate ctx
+          // ((InterpolableObject)postProcessor).interpolate context
         }
       } else {
-        ((InterpolableObject) object).interpolate ctx
+        ((InterpolableObject) object).interpolate context
       }
-    }
+    }*/
+
+    result
   }
 
   // @PackageScope
@@ -110,10 +138,8 @@ class Template extends InterpolableObject {
   }
 
   static Template readFromFile(File file) {
-    Template template
-    file.withInputStream { InputStream inputStream ->
-      template = mapper.readValue(inputStream, Template)
+    (Template)file.withInputStream { InputStream inputStream ->
+      mapper.readValue(inputStream, Template)
     }
-    template
   }
 }

@@ -46,8 +46,11 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 class PackerBasePlugin implements Plugin<Project> {
   static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
 
-  @PackageScope
-  TaskProvider<Task> packerValidateProvider
+  private TaskProvider<Task> packerValidateProvider
+
+  TaskProvider<Task> getPackerValidateProvider() {
+    this.packerValidateProvider
+  }
 
   void apply(Project project) {
     registerBuiltInPackerPlugins()

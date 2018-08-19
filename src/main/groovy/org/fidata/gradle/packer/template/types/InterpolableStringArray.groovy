@@ -8,7 +8,7 @@ import org.fidata.gradle.packer.template.internal.InterpolableValue
 
 @CompileStatic
 @Immutable
-class InterpolableStringArray extends InterpolableValue<Object, List<String>> {
+class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
 
   @JsonCreator
@@ -22,12 +22,12 @@ class InterpolableStringArray extends InterpolableValue<Object, List<String>> {
   }
 
   @Override
-  protected List<String> doInterpolatePrimitive() {
+  protected ArrayList<String> doInterpolatePrimitive() {
     if (ArrayClass.isInstance(rawValue)) {
-      new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate ctx; it.interpolatedValue })
+      new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate context; it.interpolatedValue })
     } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate ctx
-      ((InterpolableString)rawValue).interpolatedValue.split(',').toList()
+      ((InterpolableString)rawValue).interpolate context
+      new ArrayList<String>(((InterpolableString)rawValue).interpolatedValue.split(',').toList())
     } else {
       throw new IllegalStateException(sprintf('Invalid interpolable string array raw value: %s', [rawValue]))
     }

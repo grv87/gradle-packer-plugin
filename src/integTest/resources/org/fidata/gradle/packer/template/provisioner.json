@@ -9,12 +9,11 @@
 			"ssh_agent_auth": true
 		}
 	],
-	"post-processors": [
-		[
-			{
-				"type": "manifest",
-				"output": "manifest.json"
-			}
-		]
+	"provisioners": [
+		{
+			"type": "file",
+			"source": "provisioner.json",
+			"destination": "/tmp"
+		}
 	]
 }

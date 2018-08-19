@@ -35,6 +35,11 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
     this.class.isInstance(obj) && ((InterpolableValue<Source, Target>)obj).interpolatedValue == interpolatedValue
   }
 
+  @Override
+  int hashCode() {
+    interpolatedValue.hashCode()
+  }
+
   private static final long serialVersionUID = 1L
 
   /*private void writeObject(ObjectOutputStream out) throws IOException {

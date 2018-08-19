@@ -25,7 +25,9 @@ class PostProcessorDefinition extends InterpolableObject {
   }
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    // TODO
+  protected void doInterpolate() {
+    if (PostProcessor.isInstance(rawValue)) {
+      ((PostProcessor)rawValue).interpolate context
+    }
   }
 }

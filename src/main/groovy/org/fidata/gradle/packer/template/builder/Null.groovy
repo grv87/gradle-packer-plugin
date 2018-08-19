@@ -13,7 +13,7 @@ class Null extends Builder {
   Communicator commConfig
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    commConfig.interpolate ctx
+  protected void doInterpolate() {
+    commConfig.interpolate context
   }
 }

@@ -24,7 +24,7 @@ class InterpolableInteger extends InterpolableValue<Object, Integer> {
     if (Integer.isInstance(rawValue)) {
       (Integer)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate ctx
+      ((InterpolableString)rawValue).interpolate context
       ((InterpolableString)rawValue).interpolatedValue.toInteger()
     } else {
       throw new IllegalStateException(sprintf('Invalid interpolable integer raw value: %s', [rawValue]))

@@ -19,24 +19,22 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import org.fidata.gradle.packer.template.Builder
+
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 import org.fidata.gradle.packer.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Optional
-
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.Template
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Console
-import javax.inject.Inject
 
 @CompileStatic
 class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
@@ -86,13 +84,15 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
   }
 
   @Nested
-  Provider<List<Template>> getInterpolatedTemplates() {
-    Context ctx = new Context()
-    /*for (Builder builder in template.builders) {
-      if (onlyExcept.skip(builder.header.name))
+  List<Template> getInterpolatedTemplates() {
+    List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
+    for (Builder builder in template.builders) {
+      String buildName = builder.header.buildName
+      if (!onlyExcept.skip(buildName)) {
+        result.add template.interpolateBuilder(buildName)
+      }
     }
-    template.clone()*/
-    null
+    result
   }
 
   @Override

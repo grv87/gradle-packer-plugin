@@ -16,7 +16,7 @@ class InterpolableFile extends InterpolableValue<InterpolableString, File> {
 
   @Override
   protected File doInterpolatePrimitive() {
-    rawValue.interpolate ctx
-    ctx.interpolateFile(rawValue.interpolatedValue) // TODO
+    rawValue.interpolate context
+    context.interpolateFile(rawValue.interpolatedValue) // TODO
   }
 }

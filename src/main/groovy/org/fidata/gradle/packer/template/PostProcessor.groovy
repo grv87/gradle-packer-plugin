@@ -35,8 +35,8 @@ import org.gradle.api.tasks.Internal
 )
 @CompileStatic
 abstract class PostProcessor extends InterpolableObject {
-  @Internal // TODO
   @JsonUnwrapped
+  @Internal // TODO
   OnlyExcept onlyExcept
 
   @Input // TODO
@@ -47,7 +47,7 @@ abstract class PostProcessor extends InterpolableObject {
 
   @Override
   protected void doInterpolate() {
-    keepInputArtifacts.interpolate ctx
+    keepInputArtifacts.interpolate context
   }
 
   static registerSubtype(String type, Class<? extends PostProcessor> aClass) {

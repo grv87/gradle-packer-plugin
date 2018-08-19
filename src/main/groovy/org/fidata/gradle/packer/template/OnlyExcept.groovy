@@ -29,14 +29,22 @@ class OnlyExcept {
   List<String> except
 
   boolean skip(String n) {
-    if (only.size() > 0) {
+    if (only?.size() > 0) {
       if (only.contains(n)) { return false }
       return true
     }
     // TOTEST: if
-    if (except.size() > 0) {
+    if (except?.size() > 0) {
       if (only.contains(n)) { return true }
     }
     false
+  }
+
+  int sizeAfterSkip(int originalSize) {
+    if (only?.size() > 0) {
+      only.size()
+    } else {
+      originalSize - except?.size() ?: 0
+    }
   }
 }

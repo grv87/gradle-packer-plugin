@@ -23,16 +23,20 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.PostProcessor
+import org.fidata.gradle.packer.template.types.InterpolableBoolean
+import org.fidata.gradle.packer.template.types.InterpolableString
+import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')
-  String outputPath
+  @OutputFile
+  InterpolableString outputPath // TODO: File?
 
-  Boolean stripPath
+  InterpolableBoolean stripPath // TODO
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    // TODO super.dointerpolate ctx
+  protected void doInterpolate() {
+    // TODO super.dointerpolate context
   }
 }

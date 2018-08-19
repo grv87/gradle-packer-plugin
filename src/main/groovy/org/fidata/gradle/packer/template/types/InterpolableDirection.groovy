@@ -17,7 +17,7 @@ class InterpolableDirection extends InterpolableValue<InterpolableString, Direct
 
   @Override
   protected Direction doInterpolatePrimitive() {
-    rawValue.interpolate ctx
+    rawValue.interpolate context
     Direction.forValue(rawValue.interpolatedValue)
   }
 }

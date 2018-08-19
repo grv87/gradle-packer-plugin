@@ -21,14 +21,12 @@ package org.fidata.gradle.packer.template.provisioner
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.Provisioner
 import org.fidata.gradle.packer.template.enums.Direction
 import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.fidata.gradle.packer.template.types.InterpolableDirection
 import org.fidata.gradle.packer.template.types.InterpolableFile
 import org.fidata.gradle.packer.template.types.InterpolableString
-import org.fidata.gradle.packer.template.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -38,66 +36,65 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 
 @CompileStatic
-class File extends Provisioner {
-  @Internal
-  InterpolableString source
+class File extends Provisioner<Configuration> {
+  static class Configuration extends Provisioner.Configuration {
+    @Internal
+    InterpolableString source
 
-  @Internal
-  InterpolableStringArray sources
+    @Internal
+    InterpolableString destination
 
-  @Internal
-  InterpolableString destination
+    @Input
+    InterpolableDirection direction
 
-  @Input
-  InterpolableDirection direction
+    @Internal
+    InterpolableBoolean generated // TODO
 
-  @Internal
-  InterpolableBoolean generated // TODO
+    @JsonIgnore
+    @InputFile
+    @Optional
+    RegularFileCollection
+    InterpolableFile sourceFile
 
-  @Optional
-  @InputFile
-  @JsonIgnore
-  RegularFileCollection
-  InterpolableFile sourceFile
+    @JsonIgnore
+    @InputDirectory
+    @Optional
+    InterpolableFile sourceDirectory
 
-  @Optional
-  @InputDirectory
-  @JsonIgnore
-  InterpolableFile sourceDirectory
+    @JsonIgnore
+    @OutputFile
+    @Optional
+    InterpolableFile destinationFile
 
-  @Optional
-  @OutputFile
-  @JsonIgnore
-  InterpolableFile destinationFile
+    @JsonIgnore
+    @OutputDirectory
+    @Optional
+    InterpolableFile destinationDirectory
 
-  @Optional
-  @OutputDirectory
-  @JsonIgnore
-  InterpolableFile destinationDirectory
+    @Override
+    protected void doInterpolate() {
+      source?.interpolate context
+      destination?.interpolate context
+      direction?.interpolate context
+      Direction _direction = direction?.interpolatedValue ?: Direction.UPLOAD
+      generated?.interpolate context
+      switch (_direction) {
+        case Direction.UPLOAD:
+          String sourceFileName
+          if (source) {
+            if (source.interpolatedValue.endsWith('/') || source.interpolatedValue.endsWith('\\')) {
+              // sourceDirectory = TODO
 
-  @Override
-  protected void doInterpolate() {
-    source?.interpolate ctx
-    sources?.interpolate ctx
-    destination?.interpolate ctx
-    direction?.interpolate ctx
-    Direction _direction = direction?.interpolatedValue ?: Direction.UPLOAD
-    generated?.interpolate ctx
-    switch (_direction) {
-      case Direction.UPLOAD:
-        String sourceFileName
-        if (source) {
-          if (source.interpolatedValue.endsWith('/') || source.interpolatedValue.endsWith('\\')) {
-
+            }
           }
-        }
 
-        break
-      case Direction.DOWNLOAD:
+          break
+        case Direction.DOWNLOAD:
 
-        break
-      default:
-        throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.interpolatedValue]))
+          break
+        default:
+          throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.interpolatedValue]))
+      }
     }
   }
 }

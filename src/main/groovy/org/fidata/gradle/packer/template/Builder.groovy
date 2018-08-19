@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.annotations.Inline
 import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.utils.BuilderHeader
+import org.fidata.gradle.packer.template.types.InterpolableString
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -38,10 +40,28 @@ abstract class Builder extends InterpolableObject {
 
   @Override
   protected void doInterpolate() {
-    header.interpolate ctx
+    header.interpolate context
   }
 
   static registerSubtype(String type, Class<? extends Builder> aClass) {
     Template.mapper.registerSubtypes(new NamedType(aClass, type))
+  }
+
+  static class BuilderHeader extends InterpolableObject {
+    @Internal
+    InterpolableString name
+
+    @Input
+    String type
+
+    @Input
+    String getBuildName() {
+      name?.interpolatedValue ?: type
+    }
+
+    @Override
+    protected void doInterpolate() {
+      name.interpolate context
+    }
   }
 }

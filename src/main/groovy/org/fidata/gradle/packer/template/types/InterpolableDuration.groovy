@@ -19,7 +19,7 @@ class InterpolableDuration extends InterpolableValue<InterpolableString, Duratio
 
   @Override
   protected Duration doInterpolatePrimitive() {
-    rawValue.interpolate ctx
+    rawValue.interpolate context
     parseDuration(rawValue.interpolatedValue)
   }
 }

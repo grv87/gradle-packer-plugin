@@ -11,7 +11,8 @@
 	],
 	"post-processors": [
 		{
-			"type": "manifest"
+			"type": "manifest",
+			"output": "manifest.json"
 		}
 	]
 }

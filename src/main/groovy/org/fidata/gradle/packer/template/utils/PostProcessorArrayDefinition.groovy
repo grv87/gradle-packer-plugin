@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
+import org.fidata.gradle.packer.template.PostProcessor
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.gradle.api.tasks.Internal
 
@@ -25,7 +26,11 @@ class PostProcessorArrayDefinition extends InterpolableObject {
   }
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    // TODO
+  protected void doInterpolate() {
+    if (ArrayClass.isInstance(rawValue)) {
+      ((ArrayClass)rawValue).each { PostProcessorDefinition postProcessorDefinition -> postProcessorDefinition.interpolate context }
+    } else if (PostProcessorDefinition.isInstance(rawValue)) {
+      ((PostProcessorDefinition)rawValue).interpolate context
+    }
   }
 }

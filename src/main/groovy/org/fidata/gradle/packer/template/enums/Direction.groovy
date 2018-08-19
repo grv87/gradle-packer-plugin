@@ -10,8 +10,8 @@ enum Direction {
   UPLOAD,
   DOWNLOAD
 
-  @Override
   @JsonValue
+  @Override
   String toString() {
     this.name().toLowerCase()
   }

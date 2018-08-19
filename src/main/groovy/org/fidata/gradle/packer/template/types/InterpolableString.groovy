@@ -16,6 +16,6 @@ class InterpolableString extends InterpolableValue<String, String> {
 
   @Override
   protected String doInterpolatePrimitive() {
-    ctx.interpolateString(rawValue)
+    context.interpolateString(rawValue)
   }
 }

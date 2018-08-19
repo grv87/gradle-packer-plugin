@@ -107,21 +107,21 @@ class Communicator extends InterpolableObject {
   InterpolableBoolean winrmUseNTLM
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    sshHost.interpolate ctx
-    sshUsername.interpolate ctx
-    sshPassword.interpolate ctx
-    sshPrivateKey.interpolate ctx
-    sshBastionHost.interpolate ctx
-    sshBastionUsername.interpolate ctx
-    sshBastionPassword.interpolate ctx
-    sshBastionPrivateKey.interpolate ctx
-    sshFileTransferMethod.interpolate ctx
-    sshProxyHost.interpolate ctx
-    sshProxyUsername.interpolate ctx
-    sshProxyPassword.interpolate ctx
-    winrmUser.interpolate ctx
-    winrmPassword.interpolate ctx
-    winrmHost.interpolate ctx
+  protected void doInterpolate() {
+    sshHost.interpolate context
+    sshUsername.interpolate context
+    sshPassword.interpolate context
+    sshPrivateKey.interpolate context
+    sshBastionHost.interpolate context
+    sshBastionUsername.interpolate context
+    sshBastionPassword.interpolate context
+    sshBastionPrivateKey.interpolate context
+    sshFileTransferMethod.interpolate context
+    sshProxyHost.interpolate context
+    sshProxyUsername.interpolate context
+    sshProxyPassword.interpolate context
+    winrmUser.interpolate context
+    winrmPassword.interpolate context
+    winrmHost.interpolate context
   }
 }

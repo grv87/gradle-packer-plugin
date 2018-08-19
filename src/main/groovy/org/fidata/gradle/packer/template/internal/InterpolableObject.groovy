@@ -6,12 +6,14 @@ import org.fidata.gradle.packer.template.Context
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
-abstract class InterpolableObject implements Serializable, Cloneable {
+abstract class InterpolableObject implements Serializable/*, Cloneable*/ {
   private boolean interpolated = false
-  private Context ctx
+  private Context context
 
-  protected Context getCtx() {
-    new Context(this.ctx)
+  @JsonIgnore
+  @Internal
+  Context getContext() {
+    context
   }
 
   @JsonIgnore
@@ -20,21 +22,21 @@ abstract class InterpolableObject implements Serializable, Cloneable {
     this.interpolated
   }
 
-  public void interpolate(Context ctx) {
+  public void interpolate(Context context) {
     if (!interpolated) {
-      this.ctx = ctx
+      this.context = context
       doInterpolate()
       interpolated = true
-    } else if (!this.ctx.is(ctx)) {
+    } else if (this.context != context) {
       throw new IllegalStateException('Object is already interpolated with different context')
     }
   }
 
   abstract protected void doInterpolate()
 
-  InterpolableObject clone() {
+  /*InterpolableObject clone() {
     InterpolableObject result = (InterpolableObject)super.clone()
 
     result
-  }
+  }*/
 }

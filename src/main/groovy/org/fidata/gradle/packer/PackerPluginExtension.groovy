@@ -27,6 +27,7 @@ import org.fidata.gradle.packer.tasks.PackerWrapperTask
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.Context
+import org.fidata.gradle.packer.template.OnlyExcept
 import org.fidata.gradle.packer.template.Template
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -58,14 +59,19 @@ class PackerPluginExtension /*extends PackerToolExtension*/ {
     }
   }
 
-  void template(String name, File file, Task parentTask = null, Closure taskConfiguration = null) {
-    project.logger.debug(sprintf('gradle-packer-plugin: Processing %s template', [file]))
-    Template template = Template.readFromFile(file)
-    Context ctx = new Context()
+  static final Map<String, String> stringize(Map<? extends Object, ? extends Object> stringyThings) {
+    (Map<String, String>)stringyThings.collectEntries { Map.Entry<? extends Object, ? extends Object> entry -> [(StringUtils.stringize(entry.key)): StringUtils.stringize(entry.value)] }
+  }
 
-    /*if (!name) {
-      name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
-    }*/
+  void template(String name, File file, Closure taskConfiguration = null) {
+    project.logger.debug(sprintf('org.fidata.packer: Processing %s template', [file]))
+
+    Template template = Template.readFromFile(file)
+    template.interpolate new Context(stringize(variables), stringize(environment), null, file, null)
+
+    if (!name) {
+      name = template.variablesContext.userVariables['name'] ?: file.toPath().fileName.toString()
+    }
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate) { PackerValidate validate ->
       validate.templateFile = file
@@ -75,30 +81,25 @@ class PackerPluginExtension /*extends PackerToolExtension*/ {
       packerValidate.dependsOn validateProvider
     }
 
-    template.variables?.each { Map.Entry<String, String> variable ->
-      ctx.userVariables[variable.key] = variable.value
-    }
     for (/*Map.Entry<String, Builder>*/ Builder builder in template.builders) {
-      // builder.header.interpolate() TODO
-      String buildName =
-        name ?: builder.header.type // TODO: interpolate
-      TaskProvider<PackerBuildAutoConfigurable> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuildAutoConfigurable, file, template, /*new OnlyExcept(only: [new InterpolableString(buildName)]), TODO*/ configureClosure(taskConfiguration))
+      String buildName = builder.header.buildName
+      TaskProvider<PackerBuildAutoConfigurable> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuildAutoConfigurable, file, template, new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
     }
   }
 
-  void template(File file, Task parentTask = null, Closure taskConfiguration = null) {
-    template(null, file, parentTask, taskConfiguration)
+  void template(File file, Closure taskConfiguration = null) {
+    template(null, file, taskConfiguration)
   }
 
-  void template(Map<String, File> files, Task parentTask = null, Closure taskConfiguration = null) {
+  void template(Map<String, File> files, Closure taskConfiguration = null) {
     for (Map.Entry<String, File> fileEntry : files) {
-      template(fileEntry.key, fileEntry.value, parentTask, taskConfiguration)
+      template(fileEntry.key, fileEntry.value, taskConfiguration)
     }
   }
 
-  void template(List<File> files, Task parentTask = null, Closure taskConfiguration = null) {
+  void template(List<File> files, Closure taskConfiguration = null) {
     for (File file : files) {
-      template(file, parentTask, taskConfiguration)
+      template(file, taskConfiguration)
     }
   }
 }
