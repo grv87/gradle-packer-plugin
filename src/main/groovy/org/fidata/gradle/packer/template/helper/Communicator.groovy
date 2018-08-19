@@ -1,14 +1,16 @@
 package org.fidata.gradle.packer.template.helper
 
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.gradle.api.tasks.Internal
+import org.fidata.gradle.packer.template.types.InterpolableString
+import org.fidata.gradle.packer.template.types.InterpolableInteger
 import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.fidata.gradle.packer.template.types.InterpolableDuration
-import org.fidata.gradle.packer.template.types.InterpolableInteger
-import org.fidata.gradle.packer.template.types.InterpolableString
-import org.gradle.api.tasks.Internal
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Communicator extends InterpolableObject {
   // SSH

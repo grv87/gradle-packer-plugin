@@ -19,14 +19,16 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.PostProcessor
-import org.fidata.gradle.packer.template.types.InterpolableBoolean
-import org.fidata.gradle.packer.template.types.InterpolableString
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.gradle.api.tasks.OutputFile
+import org.fidata.gradle.packer.template.types.InterpolableString
+import org.fidata.gradle.packer.template.types.InterpolableBoolean
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')

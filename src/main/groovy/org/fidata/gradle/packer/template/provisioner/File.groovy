@@ -19,7 +19,8 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Provisioner
 import org.fidata.gradle.packer.template.enums.Direction
@@ -27,6 +28,7 @@ import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.fidata.gradle.packer.template.types.InterpolableDirection
 import org.fidata.gradle.packer.template.types.InterpolableFile
 import org.fidata.gradle.packer.template.types.InterpolableString
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -35,6 +37,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class File extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
@@ -53,7 +56,7 @@ class File extends Provisioner<Configuration> {
     @JsonIgnore
     @InputFile
     @Optional
-    RegularFileCollection
+    // TODO RegularFileCollection
     InterpolableFile sourceFile
 
     @JsonIgnore

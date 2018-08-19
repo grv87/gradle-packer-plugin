@@ -1,20 +1,16 @@
 package org.fidata.gradle.packer.template.types
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.rits.cloning.Immutable
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
+import groovy.transform.InheritConstructors
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.enums.Direction
 import org.fidata.gradle.packer.template.internal.InterpolableValue
+import org.fidata.gradle.packer.template.enums.Direction
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
+@InheritConstructors
 @CompileStatic
-@Immutable
 class InterpolableDirection extends InterpolableValue<InterpolableString, Direction> {
-  @JsonCreator
-  InterpolableDirection(InterpolableString rawValue) {
-    super(rawValue)
-  }
-
   @Override
   protected Direction doInterpolatePrimitive() {
     rawValue.interpolate context

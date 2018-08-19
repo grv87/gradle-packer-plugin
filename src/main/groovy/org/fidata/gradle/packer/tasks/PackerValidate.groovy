@@ -29,8 +29,6 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
-import javax.inject.Inject
-
 @CompileStatic
 class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
   @Input
@@ -60,8 +58,8 @@ class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgume
 
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
-    execSpec = super.configureExecSpec(execSpec)
-    execSpec.command 'validate'
-    execSpec
+    PackerExecSpec result = super.configureExecSpec(execSpec)
+    result.command 'validate'
+    result
   }
 }

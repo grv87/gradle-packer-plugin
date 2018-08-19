@@ -20,16 +20,14 @@
  */
 package org.fidata.gradle.packer
 
-import groovy.transform.PackageScope
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.PostProcessor
 import org.fidata.gradle.packer.template.Provisioner
 import org.fidata.gradle.packer.template.builder.Null
 import org.fidata.gradle.packer.template.post_processor.Manifest
 import org.fidata.gradle.packer.template.provisioner.File
-
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import org.fidata.gradle.packer.tasks.PackerBuild
 import org.fidata.gradle.packer.tasks.PackerValidate
 import groovy.transform.CompileStatic

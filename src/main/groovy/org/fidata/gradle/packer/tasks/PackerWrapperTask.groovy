@@ -23,15 +23,12 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.PackerToolExtension
 import org.fidata.gradle.packer.tasks.arguments.PackerArgument
-import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
-import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
-import org.ysb33r.grolifant.api.StringUtils
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> implements PackerArgument {
-  PackerWrapperTask() {
+  protected PackerWrapperTask() {
     super()
     packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)
   }
@@ -41,7 +38,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
     new PackerExecSpec(project, toolExtension.resolver)
   }
 
-  private PackerToolExtension packerToolExtension
+  private final PackerToolExtension packerToolExtension
 
   @Override
   @Internal // @Nested TODO: Detect version ? / plugins ?

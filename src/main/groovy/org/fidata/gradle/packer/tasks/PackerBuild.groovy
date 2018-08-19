@@ -19,9 +19,9 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import static org.fidata.gradle.packer.utils.StringUtils.stringize
 import org.fidata.gradle.packer.template.Builder
-
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
+import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
@@ -53,7 +53,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
   @Internal
   @Override
   List<Object> getCmdArgs() {
-    List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
+    List<Object> cmdArgs = this.cmdArgs /* PackerTemplateArgument.super.getCmdArgs() */
     // Template should be the last, so we insert in the start
     if (!color) {
       cmdArgs.add 0, '-color=false'
@@ -67,7 +67,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
       }*/
       cmdArgs.add 0, "-on-error=${ onError.name().toLowerCase() }"
     }
-    if(project.gradle.startParameter.rerunTasks) {
+    if (project.gradle.startParameter.rerunTasks) {
       cmdArgs.add 0, '-force' // TODO: as property
     }
     if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
@@ -85,11 +85,15 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
 
   @Nested
   List<Template> getInterpolatedTemplates() {
+    if (!template.interpolated) {
+      template.interpolate new Context(stringize(variables), stringize(environment), null, templateFile, null)
+    }
+
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
     for (Builder builder in template.builders) {
       String buildName = builder.header.buildName
       if (!onlyExcept.skip(buildName)) {
-        result.add template.interpolateBuilder(buildName)
+        result.add template.interpolateForBuilder(buildName)
       }
     }
     result
@@ -97,8 +101,8 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
 
   @Override
     protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
-    execSpec = super.configureExecSpec(execSpec)
-    execSpec.command 'build'
-    execSpec
+    PackerExecSpec result = super.configureExecSpec(execSpec)
+    result.command 'build'
+    result
   }
 }

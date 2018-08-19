@@ -1,22 +1,17 @@
 package org.fidata.gradle.packer.template.types
 
-import com.rits.cloning.Immutable
-
 import static go.time.DurationAdapter.parseDuration
-import com.fasterxml.jackson.annotation.JsonCreator
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
+import groovy.transform.InheritConstructors
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableValue
 import java.time.Duration
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
+@InheritConstructors
 @CompileStatic
-@Immutable
 class InterpolableDuration extends InterpolableValue<InterpolableString, Duration> {
-  @JsonCreator
-  InterpolableDuration(InterpolableString rawValue) {
-    super(rawValue)
-  }
-
   @Override
   protected Duration doInterpolatePrimitive() {
     rawValue.interpolate context

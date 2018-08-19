@@ -1,9 +1,7 @@
 package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.OnlyExcept
 import org.gradle.api.tasks.Console
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
@@ -21,6 +19,14 @@ trait PackerMachineReadableArgument extends PackerArgument {
     this.machineReadable = machineReadable
   }
 
+  /*
+   * WORKAROUND:
+   * CodeNarc bug
+   * Without getter we have error:
+   * Call to super is not allowed in a trait
+   * <grv87 2018-08-19>
+   */
+  @SuppressWarnings('UnnecessaryGetter')
   @Internal
   @Override
   List<Object> getCmdArgs() {

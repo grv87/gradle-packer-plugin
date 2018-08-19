@@ -1,8 +1,8 @@
 package org.fidata.gradle.packer.tasks
 
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 import org.fidata.gradle.packer.template.Template
 import javax.inject.Inject
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 
 class PackerBuildAutoConfigurable extends PackerBuild {
   @Override

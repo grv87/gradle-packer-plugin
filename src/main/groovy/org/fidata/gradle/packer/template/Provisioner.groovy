@@ -22,6 +22,8 @@ package org.fidata.gradle.packer.template
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.annotations.Inline
 import org.fidata.gradle.packer.template.internal.InterpolableObject
@@ -29,21 +31,28 @@ import org.fidata.gradle.packer.template.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.PROPERTY,
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner<P extends Configuration> extends InterpolableObject {
-  @Internal // TODO
+class Provisioner<P extends Configuration> extends InterpolableObject {
+  protected Provisioner() {
+  }
+
+  @Internal
   @JsonUnwrapped
   OnlyExcept onlyExcept
 
   @Input // TODO
   String type
 
-  abstract static class Configuration extends InterpolableObject {
+  static class Configuration extends InterpolableObject {
+    protected Configuration() {
+    }
+
     @Internal
     InterpolableDuration pauseBefore
 
@@ -70,7 +79,17 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     }*/
   }
 
-  static registerSubtype(String type, Class<? extends Provisioner> aClass) {
+  Provisioner interpolateForBuilder(Context buildCtx) {
+    if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
+      Provisioner result = this.clone()
+      result.interpolate buildCtx
+      result
+    } else {
+      null
+    }
+  }
+
+  static void registerSubtype(String type, Class<? extends Provisioner> aClass) {
     Template.mapper.registerSubtypes(new NamedType(aClass, type))
   }
 }

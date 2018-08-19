@@ -1,8 +1,8 @@
 package org.fidata.gradle.packer.template.enums
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.annotation.JsonCreator
 import java.util.zip.DataFormatException
 
 @CompileStatic

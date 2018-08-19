@@ -1,12 +1,15 @@
 package org.fidata.gradle.packer.template.internal
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.gradle.api.tasks.Internal
+import org.fidata.gradle.packer.template.Context
 
+@AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['interpolated', 'context'])
 @CompileStatic
-abstract class InterpolableObject implements Serializable/*, Cloneable*/ {
+abstract class InterpolableObject {
   private boolean interpolated = false
   private Context context
 
@@ -22,7 +25,7 @@ abstract class InterpolableObject implements Serializable/*, Cloneable*/ {
     this.interpolated
   }
 
-  public void interpolate(Context context) {
+  void interpolate(Context context) throws IllegalStateException {
     if (!interpolated) {
       this.context = context
       doInterpolate()
@@ -33,10 +36,4 @@ abstract class InterpolableObject implements Serializable/*, Cloneable*/ {
   }
 
   abstract protected void doInterpolate()
-
-  /*InterpolableObject clone() {
-    InterpolableObject result = (InterpolableObject)super.clone()
-
-    result
-  }*/
 }

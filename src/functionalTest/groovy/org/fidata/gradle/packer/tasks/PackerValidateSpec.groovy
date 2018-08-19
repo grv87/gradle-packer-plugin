@@ -7,8 +7,9 @@ import org.junit.rules.TemporaryFolder
 import org.ysb33r.grolifant.api.exec.AbstractCommandExecSpec
 import spock.lang.Specification
 
-import javax.annotation.Nullable
-
+/**
+ * Specification for {@code PackerValidate} Gradle task class
+ */
 class PackerValidateSpec extends Specification {
   // fields
   @Rule
@@ -40,6 +41,7 @@ class PackerValidateSpec extends Specification {
 
   // feature methods
 
+  @SuppressWarnings('DuplicateNumberLiteral')
   void 'has correct cmdArgs'() {
     given:
     'base plugin is applied'

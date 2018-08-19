@@ -19,10 +19,11 @@
  */
 package org.fidata.gradle.packer.template
 
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.internal.InterpolableObject
-import org.fidata.gradle.packer.template.types.InterpolableString
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class OnlyExcept {
   List<String> only
@@ -30,21 +31,16 @@ class OnlyExcept {
 
   boolean skip(String n) {
     if (only?.size() > 0) {
-      if (only.contains(n)) { return false }
-      return true
+      return !only.contains(n)
     }
     // TOTEST: if
     if (except?.size() > 0) {
-      if (only.contains(n)) { return true }
+      return except.contains(n)
     }
     false
   }
 
   int sizeAfterSkip(int originalSize) {
-    if (only?.size() > 0) {
-      only.size()
-    } else {
-      originalSize - except?.size() ?: 0
-    }
+    only?.size() > 0 ? only.size() : originalSize - except?.size() ?: 0
   }
 }

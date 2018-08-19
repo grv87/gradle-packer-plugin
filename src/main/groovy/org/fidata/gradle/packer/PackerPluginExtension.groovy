@@ -20,6 +20,7 @@
  */
 package org.fidata.gradle.packer
 
+import static org.fidata.gradle.packer.utils.StringUtils.stringize
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.tasks.PackerBuildAutoConfigurable
 import org.fidata.gradle.packer.tasks.PackerValidate
@@ -32,8 +33,6 @@ import org.fidata.gradle.packer.template.Template
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
-import org.ysb33r.grolifant.api.StringUtils
-import org.ysb33r.grolifant.api.exec.AbstractToolExtension
 
 /**
  * {@code packer} extension for Gradle project
@@ -49,57 +48,53 @@ class PackerPluginExtension /*extends PackerToolExtension*/ {
     this.project = project
   }
 
-  Closure configureClosure(Closure taskConfiguration) {
+  Closure configureClosure(Closure taskConfiguration) { // TODO
     { PackerWrapperTask packerWrapperTask ->
-      environment?.each { Map.Entry<String, Object> environmentEntry ->
-        packerWrapperTask.environment.put environmentEntry.key, StringUtils.stringize(environmentEntry.value)
-      }
-      ((PackerVarArgument)packerWrapperTask).variables = variables // TODO
+      packerWrapperTask.environment environment
+      ((PackerVarArgument)packerWrapperTask).variables = variables
       packerWrapperTask.configure taskConfiguration
     }
   }
 
-  static final Map<String, String> stringize(Map<? extends Object, ? extends Object> stringyThings) {
-    (Map<String, String>)stringyThings.collectEntries { Map.Entry<? extends Object, ? extends Object> entry -> [(StringUtils.stringize(entry.key)): StringUtils.stringize(entry.value)] }
-  }
-
-  void template(String name, File file, Closure taskConfiguration = null) {
+  Object template(String name, File file, boolean oneTaskPerBuild = true, Closure taskConfiguration = null) {
     project.logger.debug(sprintf('org.fidata.packer: Processing %s template', [file]))
 
     Template template = Template.readFromFile(file)
     template.interpolate new Context(stringize(variables), stringize(environment), null, file, null)
 
-    if (!name) {
-      name = template.variablesContext.userVariables['name'] ?: file.toPath().fileName.toString()
-    }
+    String aName = name ?: template.variablesContext.userVariables['name'] ?: file.toPath().fileName.toString()
 
     TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate) { PackerValidate validate ->
       validate.templateFile = file
-      validate.configure taskConfiguration
+      validate.configure configureClosure(taskConfiguration)
     }
     project.plugins.getPlugin(PackerBasePlugin).packerValidateProvider.configure { Task packerValidate ->
       packerValidate.dependsOn validateProvider
     }
 
-    for (/*Map.Entry<String, Builder>*/ Builder builder in template.builders) {
-      String buildName = builder.header.buildName
-      TaskProvider<PackerBuildAutoConfigurable> buildProvider = project.tasks.register("packerBuild-$name-$buildName".toString(), PackerBuildAutoConfigurable, file, template, new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
+    if (oneTaskPerBuild) {
+      template.builders.collect { Builder builder ->
+        String buildName = builder.header.buildName
+        project.tasks.register("packerBuild-$aName-$buildName".toString(), PackerBuildAutoConfigurable, file, template/*.clone() TODO*/, new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
+      }
+    } else {
+      project.tasks.register("packerBuild-$aName".toString(), PackerBuildAutoConfigurable, file, template, new OnlyExcept(), configureClosure(taskConfiguration))
     }
   }
 
-  void template(File file, Closure taskConfiguration = null) {
-    template(null, file, taskConfiguration)
+  Object template(File file, boolean oneTaskPerBuild = true, Closure taskConfiguration = null) {
+    template(null, file, oneTaskPerBuild, taskConfiguration)
   }
 
-  void template(Map<String, File> files, Closure taskConfiguration = null) {
-    for (Map.Entry<String, File> fileEntry : files) {
-      template(fileEntry.key, fileEntry.value, taskConfiguration)
+  Object template(Map<String, File> files, boolean oneTaskPerBuild = true, Closure taskConfiguration = null) {
+    files.collectMany { Map.Entry<String, File> fileEntry ->
+      template(fileEntry.key, fileEntry.value, oneTaskPerBuild, taskConfiguration)
     }
   }
 
-  void template(List<File> files, Closure taskConfiguration = null) {
-    for (File file : files) {
-      template(file, taskConfiguration)
+  Object template(List<File> files, boolean oneTaskPerBuild = true, Closure taskConfiguration = null) {
+    files.collectMany { File file ->
+      template(file, oneTaskPerBuild, taskConfiguration)
     }
   }
 }

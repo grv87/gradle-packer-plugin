@@ -1,15 +1,19 @@
 package org.fidata.gradle.packer.template.types
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.rits.cloning.Immutable
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableValue
+import com.fasterxml.jackson.annotation.JsonCreator
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-@Immutable
 class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String>> {
-  static class ArrayClass extends ArrayList<InterpolableString> {}
+  static class ArrayClass extends ArrayList<InterpolableString> {
+  }
+
+  protected InterpolableStringArray() {
+  }
 
   @JsonCreator
   InterpolableStringArray(ArrayClass rawValue) {
@@ -21,6 +25,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
     super(rawValue)
   }
 
+  @SuppressWarnings('ImplementationAsType')
   @Override
   protected ArrayList<String> doInterpolatePrimitive() {
     if (ArrayClass.isInstance(rawValue)) {

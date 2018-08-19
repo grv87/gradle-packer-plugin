@@ -1,14 +1,17 @@
 package org.fidata.gradle.packer.template.types
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.rits.cloning.Immutable
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.internal.InterpolableValue
+import com.fasterxml.jackson.annotation.JsonCreator
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-@Immutable
 class InterpolableInteger extends InterpolableValue<Object, Integer> {
+  protected InterpolableInteger() {
+  }
+
   @JsonCreator
   InterpolableInteger(Integer rawValue) {
     super(rawValue)

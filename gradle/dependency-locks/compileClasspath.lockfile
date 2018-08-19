@@ -1,9 +1,9 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.amazonaws:aws-java-sdk-core:1.11.388
-com.amazonaws:aws-java-sdk-ec2:1.11.388
-com.amazonaws:jmespath-java:1.11.388
+com.amazonaws:aws-java-sdk-core:1.11.390
+com.amazonaws:aws-java-sdk-ec2:1.11.390
+com.amazonaws:jmespath-java:1.11.390
 com.fasterxml.jackson.core:jackson-annotations:2.9.0
 com.fasterxml.jackson.core:jackson-core:2.9.6
 com.fasterxml.jackson.core:jackson-databind:2.9.6
@@ -22,9 +22,7 @@ org.apache.httpcomponents:httpclient:4.5.5
 org.apache.httpcomponents:httpcore:4.4.9
 org.checkerframework:checker-qual:2.0.0
 org.codehaus.mojo:animal-sniffer-annotations:1.14
-org.objenesis:objenesis:2.6
 org.projectlombok:lombok:1.18.2
 org.tukaani:xz:1.6
 org.ysb33r.gradle:grolifant:0.8
 software.amazon.ion:ion-java:1.0.2
-uk.com.robust-it:cloning:1.9.10

@@ -10,6 +10,6 @@ import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 trait PackerArgument {
   @Internal
   List<Object> getCmdArgs() {
-    new ArrayList<>()
+    []
   }
 }

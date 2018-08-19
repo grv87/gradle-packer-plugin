@@ -19,20 +19,22 @@
  */
 package org.fidata.gradle.packer.template
 
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableString
-import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
+@AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['envContext', 'variablesContext'])
 @CompileStatic
 class Template extends InterpolableObject {
   @Console
@@ -54,10 +56,6 @@ class Template extends InterpolableObject {
   @JsonProperty('post-processors')
   @Nested
   List<PostProcessorArrayDefinition> postProcessors
-
-  /*@JsonCreator
-  Template() {
-  }*/
 
   Context envContext
 
@@ -91,41 +89,23 @@ class Template extends InterpolableObject {
     }
   }
 
-  Template interpolateBuilder(String buildName) {
+  Template interpolateForBuilder(String buildName) {
     interpolate context
     Template result = new Template()
     Builder builder = builders.find { Builder builder -> builder.header.buildName == buildName }
     if (!builder) {
       throw new IllegalArgumentException(sprintf('Build with name `%s` not found.', [buildName]))
     }
+    builder = builder.clone()
+    builder.interpolate context
     result.builders = [builder]
     Context buildCtx = variablesContext.addTemplateVariables([
       'BuildName': buildName,
       'BuilderType': builder.header.type,
     ])
 
-    result.provisioners = new ArrayList()
-
-    /*
-    TODO
-    for (Provisioner provisioner in provisioners) {
-      if (!provisioner.onlyExcept?.skip(buildName)) {
-        Provisioner clone = (Provisioner)(((InterpolableObject)provisioner).clone())
-        ((InterpolableObject)clone).interpolate context
-        result.provisioners.add clone
-      }
-    }
-
-    for (Object object in postProcessors) {
-      if (List.isInstance(object)) {
-        for (PostProcessor postProcessor in (List<PostProcessor>)object) {
-          // ((InterpolableObject)postProcessor).interpolate context
-        }
-      } else {
-        ((InterpolableObject) object).interpolate context
-      }
-    }*/
-
+    result.provisioners = provisioners*.interpolateForBuilder(buildCtx).findAll()
+    result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()
     result
   }
 
@@ -133,8 +113,8 @@ class Template extends InterpolableObject {
   static final ObjectMapper mapper = new ObjectMapper()
   static {
     mapper.registerModule(new AfterburnerModule())
-    mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    mapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+    mapper.serializationInclusion = JsonInclude.Include.NON_NULL
   }
 
   static Template readFromFile(File file) {

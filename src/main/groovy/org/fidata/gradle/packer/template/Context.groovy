@@ -3,9 +3,14 @@ package org.fidata.gradle.packer.template
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
 import com.samskivert.mustache.Mustache
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Task
 
+@EqualsAndHashCode(/*excludes = ['buildName'] TODO*/)
+@AutoClone(style = AutoCloneStyle.COPY_CONSTRUCTOR)
 @CompileStatic
 final class Context {
   final Map<String, String> userVariables
@@ -26,15 +31,16 @@ final class Context {
     Context(userVariables, null, templateVariables, templateFile, task)
   }*/
 
-  /*private*/ Context(Map<String, String> userVariables, Map<String, String> env, Map<String, String> templateVariables, File templateFile, Task task) {
+  /*private*/
+  Context(Map<String, String> userVariables, Map<String, String> env, Map<String, String> templateVariables, File templateFile, Task task) {
     this.userVariables = userVariables.asImmutable()
     this.env = env.asImmutable()
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
     contextTemplateData = [
-      'pwd': new File('.').getCanonicalPath(),
-      'template_dir': templateFile.getParentFile().getAbsolutePath(),
+      'pwd': new File('.').canonicalPath,
+      'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000).toString(),
       'uuid': uuidGenerator.generate().toString(),
     ]
@@ -50,10 +56,6 @@ final class Context {
     contextTemplateData = contextTemplateData.asImmutable()
   }
 
-  Context(Context context) {
-    new Context((Map<String, String>)context.userVariables.clone(), (Map<String, String>)context.env.clone(), (Map<String, String>)context.templateVariables.clone(), context.templateFile, context.task)
-  }
-
   Context addTemplateVariables(Map<String, String> variables) {
     if (templateVariables) {
       variables += (Map<String, String>)templateVariables.clone()
@@ -61,7 +63,7 @@ final class Context {
     new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), variables, templateFile, task)
   }
 
-  private Map<String, String> contextTemplateData = [:]
+  private final Map<String, String> contextTemplateData = [:]
 
   String interpolateString(String value) {
     /*
@@ -79,30 +81,5 @@ final class Context {
     task.project.file(interpolateString(value))
   }
 
-  static private NoArgGenerator uuidGenerator = Generators.timeBasedGenerator()
-
-  @Override
-  boolean equals(Object obj) {
-    this.class.isInstance(obj) &&
-      userVariables == ((Context)obj).userVariables &&
-      env == ((Context)obj).env &&
-      templateVariables == ((Context)obj).templateVariables &&
-      templateFile == ((Context)obj).templateFile &&
-      task == ((Context)obj).task
-  }
-
-  @Override
-  int hashCode() {
-    int result = 17
-    for (int c : [
-      userVariables.hashCode() ?: 0,
-      env.hashCode() ?: 0,
-      templateVariables.hashCode() ?: 0,
-      templateFile.hashCode() ?: 0,
-      task.hashCode() ?: 0,
-    ]) {
-      result = 31 * result + c
-    }
-    result
- }
+  static private final NoArgGenerator uuidGenerator = Generators.timeBasedGenerator()
 }
