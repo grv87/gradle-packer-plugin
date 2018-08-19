@@ -32,12 +32,13 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 import org.ysb33r.grolifant.api.StringUtils
+import org.ysb33r.grolifant.api.exec.AbstractToolExtension
 
 /**
  * {@code packer} extension for Gradle project
  */
 @CompileStatic
-class PackerPluginExtension {
+class PackerPluginExtension /*extends PackerToolExtension*/ {
   private final Project project
 
   Map<String, Object> environment = [:]
@@ -66,10 +67,13 @@ class PackerPluginExtension {
       name = template.variables.getOrDefault('name', null)?.interpolateForGradle(null) ?: file.toPath().fileName.toString() TODO
     }*/
 
-    TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate, file, configureClosure(taskConfiguration))
-
-    TaskProvider<PackerBuildAutoConfigurable> buildAllProvider = project.tasks.register("packerBuild-$name".toString(), PackerBuildAutoConfigurable, file, template, /*empty OnlyExcept,*/ configureClosure(taskConfiguration))
-    parentTask?.dependsOn buildAllProvider
+    TaskProvider<PackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$name".toString(), PackerValidate) { PackerValidate validate ->
+      validate.templateFile = file
+      validate.configure taskConfiguration
+    }
+    project.plugins.getPlugin(PackerBasePlugin).packerValidateProvider.configure { Task packerValidate ->
+      packerValidate.dependsOn validateProvider
+    }
 
     template.variables?.each { Map.Entry<String, String> variable ->
       ctx.userVariables[variable.key] = variable.value

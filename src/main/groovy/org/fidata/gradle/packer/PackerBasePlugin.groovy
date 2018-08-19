@@ -20,6 +20,7 @@
  */
 package org.fidata.gradle.packer
 
+import groovy.transform.PackageScope
 import org.fidata.gradle.packer.template.Builder
 import org.fidata.gradle.packer.template.PostProcessor
 import org.fidata.gradle.packer.template.Provisioner
@@ -45,13 +46,16 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 class PackerBasePlugin implements Plugin<Project> {
   static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
 
+  @PackageScope
+  TaskProvider<Task> packerValidateProvider
+
   void apply(Project project) {
     registerBuiltInPackerPlugins()
 
     for (Class taskClass : [PackerBuild, PackerValidate]) {
       project.extensions.extraProperties[taskClass.simpleName] = taskClass
     }
-    TaskProvider<Task> packerValidateProvider = project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
+    packerValidateProvider = project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
       packerValidate.group = VERIFICATION_GROUP
       packerValidate.dependsOn project.tasks.withType(PackerValidate)
     }

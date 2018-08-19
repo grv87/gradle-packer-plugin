@@ -1,12 +1,14 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.rits.cloning.Immutable
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
+import org.fidata.gradle.packer.template.internal.InterpolableValue
 
 @CompileStatic
-class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
+@Immutable
+class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
   @JsonCreator
   InterpolableBoolean(Boolean rawValue) {
     super(rawValue)
@@ -18,7 +20,7 @@ class InterpolableBoolean extends InterpolableSinglePrimitive<Object, Boolean> {
   }
 
   @Override
-  protected Boolean doInterpolatePrimitive(Context ctx) {
+  protected Boolean doInterpolatePrimitive() {
     if (Boolean.isInstance(rawValue)) {
       (Boolean)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {

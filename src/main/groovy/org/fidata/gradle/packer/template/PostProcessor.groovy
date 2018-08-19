@@ -46,8 +46,8 @@ abstract class PostProcessor extends InterpolableObject {
   InterpolableBoolean keepInputArtifacts
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    // TODO
+  protected void doInterpolate() {
+    keepInputArtifacts.interpolate ctx
   }
 
   static registerSubtype(String type, Class<? extends PostProcessor> aClass) {

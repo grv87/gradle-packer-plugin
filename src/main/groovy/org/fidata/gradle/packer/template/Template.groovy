@@ -19,18 +19,20 @@
  */
 package org.fidata.gradle.packer.template
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.internal.InterpolableObject
+import org.fidata.gradle.packer.template.types.InterpolableString
 import org.fidata.gradle.packer.template.utils.PostProcessorArrayDefinition
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
+
+import java.lang.reflect.Field
 
 @CompileStatic
 class Template extends InterpolableObject {
@@ -42,7 +44,7 @@ class Template extends InterpolableObject {
   String minVersion
 
   @Internal
-  Map<String, String> variables
+  Map<String, InterpolableString> variables
 
   @Nested
   /* TODO: Map<String, Builder> */ List<Builder> builders
@@ -54,12 +56,9 @@ class Template extends InterpolableObject {
   @Nested
   List<PostProcessorArrayDefinition> postProcessors
 
-  @JsonCreator
+  /*@JsonCreator
   Template() {
-  }
-
-  Template(Context ctx) {
-  }
+  }*/
 
   @Override
   protected void doInterpolate(Context ctx) {
@@ -70,18 +69,16 @@ class Template extends InterpolableObject {
   }
 
   Template interpolateBuilder(Context ctx, String builderName) {
-    /*Template result = new Template()
     interpolate ctx
-    Builder builder = builders.find { Builder builder -> builder.header.interpolatedName == builderName }
+    Template result = new Template()
+    Builder builder = builders.find { Builder builder -> builder.header.name.interpolatedValue == builderName }
     if (!builder) {
       throw new IllegalArgumentException(sprintf('Builder with name `%s` not found.', [builderName]))
     }
     result.builders = [builder]
 
-    // ((InterpolableObject)builder).interpolate ctx
-
     ctx.buildType = builder.header.type
-    ctx.buildName = builder.header.interpolatedName
+    ctx.buildName = builder.header.name.interpolatedValue
 
     result.provisioners = new ArrayList()
 
@@ -101,7 +98,7 @@ class Template extends InterpolableObject {
       } else {
         ((InterpolableObject) object).interpolate ctx
       }
-    }*/
+    }
   }
 
   // @PackageScope

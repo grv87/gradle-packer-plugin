@@ -37,7 +37,7 @@ abstract class Builder extends InterpolableObject {
   BuilderHeader header
 
   @Override
-  protected void doInterpolate(Context ctx) {
+  protected void doInterpolate() {
     header.interpolate ctx
   }
 

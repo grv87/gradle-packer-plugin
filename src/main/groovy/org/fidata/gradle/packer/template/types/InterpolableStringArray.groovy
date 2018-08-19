@@ -1,17 +1,19 @@
 package org.fidata.gradle.packer.template.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.rits.cloning.Immutable
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.internal.InterpolableSinglePrimitive
+import org.fidata.gradle.packer.template.internal.InterpolableValue
 
 @CompileStatic
-class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<String>> {
+@Immutable
+class InterpolableStringArray extends InterpolableValue<Object, List<String>> {
   static class ArrayClass extends ArrayList<InterpolableString> {}
 
   @JsonCreator
   InterpolableStringArray(ArrayClass rawValue) {
-    super(rawValue)
+    super(rawValue.asImmutable())
   }
 
   @JsonCreator
@@ -20,7 +22,7 @@ class InterpolableStringArray extends InterpolableSinglePrimitive<Object, List<S
   }
 
   @Override
-  protected List<String> doInterpolatePrimitive(Context ctx) {
+  protected List<String> doInterpolatePrimitive() {
     if (ArrayClass.isInstance(rawValue)) {
       new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate ctx; it.interpolatedValue })
     } else if (InterpolableString.isInstance(rawValue)) {

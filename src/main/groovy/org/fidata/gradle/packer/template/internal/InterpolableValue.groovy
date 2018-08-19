@@ -4,9 +4,19 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
+import org.gradle.api.tasks.Internal
 
 @CompileStatic
-abstract class InterpolablePrimitive<Target> extends InterpolableObject {
+abstract class InterpolableValue<Source, Target extends Serializable> extends InterpolableObject {
+  @JsonValue
+  @Internal
+  Source rawValue
+
+  @JsonCreator
+  InterpolableValue(Source rawValue) {
+    this.rawValue = rawValue
+  }
+
   private Target interpolatedValue
 
   Target getInterpolatedValue() {
@@ -14,15 +24,15 @@ abstract class InterpolablePrimitive<Target> extends InterpolableObject {
   }
 
   @Override
-  protected final void doInterpolate(Context ctx) {
-    interpolatedValue = doInterpolatePrimitive(ctx)
+  protected final void doInterpolate() {
+    interpolatedValue = doInterpolatePrimitive()
   }
 
-  abstract protected Target doInterpolatePrimitive(Context ctx)
+  abstract protected Target doInterpolatePrimitive()
 
   @Override
   boolean equals(Object obj) {
-    this.class.isInstance(obj) && ((InterpolablePrimitive)obj).interpolatedValue == interpolatedValue
+    this.class.isInstance(obj) && ((InterpolableValue<Source, Target>)obj).interpolatedValue == interpolatedValue
   }
 
   private static final long serialVersionUID = 1L
@@ -33,4 +43,5 @@ abstract class InterpolablePrimitive<Target> extends InterpolableObject {
   private Object writeReplace() throws ObjectStreamException {
     interpolatedValue
   }
+
 }

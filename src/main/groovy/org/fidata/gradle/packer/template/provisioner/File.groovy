@@ -19,6 +19,7 @@
  */
 package org.fidata.gradle.packer.template.provisioner
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Context
 import org.fidata.gradle.packer.template.Provisioner
@@ -55,29 +56,37 @@ class File extends Provisioner {
 
   @Optional
   @InputFile
+  @JsonIgnore
   RegularFileCollection
   InterpolableFile sourceFile
 
   @Optional
   @InputDirectory
+  @JsonIgnore
   InterpolableFile sourceDirectory
 
   @Optional
   @OutputFile
+  @JsonIgnore
   InterpolableFile destinationFile
 
   @Optional
   @OutputDirectory
+  @JsonIgnore
   InterpolableFile destinationDirectory
 
   @Override
-  protected void doInterpolate(Context ctx) {
-    direction.interpolate ctx
-    switch (direction.interpolatedValue) {
+  protected void doInterpolate() {
+    source?.interpolate ctx
+    sources?.interpolate ctx
+    destination?.interpolate ctx
+    direction?.interpolate ctx
+    Direction _direction = direction?.interpolatedValue ?: Direction.UPLOAD
+    generated?.interpolate ctx
+    switch (_direction) {
       case Direction.UPLOAD:
         String sourceFileName
         if (source) {
-          source.interpolate ctx
           if (source.interpolatedValue.endsWith('/') || source.interpolatedValue.endsWith('\\')) {
 
           }
@@ -90,7 +99,5 @@ class File extends Provisioner {
       default:
         throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.interpolatedValue]))
     }
-
-
   }
 }

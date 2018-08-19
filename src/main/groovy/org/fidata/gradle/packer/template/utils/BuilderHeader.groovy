@@ -7,16 +7,11 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 class BuilderHeader extends InterpolableObject {
-  @Internal
+  @Input
   InterpolableString name
 
-  @Input // TODO
+  @Input
   String type
-
-  @Input // TODO
-  String getInterpolatedName() {
-    name.interpolatedValue
-  }
 
   @Override
   protected void doInterpolate(Context ctx) {
