@@ -27,43 +27,44 @@ final class Context {
 
   final Task task
 
-  /*Context(Map<String, String> userVariables, Map<String, String> templateVariables, File templateFile, Task task) {
-    Context(userVariables, null, templateVariables, templateFile, task)
-  }*/
-
-  /*private*/
-  Context(Map<String, String> userVariables, Map<String, String> env, Map<String, String> templateVariables, File templateFile, Task task) {
+  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, String> templateVariables, File templateFile, Task task) {
     this.userVariables = userVariables.asImmutable()
     this.env = env.asImmutable()
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
-    contextTemplateData = [
+    Map<String, String> aContextTemplateData = [
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000).toString(),
       'uuid': uuidGenerator.generate().toString(),
     ]
     if (userVariables) {
-      contextTemplateData += (Map<String, String>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`".toString(), entry.value] }
+      aContextTemplateData.putAll((Map<String, String>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`".toString(), entry.value] })
     }
     if (env) {
-      contextTemplateData += (Map<String, String>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`".toString(), entry.value] }
+      aContextTemplateData.putAll((Map<String, String>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`".toString(), entry.value] })
     }
     if (templateVariables) {
-      contextTemplateData += (Map<String, String>)templateVariables.collectEntries { Map.Entry<String, String> entry -> [".$entry.key".toString(), entry.value] }
+      aContextTemplateData.putAll((Map<String, String>)templateVariables.collectEntries { Map.Entry<String, String> entry -> [".$entry.key".toString(), entry.value] })
     }
-    contextTemplateData = contextTemplateData.asImmutable()
+    contextTemplateData = aContextTemplateData.asImmutable()
+  }
+
+  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, Task task){
+    this(userVariables, env, null, templateFile, task)
   }
 
   Context addTemplateVariables(Map<String, String> variables) {
+    Map<String, String> newVariables = [:]
     if (templateVariables) {
-      variables += (Map<String, String>)templateVariables.clone()
+      newVariables.putAll templateVariables
     }
-    new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), variables, templateFile, task)
+    newVariables.putAll variables
+    new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), newVariables, templateFile, task)
   }
 
-  private final Map<String, String> contextTemplateData = [:]
+  private final Map<String, String> contextTemplateData
 
   String interpolateString(String value) {
     /*

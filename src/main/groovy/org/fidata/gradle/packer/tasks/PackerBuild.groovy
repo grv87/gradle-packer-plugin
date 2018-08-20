@@ -53,7 +53,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
   @Internal
   @Override
   List<Object> getCmdArgs() {
-    List<Object> cmdArgs = this.cmdArgs /* PackerTemplateArgument.super.getCmdArgs() */
+    List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
     // Template should be the last, so we insert in the start
     if (!color) {
       cmdArgs.add 0, '-color=false'
@@ -86,7 +86,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
   @Nested
   List<Template> getInterpolatedTemplates() {
     if (!template.interpolated) {
-      template.interpolate new Context(stringize(variables), stringize(environment), null, templateFile, null)
+      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, this)
     }
 
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))

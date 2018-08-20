@@ -60,7 +60,7 @@ class PackerPluginExtension /*extends PackerToolExtension*/ {
     project.logger.debug(sprintf('org.fidata.packer: Processing %s template', [file]))
 
     Template template = Template.readFromFile(file)
-    template.interpolate new Context(stringize(variables), stringize(environment), null, file, null)
+    template.interpolate new Context(stringize(variables), stringize(environment), file, null)
 
     String aName = name ?: template.variablesContext.userVariables['name'] ?: file.toPath().fileName.toString()
 
@@ -75,10 +75,10 @@ class PackerPluginExtension /*extends PackerToolExtension*/ {
     if (oneTaskPerBuild) {
       template.builders.collect { Builder builder ->
         String buildName = builder.header.buildName
-        project.tasks.register("packerBuild-$aName-$buildName".toString(), PackerBuildAutoConfigurable, file, template/*.clone() TODO*/, new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
+        project.tasks.register("packerBuild-$aName-$buildName".toString(), PackerBuildAutoConfigurable, file, template.clone(), new OnlyExcept(only: [buildName]), configureClosure(taskConfiguration))
       }
     } else {
-      project.tasks.register("packerBuild-$aName".toString(), PackerBuildAutoConfigurable, file, template, new OnlyExcept(), configureClosure(taskConfiguration))
+      project.tasks.register("packerBuild-$aName".toString(), PackerBuildAutoConfigurable, file, template.clone(), new OnlyExcept(), configureClosure(taskConfiguration))
     }
   }
 

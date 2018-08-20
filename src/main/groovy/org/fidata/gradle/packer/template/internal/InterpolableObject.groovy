@@ -25,7 +25,7 @@ abstract class InterpolableObject {
     this.interpolated
   }
 
-  void interpolate(Context context) throws IllegalStateException {
+  final void interpolate(Context context) throws IllegalStateException {
     if (!interpolated) {
       this.context = context
       doInterpolate()

@@ -31,6 +31,8 @@ import org.fidata.gradle.packer.template.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
+import java.lang.reflect.Field
+
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -63,7 +65,7 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   }
 
   @Internal
-  Map<String, ? extends P> override
+  Map<String, P> override
 
   @Inline
   P configuration
@@ -71,12 +73,22 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   @Override
   protected void doInterpolate() {
     configuration.interpolate context
-    // override[context.buildName]
-
-    /*for (Map.Entry<InterpolableString, Object>
-      InterpolableString buildName, Provisioner provisioner : override) {
-      TODO: apply override
-    }*/
+    P overrideConfiguration = override[context.buildName]
+    if (overrideConfiguration) {
+      Class<? extends Configuration> aClass = P
+      while (true) {
+        aClass.fields.each { Field field ->
+          Object value = field.get(overrideConfiguration)
+          if (value) {
+            field.set this, value
+          }
+        }
+        if (aClass == Configuration) {
+          break
+        }
+        aClass = (Class<? extends Configuration>)aClass.superclass
+      }
+    }
   }
 
   Provisioner interpolateForBuilder(Context buildCtx) {

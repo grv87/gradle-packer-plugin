@@ -15,6 +15,7 @@ class Null extends Builder {
 
   @Override
   protected void doInterpolate() {
+    super.doInterpolate()
     commConfig.interpolate context
   }
 }

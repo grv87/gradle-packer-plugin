@@ -77,13 +77,13 @@ class Template extends InterpolableObject {
   protected void doInterpolate() {
     super.doInterpolate() // TOTEST
 
-    envContext = new Context(null, context.env, null, context.templateFile, context.task)
+    envContext = new Context(null, context.env, context.templateFile, context.task)
     variables.each.interpolate envContext
 
     Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
       [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
     }
-    Context variablesContext = new Context(userVariables, null, null, context.templateFile, context.task)
+    Context variablesContext = new Context(userVariables, null, context.templateFile, context.task)
     for (Builder builder in builders) {
       builder.header.interpolate variablesContext
     }

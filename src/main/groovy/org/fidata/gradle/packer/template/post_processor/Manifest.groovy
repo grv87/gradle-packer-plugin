@@ -19,11 +19,14 @@
  */
 package org.fidata.gradle.packer.template.post_processor
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.PostProcessor
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.fidata.gradle.packer.template.types.InterpolableString
 import org.fidata.gradle.packer.template.types.InterpolableBoolean
@@ -32,13 +35,21 @@ import org.fidata.gradle.packer.template.types.InterpolableBoolean
 @CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')
-  @OutputFile
-  InterpolableString outputPath // TODO: File?
+  @Internal
+  InterpolableString outputPath
 
-  InterpolableBoolean stripPath // TODO
+  @Input
+  InterpolableBoolean stripPath
+
+  @JsonIgnore
+  @OutputFile
+  File getOutputFile() {
+    context.task.project.file(outputPath.interpolatedValue ?: 'packer-manifest.json')
+  }
 
   @Override
   protected void doInterpolate() {
-    // TODO super.dointerpolate context
+    super.doInterpolate()
+    // TODO
   }
 }
