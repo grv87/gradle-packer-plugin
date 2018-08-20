@@ -63,26 +63,46 @@ class File extends Provisioner<Configuration> {
     @Internal
     InterpolableBoolean generated // TODO
 
+    private Boolean isDirectory
+
+    private java.io.File inputFile
+
     @JsonIgnore
     @InputFile
     @Optional
-    // TODO RegularFileCollection
-    java.io.File sourceFile
+    java.io.File getInputFile() {
+      if (!isDirectory) {
+        this.inputFile
+      }
+    }
 
     @JsonIgnore
     @InputDirectory
     @Optional
-    java.io.File sourceDirectory
+    java.io.File getSourceDirectory() {
+      if (isDirectory) {
+        this.inputFile
+      }
+    }
 
+    private java.io.File outputFile
     @JsonIgnore
     @OutputFile
     @Optional
-    java.io.File destinationFile
+    java.io.File getOutputFile() {
+      if (isDirectory) {
+        this.outputFile
+      }
+    }
 
     @JsonIgnore
     @OutputDirectory
     @Optional
-    java.io.File destinationDirectory
+    java.io.File getOutputDirectory() {
+      if (isDirectory) {
+        this.outputFile
+      }
+    }
 
     private static final Pattern DIR_PATTERN = ~/(\/\\)$/
 
@@ -94,35 +114,26 @@ class File extends Provisioner<Configuration> {
       direction?.interpolate context
       generated?.interpolate context
 
-      Path sourceFileName = null
-      Boolean sourceIsDirectory
+      Path sourcePath = null
       if (source) {
-        sourceFileName = new java.io.File(source.interpolatedValue).toPath()
-        sourceIsDirectory = source.interpolatedValue ==~ DIR_PATTERN
+        sourcePath = new java.io.File(source.interpolatedValue).toPath()
+        isDirectory = source.interpolatedValue ==~ DIR_PATTERN
       }
 
       switch (directionValue) {
         case Direction.UPLOAD:
           if (source && !generated?.interpolatedValue) {
-            if (sourceIsDirectory) {
-              sourceDirectory = context.task.project.file(sourceFileName)
-            } else {
-              sourceFile = context.task.project.file(sourceFileName)
-            }
+            inputFile = context.task.project.file(sourcePath)
           }
           break
         case Direction.DOWNLOAD:
           if (source && destination) {
-            Path destinationFileName = new java.io.File(destination.interpolatedValue).toPath()
+            Path outputPath = new java.io.File(destination.interpolatedValue).toPath()
             Boolean destinationIsDirectory = destination.interpolatedValue ==~ DIR_PATTERN
             if (destinationIsDirectory) {
-              destinationFileName = destinationFileName.resolve(sourceFileName.getName(sourceFileName.nameCount - 1))
+              outputPath = outputPath.resolve(sourcePath.getName(sourcePath.nameCount - 1))
             }
-            if (sourceIsDirectory) {
-              destinationDirectory = context.task.project.file(destinationFileName)
-            } else {
-              destinationFile = context.task.project.file(destinationFileName)
-            }
+            outputFile = context.task.project.file(outputPath)
           }
           break
         default:

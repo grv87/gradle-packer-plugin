@@ -71,7 +71,7 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   P configuration
 
   @Override
-  protected void doInterpolate() {
+  final protected void doInterpolate() {
     configuration.interpolate context
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
@@ -91,7 +91,7 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
     }
   }
 
-  Provisioner interpolateForBuilder(Context buildCtx) {
+  final Provisioner interpolateForBuilder(Context buildCtx) {
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
       Provisioner result = this.clone()
       result.interpolate buildCtx

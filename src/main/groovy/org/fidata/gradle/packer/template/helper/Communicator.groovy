@@ -111,19 +111,36 @@ class Communicator extends InterpolableObject {
   @Override
   protected void doInterpolate() {
     sshHost.interpolate context
+    sshPort.interpolate context
     sshUsername.interpolate context
     sshPassword.interpolate context
     sshPrivateKey.interpolate context
+    sshPty.interpolate context
+    sshTimeout.interpolate context
+    sshAgentAuth.interpolate context
+    sshDisableAgentForwarding.interpolate context
+    sshHandshakeAttempts.interpolate context
+    sshBastionHost.interpolate context
+    sshBastionPort.interpolate context
+    sshBastionAgentAuth.interpolate context
     sshBastionHost.interpolate context
     sshBastionUsername.interpolate context
     sshBastionPassword.interpolate context
     sshBastionPrivateKey.interpolate context
     sshFileTransferMethod.interpolate context
     sshProxyHost.interpolate context
+    sshProxyPort.interpolate context
     sshProxyUsername.interpolate context
     sshProxyPassword.interpolate context
+    sshKeepAliveInterval.interpolate context
+    sshReadWriteTimeout.interpolate context
     winrmUser.interpolate context
     winrmPassword.interpolate context
     winrmHost.interpolate context
+    winrmPort.interpolate context
+    winrmTimeout.interpolate context
+    winrmUseSSL.interpolate context
+    winrmInsecure.interpolate context
+    winrmUseNTLM.interpolate context
   }
 }

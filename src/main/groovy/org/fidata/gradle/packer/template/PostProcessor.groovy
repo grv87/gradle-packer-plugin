@@ -56,7 +56,7 @@ class PostProcessor extends InterpolableObject {
     keepInputArtifacts.interpolate context
   }
 
-  PostProcessor interpolateForBuilder(Context buildCtx) {
+  final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
       PostProcessor result = this.clone()
       result.interpolate buildCtx

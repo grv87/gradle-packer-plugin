@@ -21,19 +21,19 @@ final class Context {
     templateVariables?.get('BuildName')
   }
 
-  final Map<String, String> templateVariables
+  final Map<String, Object> templateVariables
 
   final File templateFile
 
   final Task task
 
-  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, String> templateVariables, File templateFile, Task task) {
+  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, Object> templateVariables, File templateFile, Task task) {
     this.userVariables = userVariables.asImmutable()
     this.env = env.asImmutable()
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
-    Map<String, String> aContextTemplateData = [
+    Map<String, Object> aContextTemplateData = [
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000).toString(),
@@ -46,7 +46,7 @@ final class Context {
       aContextTemplateData.putAll((Map<String, String>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`".toString(), entry.value] })
     }
     if (templateVariables) {
-      aContextTemplateData.putAll((Map<String, String>)templateVariables.collectEntries { Map.Entry<String, String> entry -> [".$entry.key".toString(), entry.value] })
+      aContextTemplateData.putAll((Map<String, Object>)templateVariables.collectEntries { Map.Entry<String, Object> entry -> [".$entry.key".toString(), entry.value] })
     }
     contextTemplateData = aContextTemplateData.asImmutable()
   }
@@ -55,16 +55,16 @@ final class Context {
     this(userVariables, env, null, templateFile, task)
   }
 
-  Context addTemplateVariables(Map<String, String> variables) {
-    Map<String, String> newVariables = [:]
+  Context addTemplateVariables(Map<String, ? extends Object> variables) {
+    Map<String, Object> newTemplateVariables = [:]
     if (templateVariables) {
-      newVariables.putAll templateVariables
+      newTemplateVariables.putAll templateVariables
     }
-    newVariables.putAll variables
-    new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), newVariables, templateFile, task)
+    newTemplateVariables.putAll variables
+    new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), newTemplateVariables, templateFile, task)
   }
 
-  private final Map<String, String> contextTemplateData
+  private final Map<String, Object> contextTemplateData
 
   String interpolateString(String value) {
     /*

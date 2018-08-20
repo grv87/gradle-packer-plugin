@@ -50,7 +50,7 @@ class Builder extends InterpolableObject {
     header.interpolate context
   }
 
-  static class BuilderHeader extends InterpolableObject {
+  static final class BuilderHeader extends InterpolableObject {
     @Internal
     InterpolableString name
 
