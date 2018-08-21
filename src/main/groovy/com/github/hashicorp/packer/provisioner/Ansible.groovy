@@ -24,7 +24,7 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.template.internal.InterpolableObject
+import com.github.hashicorp.packer.common.types.internal.InterpolableObject
 import com.github.hashicorp.packer.template.types.InterpolableBoolean
 import com.github.hashicorp.packer.template.types.InterpolableFile
 import com.github.hashicorp.packer.template.types.InterpolableString

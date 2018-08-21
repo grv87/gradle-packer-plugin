@@ -3,7 +3,7 @@ package com.github.hashicorp.packer.helper
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.template.internal.InterpolableObject
+import com.github.hashicorp.packer.common.types.internal.InterpolableObject
 import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.template.types.InterpolableString
 import com.github.hashicorp.packer.template.types.InterpolableInteger

@@ -9,8 +9,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Task
 
-@EqualsAndHashCode(/*excludes = ['buildName'] TODO*/)
-@AutoClone(style = AutoCloneStyle.COPY_CONSTRUCTOR)
+// @EqualsAndHashCode(/*excludes = ['buildName'] TODO*/)
+// @AutoClone(style = AutoCloneStyle.COPY_CONSTRUCTOR)
 @CompileStatic
 final class Context {
   final Map<String, String> userVariables
@@ -33,20 +33,20 @@ final class Context {
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
-    Map<String, Serializable> aContextTemplateData = [
+    Map<String, Serializable> aContextTemplateData = (Map<String, Serializable>)[
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000),
       'uuid': uuidGenerator.generate().toString(),
     ]
     if (userVariables) {
-      aContextTemplateData.putAll((Map<String, String>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`".toString(), entry.value] })
+      aContextTemplateData.putAll((Map<String, Serializable>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`", entry.value] })
     }
     if (env) {
-      aContextTemplateData.putAll((Map<String, String>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`".toString(), entry.value] })
+      aContextTemplateData.putAll((Map<String, Serializable>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`", entry.value] })
     }
     if (templateVariables) {
-      aContextTemplateData.putAll((Map<String, Serializable>)templateVariables.collectEntries { Map.Entry<String, ? extends Serializable> entry -> [".$entry.key".toString(), entry.value] })
+      aContextTemplateData.putAll((Map<String, Serializable>)templateVariables.collectEntries { Map.Entry<String, ? extends Serializable> entry -> [".$entry.key", entry.value] })
     }
     contextTemplateData = aContextTemplateData.asImmutable()
   }
@@ -55,14 +55,14 @@ final class Context {
     this(userVariables, env, null, templateFile, task)
   }
 
-  Context addTemplateVariables(Map<String, ? extends Serializable> variables) {
-    Map<String, ? extends Serializable> newTemplateVariables = [:]
+  /*Context addTemplateVariables(Map<String, ? extends Serializable> variables) {
+    Map<String, ? extends Serializable> newTemplateVariables = (Map<String, ? extends Serializable>)[:]
     if (templateVariables) {
       newTemplateVariables.putAll templateVariables
     }
     newTemplateVariables.putAll variables
     new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), newTemplateVariables, templateFile, task)
-  }
+  }*/
 
   private final Map<String, Serializable> contextTemplateData
 

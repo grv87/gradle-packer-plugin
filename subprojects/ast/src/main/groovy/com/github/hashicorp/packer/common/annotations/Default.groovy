@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.template.annotations
+package com.github.hashicorp.packer.common.annotations
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention

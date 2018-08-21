@@ -3,7 +3,7 @@ package com.github.hashicorp.packer.template.types
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.template.internal.InterpolableValue
+import com.github.hashicorp.packer.common.types.internal.InterpolableValue
 import com.fasterxml.jackson.annotation.JsonCreator
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)

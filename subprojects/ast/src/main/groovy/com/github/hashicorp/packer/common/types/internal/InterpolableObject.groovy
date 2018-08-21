@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.template.internal
+package com.github.hashicorp.packer.common.types.internal
 
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle

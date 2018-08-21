@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.template.internal
+package com.github.hashicorp.packer.common.types.internal
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.AutoClone

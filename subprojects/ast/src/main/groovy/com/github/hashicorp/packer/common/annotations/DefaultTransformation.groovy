@@ -1,8 +1,10 @@
-package com.github.hashicorp.packer.template.annotations
+package com.github.hashicorp.packer.common.annotations
 
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.stmt.Statement
+import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.FieldNode
 import org.codehaus.groovy.ast.MethodNode
@@ -11,7 +13,7 @@ import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
-import com.github.hashicorp.packer.template.internal.InterpolableValue
+import com.github.hashicorp.packer.common.types.internal.InterpolableValue
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -30,7 +32,7 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import java.lang.annotation.Annotation
 import java.lang.reflect.ParameterizedType
 
-@GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS/*CANONICALIZATION*/)
+@GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
 @CompileStatic
 class DefaultTransformation implements ASTTransformation {
   @Override
@@ -38,8 +40,9 @@ class DefaultTransformation implements ASTTransformation {
     AnnotationNode annotation = (AnnotationNode)astNodes[0]
     FieldNode field = (FieldNode)astNodes[1]
 
-    if (!InterpolableValue.isInstance(field.type.typeClass)) {
-      throw new IllegalArgumentException('Default annotation can be used on fields of InterpolableValue type only')
+    ClassNode interpolableValueClass = ClassHelper.make(InterpolableValue)
+    if (!field.type.isDerivedFrom(interpolableValueClass)) {
+      throw new IllegalArgumentException(sprintf('Default annotation can be used on fields of InterpolableValue type only. Got: %s', [field.type.name]))
     }
 
     Object defaultValue = annotation.getMember('value')
@@ -47,8 +50,8 @@ class DefaultTransformation implements ASTTransformation {
       throw new NullPointerException('Default value should be not null')
     }
 
-    Class<? extends Serializable> target = (Class<? extends Serializable>)(((ParameterizedType)field.type.typeClass.genericSuperclass).actualTypeArguments[1])
-    defaultValue = defaultValue.asType(target)
+    ClassNode target = field.type.superClass.genericsTypes[1].type
+    // defaultValue = defaultValue.asType(target)
 
     List<? extends Class> allAnnotations = (List<? extends Class>)field.annotations*.classNode*.typeClass
     Collection<? extends Class> prohibitedAnnotations = allAnnotations.intersect((List<? extends Class>)[Nested, Optional, SkipWhenEmpty])
@@ -62,17 +65,15 @@ class DefaultTransformation implements ASTTransformation {
 
     String methodName = "getInterpolated${ field.name.capitalize() }".toString()
 
-    MethodNode getWithDefault = ((ClassNode)(new AstBuilder().buildFromString("""\
-      class GetWithDefault {
-        @org.gradle.api.tasks.Internal
-        ${ target.canonicalName } $methodName() {
-          ${ annotations.collect { Class aClass -> "@$aClass.canonicalName" }.join('\n') }
-          ${ field.name }?.interpolatedValue ?: ${ defaultValue.inspect() } 
-        }
-      }
-      """
-    ).get(0))).methods.find { MethodNode methodNode -> methodNode.name == methodName }
+    Statement getWithDefault = (Statement)new AstBuilder().buildFromString("""\
+      {
+        ${ field.name }?.interpolatedValue ?: ${ defaultValue.inspect() }
+      } 
+    """)[0]
 
-    field.owner.addMethod(getWithDefault)
+    MethodNode methodNode = new MethodNode(methodName, MethodNode.ACC_PUBLIC, target, null, null, getWithDefault)
+    methodNode.addAnnotations(annotations.collect { Class aClass -> new AnnotationNode(ClassHelper.make(aClass)) })
+
+    field.owner.addMethod(methodNode)
   }
 }

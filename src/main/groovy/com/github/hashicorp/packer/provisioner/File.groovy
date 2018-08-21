@@ -21,7 +21,7 @@ package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
-import com.github.hashicorp.packer.template.internal.InterpolableValue
+import com.github.hashicorp.packer.common.types.internal.InterpolableValue
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic

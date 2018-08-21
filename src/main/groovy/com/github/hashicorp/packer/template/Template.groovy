@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.hashicorp.packer.template.internal.InterpolableObject
+import com.github.hashicorp.packer.common.types.internal.InterpolableObject
 import com.github.hashicorp.packer.template.types.InterpolableString
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
@@ -99,10 +99,10 @@ class Template extends InterpolableObject {
     builder = builder.clone()
     builder.interpolate context
     result.builders = [builder]
-    Context buildCtx = variablesContext.addTemplateVariables([
+    Context buildCtx = variablesContext/*TODO .addTemplateVariables([
       'BuildName': buildName,
       'BuilderType': builder.header.type,
-    ])
+    ])*/
 
     result.provisioners = provisioners*.interpolateForBuilder(buildCtx).findAll()
     result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()

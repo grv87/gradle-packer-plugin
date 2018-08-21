@@ -26,7 +26,7 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.annotations.Inline
-import com.github.hashicorp.packer.template.internal.InterpolableObject
+import com.github.hashicorp.packer.common.types.internal.InterpolableObject
 import com.github.hashicorp.packer.template.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal

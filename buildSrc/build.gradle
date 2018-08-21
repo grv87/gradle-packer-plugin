@@ -34,22 +34,19 @@ apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
 dependencyLocking.lockAllConfigurations()
 
-repositories {
-  maven {
-    url 'https://fidata.jfrog.io/fidata/libs-release/'
-    credentials {
-      username = project.ext.artifactoryUser
-      password = project.ext.artifactoryPassword
-    }
-  }
+allprojects { Project p ->
+  p.repositories {
+	  maven {
+	    url 'https://fidata.jfrog.io/fidata/libs-release/'
+	    credentials {
+	      username = rootProject/*project(':')*/.ext.artifactoryUser
+	      password = rootProject/*project(':')*/.ext.artifactoryPassword
+	    }
+	  }
+	}
 }
 
-apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
-
 sourceSets {
-  annotations {
-    groovy.srcDirs = [new File(project.ext.rootDir,  'src/annotations/groovy')]
-  }
   main {
     java.srcDirs = [new File(project.ext.rootDir,  'src/main/java')]
     groovy.srcDirs = [new File(project.ext.rootDir,  'src/main/groovy')]
@@ -57,8 +54,6 @@ sourceSets {
   }
 }
 
-dependencies {
-  api sourceSets.annotations.output
-}
+apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
