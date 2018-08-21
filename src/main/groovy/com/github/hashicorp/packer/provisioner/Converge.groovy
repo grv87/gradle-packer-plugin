@@ -39,7 +39,7 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
-    @Default(value = 'false')
+    @Default(value = 'true')
     @Input
     InterpolableBoolean bootstrap
 

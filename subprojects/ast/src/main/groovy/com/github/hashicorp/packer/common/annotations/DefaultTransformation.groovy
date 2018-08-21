@@ -15,6 +15,7 @@ import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
+import org.codehaus.groovy.ast.expr.ConstantExpression
 import com.github.hashicorp.packer.common.types.internal.InterpolableValue
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -48,15 +49,20 @@ class DefaultTransformation implements ASTTransformation {
         throw new IllegalArgumentException(sprintf('Default annotation can be used on fields of InterpolableValue type only. Got: %s', [field.type.name]))
       }
 
-      Object defaultValue = annotation.getMember('value')
+      String defaultValue = ((ConstantExpression)annotation.getMember('value')).text
       if (defaultValue == null) {
         throw new NullPointerException('Default value should be not null')
       }
+      // throw new IllegalStateException(defaultValue.toString())
+
 
       Map<String, ClassNode> spec = [:]
       GenericsUtils.extractSuperClassGenerics(field.type, interpolableValueClass, spec)
 
-      ClassNode target = spec['Target'] // GenericsUtils.extractPlaceholders(field.type) // .superClass.genericsTypes[1].type.redirect() // TODO
+      // throw new IllegalStateException(spec.toString())
+
+      ClassNode target = spec['Target'] // .redirect() // .find { Map.Entry<String, ClassNode> entry -> entry.key.startsWith('Target=') }.value // GenericsUtils.extractPlaceholders(field.type) // .superClass.genericsTypes[1].type.redirect() // TODO
+      // throw new IllegalStateException(target.toString())
       // .superClass.genericsTypes[1].type
       // defaultValue = defaultValue.asType(target)
 
@@ -73,7 +79,7 @@ class DefaultTransformation implements ASTTransformation {
       String methodName = "getInterpolated${ field.name.capitalize() }".toString()
 
       Statement getWithDefault = (Statement) new AstBuilder().buildFromString("""\
-        ${ field.name }?.interpolatedValue ?: false
+        ${ field.name }?.interpolatedValue ?: $defaultValue
       """)[0]
 
       MethodNode methodNode = new MethodNode(methodName, MethodNode.ACC_PUBLIC, target, new Parameter[0], new ClassNode[0], getWithDefault)
