@@ -22,12 +22,12 @@ package org.fidata.gradle.packer
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import org.fidata.gradle.packer.template.Builder
-import org.fidata.gradle.packer.template.PostProcessor
-import org.fidata.gradle.packer.template.Provisioner
-import org.fidata.gradle.packer.template.builder.Null
-import org.fidata.gradle.packer.template.post_processor.Manifest
-import org.fidata.gradle.packer.template.provisioner.File
+import com.github.hashicorp.packer.template.Builder
+import com.github.hashicorp.packer.template.PostProcessor
+import com.github.hashicorp.packer.template.Provisioner
+import com.github.hashicorp.packer.builder.Null
+import com.github.hashicorp.packer.post_processor.Manifest
+import com.github.hashicorp.packer.provisioner.File
 import org.fidata.gradle.packer.tasks.PackerBuild
 import org.fidata.gradle.packer.tasks.PackerValidate
 import groovy.transform.CompileStatic

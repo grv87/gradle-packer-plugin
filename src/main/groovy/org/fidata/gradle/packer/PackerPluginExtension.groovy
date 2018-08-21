@@ -26,10 +26,10 @@ import org.fidata.gradle.packer.tasks.PackerBuildAutoConfigurable
 import org.fidata.gradle.packer.tasks.PackerValidate
 import org.fidata.gradle.packer.tasks.PackerWrapperTask
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
-import org.fidata.gradle.packer.template.Builder
-import org.fidata.gradle.packer.template.Context
-import org.fidata.gradle.packer.template.OnlyExcept
-import org.fidata.gradle.packer.template.Template
+import com.github.hashicorp.packer.template.Builder
+import com.github.hashicorp.packer.template.Context
+import com.github.hashicorp.packer.template.OnlyExcept
+import com.github.hashicorp.packer.template.Template
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider

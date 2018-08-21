@@ -46,10 +46,19 @@ repositories {
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
-sourceSets.main {
-  java.srcDirs = [new File(project.ext.rootDir,  'src/main/java')]
-  groovy.srcDirs = [new File(project.ext.rootDir,  'src/main/groovy')]
-  resources.srcDirs = [new File(project.ext.rootDir, 'src/main/resources')]
+sourceSets {
+  annotations {
+    groovy.srcDirs = [new File(project.ext.rootDir,  'src/annotations/groovy')]
+  }
+  main {
+    java.srcDirs = [new File(project.ext.rootDir,  'src/main/java')]
+    groovy.srcDirs = [new File(project.ext.rootDir,  'src/main/groovy')]
+    resources.srcDirs = [new File(project.ext.rootDir, 'src/main/resources')]
+  }
+}
+
+dependencies {
+  api sourceSets.annotations.output
 }
 
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')

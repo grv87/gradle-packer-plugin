@@ -1,7 +1,7 @@
 package org.fidata.gradle.packer.tasks
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
-import org.fidata.gradle.packer.template.Template
+import com.github.hashicorp.packer.template.Template
 import javax.inject.Inject
 
 class PackerBuildAutoConfigurable extends PackerBuild {

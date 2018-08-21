@@ -19,6 +19,7 @@
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
 dependencies {
+  annotationsApi localGroovy()
   api group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['

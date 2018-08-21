@@ -20,8 +20,8 @@
 package org.fidata.gradle.packer.tasks
 
 import static org.fidata.gradle.packer.utils.StringUtils.stringize
-import org.fidata.gradle.packer.template.Builder
-import org.fidata.gradle.packer.template.Context
+import com.github.hashicorp.packer.template.Builder
+import com.github.hashicorp.packer.template.Context
 import org.fidata.gradle.packer.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
@@ -31,7 +31,7 @@ import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.template.Template
+import com.github.hashicorp.packer.template.Template
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Console
