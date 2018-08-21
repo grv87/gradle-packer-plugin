@@ -75,13 +75,10 @@ class Ansible extends Provisioner<Configuration> {
     InterpolableString inventoryFile
 
 
-
-
-
     @Override
     protected void doInterpolate() {
       super.doInterpolate()
-      preventBootstrapSudo.interpolate context
+      /*preventBootstrapSudo.interpolate context
       version.interpolate context
       bootstrapCommand.interpolate context
       moduleDirs*.interpolate context
@@ -99,7 +96,7 @@ class Ansible extends Provisioner<Configuration> {
         'Sudo': !preventSudo.interpolatedValue,
         'ParamsJSON': JsonOutput.toJson(params),
         'Module': module.interpolatedValue,
-      ])
+      ])*/
     }
   }
 }

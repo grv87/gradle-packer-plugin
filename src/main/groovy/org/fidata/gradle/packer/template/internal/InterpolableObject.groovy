@@ -36,4 +36,13 @@ abstract class InterpolableObject {
   }
 
   abstract protected void doInterpolate()
+
+  /*protected static final <Target extends Serializable, Value extends InterpolableValue<?, Target>> void interpolateValueWithDefault(Value value, Context context, Target aDefault) {
+    if (value) {
+      value.interpolate context
+    } else {
+      value =
+
+    }
+  }*/
 }

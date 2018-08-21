@@ -24,6 +24,7 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.template.Provisioner
+import org.fidata.gradle.packer.template.annotations.Default
 import org.fidata.gradle.packer.template.internal.InterpolableObject
 import org.fidata.gradle.packer.template.types.InterpolableBoolean
 import org.fidata.gradle.packer.template.types.InterpolableFile
@@ -38,7 +39,8 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
-    @Input
+    @Default(value = 'false')
+    @Nested
     InterpolableBoolean bootstrap
 
     @Input
@@ -87,7 +89,7 @@ class Converge extends Provisioner<Configuration> {
         exclude.interpolate context
         if (exclude?.interpolatedValue?.size() > 0) {
           context.task.inputs.files(context.task.project.fileTree(source) { ConfigurableFileTree configurableFileTree ->
-            configurableFileTree.exclude *exclude
+            configurableFileTree.exclude exclude.interpolatedValue
           })
         } else {
           context.task.inputs.dir source
@@ -104,7 +106,7 @@ class Converge extends Provisioner<Configuration> {
       moduleDirs*.interpolate context
       module.interpolate context
       workingDirectory.interpolate context
-      params.values*.interpolate context
+      params.values()*.interpolate context
       preventSudo.interpolate context
 
       bootstrap.interpolate context.addTemplateVariables([
