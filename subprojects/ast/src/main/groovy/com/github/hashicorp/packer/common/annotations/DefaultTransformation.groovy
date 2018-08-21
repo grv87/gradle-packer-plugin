@@ -8,7 +8,9 @@ import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.FieldNode
 import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.Parameter
 import org.codehaus.groovy.ast.builder.AstBuilder
+import org.codehaus.groovy.ast.tools.GenericsUtils
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
@@ -37,43 +39,49 @@ import java.lang.reflect.ParameterizedType
 class DefaultTransformation implements ASTTransformation {
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-    AnnotationNode annotation = (AnnotationNode)astNodes[0]
-    FieldNode field = (FieldNode)astNodes[1]
+    try {
+      AnnotationNode annotation = (AnnotationNode) astNodes[0]
+      FieldNode field = (FieldNode) astNodes[1]
 
-    ClassNode interpolableValueClass = ClassHelper.make(InterpolableValue)
-    if (!field.type.isDerivedFrom(interpolableValueClass)) {
-      throw new IllegalArgumentException(sprintf('Default annotation can be used on fields of InterpolableValue type only. Got: %s', [field.type.name]))
+      ClassNode interpolableValueClass = ClassHelper.make(InterpolableValue)
+      if (!field.type.isDerivedFrom(interpolableValueClass)) {
+        throw new IllegalArgumentException(sprintf('Default annotation can be used on fields of InterpolableValue type only. Got: %s', [field.type.name]))
+      }
+
+      Object defaultValue = annotation.getMember('value')
+      if (defaultValue == null) {
+        throw new NullPointerException('Default value should be not null')
+      }
+
+      Map<String, ClassNode> spec = [:]
+      GenericsUtils.extractSuperClassGenerics(field.type, interpolableValueClass, spec)
+
+      ClassNode target = spec['Target'] // GenericsUtils.extractPlaceholders(field.type) // .superClass.genericsTypes[1].type.redirect() // TODO
+      // .superClass.genericsTypes[1].type
+      // defaultValue = defaultValue.asType(target)
+
+      List<ClassNode> allAnnotations = field.annotations*.classNode
+      Collection<ClassNode> prohibitedAnnotations = allAnnotations.intersect([Nested, Optional, SkipWhenEmpty].collect { Class aClass -> ClassHelper.make(aClass) })
+      if (prohibitedAnnotations?.size() > 0) {
+        throw new IllegalArgumentException(sprintf('Annotations %s are prohibited on fields with defaults', prohibitedAnnotations*.name.join(', ')))
+      }
+
+      Collection<ClassNode> annotations = allAnnotations.intersect([Input, InputFile, InputFiles, InputDirectory, OutputFile, OutputFiles, OutputDirectory, Console, Internal, Destroys, LocalState, OutputDirectories, PathSensitive].collect { Class aClass -> ClassHelper.make(aClass) })
+      field.annotations.removeAll { AnnotationNode annotationNode -> annotations.contains(annotationNode.classNode.typeClass) }
+      field.annotations.add(new AnnotationNode(new ClassNode(Internal)))
+
+      String methodName = "getInterpolated${ field.name.capitalize() }".toString()
+
+      Statement getWithDefault = (Statement) new AstBuilder().buildFromString("""\
+        ${ field.name }?.interpolatedValue ?: false
+      """)[0]
+
+      MethodNode methodNode = new MethodNode(methodName, MethodNode.ACC_PUBLIC, target, new Parameter[0], new ClassNode[0], getWithDefault)
+      methodNode.addAnnotations(annotations.collect { ClassNode classNode -> new AnnotationNode(classNode) })
+
+      field.owner.addMethod(methodNode)
+    } catch (Exception e) {
+      throw new IllegalArgumentException('Error', e)
     }
-
-    Object defaultValue = annotation.getMember('value')
-    if (defaultValue == null) {
-      throw new NullPointerException('Default value should be not null')
-    }
-
-    ClassNode target = field.type.superClass.genericsTypes[1].type
-    // defaultValue = defaultValue.asType(target)
-
-    List<? extends Class> allAnnotations = (List<? extends Class>)field.annotations*.classNode*.typeClass
-    Collection<? extends Class> prohibitedAnnotations = allAnnotations.intersect((List<? extends Class>)[Nested, Optional, SkipWhenEmpty])
-    if (prohibitedAnnotations?.size() > 0) {
-      throw new IllegalArgumentException(sprintf('Annotations %s are prohibited on fields with defaults', prohibitedAnnotations*.simpleName.join(', ')))
-    }
-
-    Collection<? extends Class> annotations = allAnnotations.intersect((List<? extends Class>)[Input, InputFile, InputFiles, InputDirectory, OutputFile, OutputFiles, OutputDirectory, Console, Internal, Destroys, LocalState, OutputDirectories, PathSensitive])
-    field.annotations.removeAll { AnnotationNode annotationNode -> annotations.contains(annotationNode.classNode.typeClass) }
-    field.annotations.add(new AnnotationNode(new ClassNode(Internal)))
-
-    String methodName = "getInterpolated${ field.name.capitalize() }".toString()
-
-    Statement getWithDefault = (Statement)new AstBuilder().buildFromString("""\
-      {
-        ${ field.name }?.interpolatedValue ?: ${ defaultValue.inspect() }
-      } 
-    """)[0]
-
-    MethodNode methodNode = new MethodNode(methodName, MethodNode.ACC_PUBLIC, target, null, null, getWithDefault)
-    methodNode.addAnnotations(annotations.collect { Class aClass -> new AnnotationNode(ClassHelper.make(aClass)) })
-
-    field.owner.addMethod(methodNode)
   }
 }
