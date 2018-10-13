@@ -19,9 +19,9 @@
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
 plugins {
-  id 'org.fidata.project.java' version '3.0.1'
-  id 'org.fidata.project.groovy' version '3.0.1'
-  id 'org.fidata.plugin' version '3.0.1'
+  id 'org.fidata.project.java' version '4.1.0'
+  id 'org.fidata.project.groovy' version '4.1.0'
+  id 'org.fidata.plugin' version '4.1.0'
   id 'org.fidata.packer-base'
 }
 
@@ -87,6 +87,8 @@ for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fi
     templateFile = singleTemplateFile
     syntaxOnly = true
   }
+  // TODO: CI doesn't have Packer installed
+  if ()
   tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
     packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
   }

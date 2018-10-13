@@ -18,6 +18,30 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
+pluginManagement {
+  repositories {
+    maven {
+      url 'https://fidata.jfrog.io/fidata/plugins-release/'
+      credentials {
+        File gradlePropertiesFile = new File(file('..'), Project.GRADLE_PROPERTIES)
+        if (gradlePropertiesFile.exists()) {
+          gradlePropertiesFile.withReader { Reader reader ->
+            Properties properties = new Properties()
+            properties.load(reader)
+            username = properties.getProperty('artifactoryUser')
+            password = properties.getProperty('artifactoryPassword')
+          }
+        } else {
+          username = settings.ext.artifactoryUser
+          password = settings.ext.artifactoryPassword
+        }
+      }
+    }
+  }
+}
+
+// rootProject.name = 'gradle-packer-plugin'
+
 ext.rootDir = file('..')
 
 apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')

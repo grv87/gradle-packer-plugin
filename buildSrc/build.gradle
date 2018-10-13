@@ -18,33 +18,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-// Minimal set of plugins enough to compile plugins
 plugins {
-  id 'java'
-  id 'groovy'
-  id 'java-library'
-  id 'java-gradle-plugin'
+  id 'org.fidata.project.java' version '4.1.1'
+  id 'org.fidata.project.groovy' version '4.1.1'
+  id 'org.fidata.plugin' version '4.1.1'
 }
-
-group = 'org.fidata.gradle'
 
 ext.rootDir = file('..')
 
 apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
-
-dependencyLocking.lockAllConfigurations()
-
-allprojects { Project p ->
-  p.repositories {
-	  maven {
-	    url 'https://fidata.jfrog.io/fidata/libs-release/'
-	    credentials {
-	      username = rootProject/*project(':')*/.ext.artifactoryUser
-	      password = rootProject/*project(':')*/.ext.artifactoryPassword
-	    }
-	  }
-	}
-}
 
 sourceSets {
   main {

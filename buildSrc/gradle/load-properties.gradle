@@ -18,10 +18,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-new File(ext.rootDir, Project.GRADLE_PROPERTIES).withReader { Reader reader ->
-  Properties properties = new Properties()
-  properties.load(reader)
-  for (String key : properties.stringPropertyNames()) {
-    ext.set(key, properties.getProperty(key))
+File gradlePropertiesFile = new File(ext.rootDir, Project.GRADLE_PROPERTIES)
+if (gradlePropertiesFile.exists()) {
+  gradlePropertiesFile.withReader { Reader reader ->
+    Properties properties = new Properties()
+    properties.load(reader)
+    for (String key : properties.stringPropertyNames()) {
+      ext.set(key, properties.getProperty(key))
+    }
   }
 }

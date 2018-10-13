@@ -18,20 +18,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * WORKAROUND:
+ * Jenkins doesn't set CI environment variable
+ * https://issues.jenkins-ci.org/browse/JENKINS-36707
+ * <grv87 2018-06-27>
+ */
+ext.pushToRemoteCache = System.getenv().with { containsKey('CI') || containsKey('JENKINS_URL') }
 buildCache {
-  local.enabled = false
+  local {
+    enabled = !pushToRemoteCache
+    removeUnusedEntriesAfterDays = 30
+  }
   remote(HttpBuildCache) {
     url = 'https://fidata.jfrog.io/fidata/local.gradle.cache/'
     credentials {
       username = settings.ext.artifactoryUser
       password = settings.ext.artifactoryPassword
     }
-    /*
-     * WORKAROUND:
-     * Jenkins doesn't set CI environment variable
-     * https://issues.jenkins-ci.org/browse/JENKINS-36707
-     * <grv87 2018-06-27>
-     */
-    push = System.getenv().with { containsKey('CI') || containsKey('JENKINS_URL') }
+    push = pushToRemoteCache
   }
 }
