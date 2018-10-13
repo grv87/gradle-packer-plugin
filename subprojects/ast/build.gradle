@@ -1,7 +1,5 @@
 plugins {
-  id 'java'
-  id 'groovy'
-  id 'java-library'
+  id 'org.fidata.project.groovy' version '4.1.1'
 }
 dependencies {
   api gradleApi()
