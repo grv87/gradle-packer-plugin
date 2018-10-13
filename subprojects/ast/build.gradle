@@ -1,5 +1,5 @@
 plugins {
-  id 'org.fidata.project.groovy' version '4.1.1'
+  id 'org.fidata.project.groovy'
 }
 dependencies {
   api gradleApi()
