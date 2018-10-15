@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.common.annotations
 
+import com.sun.javaws.exceptions.InvalidArgumentException
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
@@ -17,7 +18,6 @@ import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.codehaus.groovy.ast.expr.ConstantExpression
 import com.github.hashicorp.packer.common.types.internal.InterpolableValue
-import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -32,11 +32,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.SkipWhenEmpty
-import java.lang.annotation.Annotation
-import java.lang.reflect.ParameterizedType
 
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
 @CompileStatic
+@SuppressWarnings('CatchRuntimeException') // TODO
 class DefaultTransformation implements ASTTransformation {
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
@@ -51,10 +50,9 @@ class DefaultTransformation implements ASTTransformation {
 
       String defaultValue = ((ConstantExpression)annotation.getMember('value')).text
       if (defaultValue == null) {
-        throw new NullPointerException('Default value should be not null')
+        throw new InvalidArgumentException('Default value should be not null')
       }
       // throw new IllegalStateException(defaultValue.toString())
-
 
       Map<String, ClassNode> spec = [:]
       GenericsUtils.extractSuperClassGenerics(field.type, interpolableValueClass, spec)
@@ -76,7 +74,7 @@ class DefaultTransformation implements ASTTransformation {
       field.annotations.removeAll { AnnotationNode annotationNode -> annotations.contains(annotationNode.classNode.typeClass) }
       field.annotations.add(new AnnotationNode(new ClassNode(Internal)))
 
-      String methodName = "getInterpolated${ field.name.capitalize() }".toString()
+      String methodName = "getInterpolated${ field.name.capitalize() }"
 
       Statement getWithDefault = (Statement) new AstBuilder().buildFromString("""\
         ${ field.name }?.interpolatedValue ?: $defaultValue
@@ -86,7 +84,7 @@ class DefaultTransformation implements ASTTransformation {
       methodNode.addAnnotations(annotations.collect { ClassNode classNode -> new AnnotationNode(classNode) })
 
       field.owner.addMethod(methodNode)
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new IllegalArgumentException('Error', e)
     }
   }

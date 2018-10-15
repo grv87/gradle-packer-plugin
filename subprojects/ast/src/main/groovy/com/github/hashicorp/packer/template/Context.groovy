@@ -27,17 +27,18 @@ final class Context {
 
   final Task task
 
+  @SuppressWarnings('NoJavaUtilDate') // TODO
   private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Task task) {
     this.userVariables = userVariables.asImmutable()
     this.env = env.asImmutable()
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
-    Map<String, Serializable> aContextTemplateData = (Map<String, Serializable>)[
+    Map<String, Serializable> aContextTemplateData = /*(Map<String, Serializable>)*/[
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000),
-      'uuid': uuidGenerator.generate().toString(),
+      'uuid': UUID_GENERATOR.generate().toString(),
     ]
     if (userVariables) {
       aContextTemplateData.putAll((Map<String, Serializable>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`", entry.value] })
@@ -51,7 +52,7 @@ final class Context {
     contextTemplateData = aContextTemplateData.asImmutable()
   }
 
-  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, Task task){
+  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, Task task) {
     this(userVariables, env, null, templateFile, task)
   }
 
@@ -82,5 +83,5 @@ final class Context {
     task.project.file(interpolateString(value))
   }
 
-  static private final NoArgGenerator uuidGenerator = Generators.timeBasedGenerator()
+  static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
 }

@@ -17,3 +17,5 @@ dependencies {
   ast jar
 }
 configurations.each { println it }*/
+
+codenarcMain.disabledRules.add 'ClassJavadoc' // TODO

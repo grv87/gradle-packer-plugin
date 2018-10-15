@@ -37,6 +37,7 @@ class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgume
 
   @Internal
   @Override
+  @SuppressWarnings('UnnecessaryGetter') // TODO
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
     if (syntaxOnly) {

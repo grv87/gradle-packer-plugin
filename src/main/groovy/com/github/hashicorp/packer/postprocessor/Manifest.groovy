@@ -1,5 +1,5 @@
 /*
- * ShellLocal class
+ * Manifest class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -17,19 +17,39 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.hashicorp.packer.post_processor
+package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
-import org.gradle.api.tasks.Nested
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFile
+import com.github.hashicorp.packer.template.types.InterpolableString
+import com.github.hashicorp.packer.template.types.InterpolableBoolean
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-class ShellLocal extends PostProcessor {
-  @JsonUnwrapped
-  @Nested
-  com.github.hashicorp.packer.common.ShellLocal config
+class Manifest extends PostProcessor {
+  @JsonProperty('output')
+  @Internal
+  InterpolableString outputPath
+
+  @Input
+  InterpolableBoolean stripPath
+
+  @JsonIgnore
+  @OutputFile
+  File getOutputFile() {
+    context.task.project.file(outputPath.interpolatedValue ?: 'packer-manifest.json')
+  }
+
+  /*@Override
+  protected void doInterpolate() {
+    super.doInterpolate()
+    // TODO
+  }*/
 }

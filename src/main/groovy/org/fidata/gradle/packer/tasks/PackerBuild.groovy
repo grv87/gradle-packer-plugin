@@ -52,6 +52,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
 
   @Internal
   @Override
+  @SuppressWarnings('UnnecessaryGetter') // TODO
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
     // Template should be the last, so we insert in the start

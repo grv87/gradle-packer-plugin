@@ -20,8 +20,7 @@ class PackerBuildAutoConfigurable extends PackerBuild {
     doConfigure() // TODO ?
   }
 
-  protected void doConfigure() {
-    // TODO
-  }
+  @SuppressWarnings('EmptyMethod') // TODO
+  protected void doConfigure() { }
 
 }

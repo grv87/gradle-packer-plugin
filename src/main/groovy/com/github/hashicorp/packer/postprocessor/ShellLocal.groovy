@@ -1,5 +1,5 @@
 /*
- * VagrantCloud class
+ * ShellLocal class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -17,33 +17,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.hashicorp.packer.post_processor
+package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
+import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-class VagrantCloud extends PostProcessor {
-  String tag
-
-  String version
-
-  @JsonProperty('version_description')
-  String versionDescription
-
-  @JsonProperty('no_release')
-  Boolean noRelease
-
-  @JsonProperty('access_token')
-  String accessToken
-
-  @JsonProperty('vagrant_cloud_url')
-  String vagrantCloudUrl
-
-  @JsonProperty('box_download_url')
-  String boxDownloadUrl
+class ShellLocal extends PostProcessor {
+  @JsonUnwrapped
+  @Nested
+  com.github.hashicorp.packer.common.ShellLocal config
 }

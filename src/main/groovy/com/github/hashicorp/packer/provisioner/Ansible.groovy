@@ -19,20 +19,15 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import groovy.json.JsonOutput
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.common.types.internal.InterpolableObject
 import com.github.hashicorp.packer.template.types.InterpolableBoolean
-import com.github.hashicorp.packer.template.types.InterpolableFile
 import com.github.hashicorp.packer.template.types.InterpolableString
 import com.github.hashicorp.packer.template.types.InterpolableStringArray
-import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
@@ -74,29 +69,28 @@ class Ansible extends Provisioner<Configuration> {
     InterpolableString inventoryDirectory
     InterpolableString inventoryFile
 
-
-    @Override
-    protected void doInterpolate() {
-      super.doInterpolate()
-      /*preventBootstrapSudo.interpolate context
-      version.interpolate context
-      bootstrapCommand.interpolate context
-      moduleDirs*.interpolate context
-      module.interpolate context
-      workingDirectory.interpolate context
-      params.values*.interpolate context
-      preventSudo.interpolate context
-
-      bootstrap.interpolate context.addTemplateVariables([
-        'Sudo': !preventBootstrapSudo.interpolatedValue,
-        'Version': version.interpolatedValue,
-      ])
-      executeCommand.interpolate context.addTemplateVariables([
-        'WorkingDirectory': workingDirectory.interpolatedValue,
-        'Sudo': !preventSudo.interpolatedValue,
-        'ParamsJSON': JsonOutput.toJson(params),
-        'Module': module.interpolatedValue,
-      ])*/
-    }
+//    @Override
+//    protected void doInterpolate() {
+//      super.doInterpolate()
+//      /*preventBootstrapSudo.interpolate context
+//      version.interpolate context
+//      bootstrapCommand.interpolate context
+//      moduleDirs*.interpolate context
+//      module.interpolate context
+//      workingDirectory.interpolate context
+//      params.values*.interpolate context
+//      preventSudo.interpolate context
+//
+//      bootstrap.interpolate context.addTemplateVariables([
+//        'Sudo': !preventBootstrapSudo.interpolatedValue,
+//        'Version': version.interpolatedValue,
+//      ])
+//      executeCommand.interpolate context.addTemplateVariables([
+//        'WorkingDirectory': workingDirectory.interpolatedValue,
+//        'Sudo': !preventSudo.interpolatedValue,
+//        'ParamsJSON': JsonOutput.toJson(params),
+//        'Module': module.interpolatedValue,
+//      ])*/
+//    }
   }
 }

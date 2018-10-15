@@ -140,3 +140,5 @@ pluginBundle.plugins {
     displayName = 'Packer plugin'
   }
 }
+
+codenarcMain.disabledRules.add 'ClassJavadoc' // TODO

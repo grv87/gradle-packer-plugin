@@ -102,6 +102,6 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   }
 
   static void registerSubtype(String type, Class<? extends Provisioner> aClass) {
-    Template.mapper.registerSubtypes(new NamedType(aClass, type))
+    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
   }
 }

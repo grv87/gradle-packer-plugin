@@ -19,7 +19,6 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic

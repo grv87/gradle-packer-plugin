@@ -28,6 +28,7 @@ import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> implements PackerArgument {
+  @SuppressWarnings('ThisReferenceEscapesConstructor') // TODO
   protected PackerWrapperTask() {
     super()
     packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)

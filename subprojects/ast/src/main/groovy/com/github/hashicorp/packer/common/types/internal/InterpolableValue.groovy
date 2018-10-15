@@ -20,7 +20,7 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   }
 
   @JsonCreator
-  InterpolableValue(Source rawValue) {
+  protected /* TOTEST */ InterpolableValue(Source rawValue) {
     this.rawValue = rawValue
   }
 

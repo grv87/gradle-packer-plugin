@@ -70,6 +70,6 @@ class Builder extends InterpolableObject {
   }
 
   static void registerSubtype(String type, Class<? extends Builder> aClass) {
-    Template.mapper.registerSubtypes(new NamedType(aClass, type))
+    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
   }
 }

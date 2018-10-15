@@ -93,7 +93,7 @@ class ChefSolo extends Provisioner<Configuration> {
     @Input
     @Optional
     String getInterpolatedVersion() {
-      !skipInstall?.interpolatedValue ? version.interpolatedValue : null
+      skipInstall?.interpolatedValue ? null : version.interpolatedValue
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Manifest class
+ * VagrantCloud class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -17,39 +17,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.hashicorp.packer.post_processor
+package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
-import com.fasterxml.jackson.annotation.JsonProperty
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputFile
-import com.github.hashicorp.packer.template.types.InterpolableString
-import com.github.hashicorp.packer.template.types.InterpolableBoolean
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-class Manifest extends PostProcessor {
-  @JsonProperty('output')
-  @Internal
-  InterpolableString outputPath
+class VagrantCloud extends PostProcessor {
+  String tag
 
-  @Input
-  InterpolableBoolean stripPath
+  String version
 
-  @JsonIgnore
-  @OutputFile
-  File getOutputFile() {
-    context.task.project.file(outputPath.interpolatedValue ?: 'packer-manifest.json')
-  }
+  @JsonProperty('version_description')
+  String versionDescription
 
-  @Override
-  protected void doInterpolate() {
-    super.doInterpolate()
-    // TODO
-  }
+  @JsonProperty('no_release')
+  Boolean noRelease
+
+  @JsonProperty('access_token')
+  String accessToken
+
+  @JsonProperty('vagrant_cloud_url')
+  String vagrantCloudUrl
+
+  @JsonProperty('box_download_url')
+  String boxDownloadUrl
 }

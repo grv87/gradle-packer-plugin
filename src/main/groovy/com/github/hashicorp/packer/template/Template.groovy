@@ -110,16 +110,16 @@ class Template extends InterpolableObject {
   }
 
   // @PackageScope
-  static final ObjectMapper mapper = new ObjectMapper()
+  static final ObjectMapper MAPPER = new ObjectMapper()
   static {
-    mapper.registerModule(new AfterburnerModule())
-    mapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
-    mapper.serializationInclusion = JsonInclude.Include.NON_NULL
+    MAPPER.registerModule(new AfterburnerModule())
+    MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+    MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
   }
 
   static Template readFromFile(File file) {
     (Template)file.withInputStream { InputStream inputStream ->
-      mapper.readValue(inputStream, Template)
+      MAPPER.readValue(inputStream, Template)
     }
   }
 }

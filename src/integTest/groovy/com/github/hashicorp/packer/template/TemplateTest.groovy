@@ -40,14 +40,14 @@ class TemplateTest {
   @TestCaseName('{1}')
   void testParser(final File templateFile, final String ignored) {
     PackerBasePlugin.registerBuiltInPackerPlugins()
-    Template template = Template.mapper.readValue(templateFile, Template)
+    Template template = Template.MAPPER.readValue(templateFile, Template)
     assert Template.isInstance(template)
 
     Writer writer = new StringWriter()
-    Template.mapper.writeValue(writer, template)
+    Template.MAPPER.writeValue(writer, template)
     assert writer.toString().length() > 0
 
-    Template template2 = Template.mapper.readValue(writer.toString(), Template)
+    Template template2 = Template.MAPPER.readValue(writer.toString(), Template)
     assert Template.isInstance(template2)
   }
 

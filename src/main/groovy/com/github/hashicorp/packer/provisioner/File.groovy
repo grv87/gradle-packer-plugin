@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import java.io.File as JavaFile
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import com.github.hashicorp.packer.common.types.internal.InterpolableValue
@@ -37,7 +38,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-
 import java.nio.file.Path
 import java.util.regex.Pattern
 import java.util.zip.DataFormatException
@@ -66,12 +66,12 @@ class File extends Provisioner<Configuration> {
 
     private Boolean isDirectory
 
-    private java.io.File inputFile
+    private JavaFile inputFile
 
     @JsonIgnore
     @InputFile
     @Optional
-    java.io.File getInputFile() {
+    JavaFile getInputFile() {
       if (!isDirectory) {
         this.inputFile
       }
@@ -80,17 +80,17 @@ class File extends Provisioner<Configuration> {
     @JsonIgnore
     @InputDirectory
     @Optional
-    java.io.File getSourceDirectory() {
+    JavaFile getSourceDirectory() {
       if (isDirectory) {
         this.inputFile
       }
     }
 
-    private java.io.File outputFile
+    private JavaFile outputFile
     @JsonIgnore
     @OutputFile
     @Optional
-    java.io.File getOutputFile() {
+    JavaFile getOutputFile() {
       if (isDirectory) {
         this.outputFile
       }
@@ -99,7 +99,7 @@ class File extends Provisioner<Configuration> {
     @JsonIgnore
     @OutputDirectory
     @Optional
-    java.io.File getOutputDirectory() {
+    JavaFile getOutputDirectory() {
       if (isDirectory) {
         this.outputFile
       }
@@ -117,7 +117,7 @@ class File extends Provisioner<Configuration> {
 
       Path sourcePath = null
       if (source) {
-        sourcePath = new java.io.File(source.interpolatedValue).toPath()
+        sourcePath = new JavaFile(source.interpolatedValue).toPath()
         isDirectory = source.interpolatedValue ==~ DIR_PATTERN
       }
 
@@ -129,7 +129,7 @@ class File extends Provisioner<Configuration> {
           break
         case Direction.DOWNLOAD:
           if (source && destination) {
-            Path outputPath = new java.io.File(destination.interpolatedValue).toPath()
+            Path outputPath = new JavaFile(destination.interpolatedValue).toPath()
             Boolean destinationIsDirectory = destination.interpolatedValue ==~ DIR_PATTERN
             if (destinationIsDirectory) {
               outputPath = outputPath.resolve(sourcePath.getName(sourcePath.nameCount - 1))

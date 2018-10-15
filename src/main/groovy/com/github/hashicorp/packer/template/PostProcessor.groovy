@@ -69,7 +69,7 @@ class PostProcessor extends InterpolableObject {
   }
 
   static void registerSubtype(String type, Class<? extends PostProcessor> aClass) {
-    Template.mapper.registerSubtypes(new NamedType(aClass, type))
+    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)

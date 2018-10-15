@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.hashicorp.packer.post_processor
+package com.github.hashicorp.packer.postprocessor
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.AutoClone
