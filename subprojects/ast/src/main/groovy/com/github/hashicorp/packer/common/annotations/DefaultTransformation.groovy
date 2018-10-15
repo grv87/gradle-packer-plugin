@@ -1,6 +1,5 @@
 package com.github.hashicorp.packer.common.annotations
 
-import com.sun.javaws.exceptions.InvalidArgumentException
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
@@ -50,7 +49,7 @@ class DefaultTransformation implements ASTTransformation {
 
       String defaultValue = ((ConstantExpression)annotation.getMember('value')).text
       if (defaultValue == null) {
-        throw new InvalidArgumentException('Default value should be not null')
+        throw new IllegalArgumentException('Default value should be not null')
       }
       // throw new IllegalStateException(defaultValue.toString())
 
