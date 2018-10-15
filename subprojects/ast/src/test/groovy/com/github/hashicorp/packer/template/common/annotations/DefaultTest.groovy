@@ -1,10 +1,12 @@
 package com.github.hashicorp.packer.template.common.annotations
 
+import static groovy.test.GroovyAssert.assertScript
 import org.junit.Test
+
 class DefaultTest {
   @Test
   void testAnnotation() {
-    assertScript'''\
+    assertScript '''\
       import groovy.transform.CompileStatic
       import com.github.hashicorp.packer.common.types.InterpolableString
       import com.github.hashicorp.packer.common.annotations.Default
