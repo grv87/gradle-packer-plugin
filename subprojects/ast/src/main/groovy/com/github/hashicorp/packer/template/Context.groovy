@@ -27,14 +27,14 @@ final class Context {
 
   final Task task
 
-  @SuppressWarnings('NoJavaUtilDate') // TODO
+  @SuppressWarnings(['NoJavaUtilDate', 'UnnecessaryCast']) // TODO
   private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Task task) {
     this.userVariables = userVariables.asImmutable()
     this.env = env.asImmutable()
     this.templateVariables = templateVariables.asImmutable()
     this.templateFile = templateFile
     this.task = task
-    Map<String, Serializable> aContextTemplateData = /*(Map<String, Serializable>)*/[
+    Map<String, Serializable> aContextTemplateData = (Map<String, Serializable>)[
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': new Date().time.intdiv(1000),
