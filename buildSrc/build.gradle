@@ -43,3 +43,5 @@ sourceSets {
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
 apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
+
+compatTest.enabled = false
