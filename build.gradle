@@ -18,14 +18,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-buildscript {
+/*buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
+}*/
 plugins {
   id 'org.fidata.project.java' version '5.0.0-multi-project-SNAPSHOT'
   id 'org.fidata.project.groovy' version '5.0.0-multi-project-SNAPSHOT'
   id 'org.fidata.plugin' version '5.0.0-multi-project-SNAPSHOT'
-  id 'org.fidata.packer-base'
 }
 
 description = 'Runs Packer builds from Gradle'
@@ -44,10 +43,9 @@ ext.rootDir = '.'
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
 
-tasks.withType(JavaCompile).configureEach { JavaCompile javaCompile ->
-  javaCompile.options.encoding = 'UTF-8'
-}
+sourceSets.main.groovy.srcDirs new File(project.ext.rootDir,  'src/validate/groovy')
 
+// sourceSets.main.groovy.srcDirs.each { }
 /*
  * WORKAROUND:
  * https://github.com/DanySK/javadoc.io-linker/issues/5
@@ -83,15 +81,15 @@ tasks.register('packerValidate-integTest')
 
 import org.apache.commons.io.FilenameUtils
 
-for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
-  fileTree.include '**/*.json'
-}) {
-  TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", ext.PackerValidate) {
-    templateFile = singleTemplateFile
-    syntaxOnly = true
-  }
-  // TODO: CI doesn't have Packer installed
-  if (!System.getenv().with { containsKey('CI') || containsKey('JENKINS_URL') }) {
+// TODO: CI doesn't have Packer installed
+if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
+  for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
+    fileTree.include '**/*.json'
+  }) {
+    TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
+      templateFile = singleTemplateFile
+      syntaxOnly = true
+    }
     tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
       packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
     }

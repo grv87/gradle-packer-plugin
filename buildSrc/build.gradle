@@ -33,19 +33,11 @@ apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
 apply plugin: 'org.fidata.project.java'
 apply plugin: 'org.fidata.project.groovy'
-apply plugin: 'org.fidata.plugin'
+// apply plugin: 'org.fidata.plugin'
 
-sourceSets {
-  main {
-    java.srcDirs = [new File(project.ext.rootDir,  'src/main/java')]
-    groovy.srcDirs = [new File(project.ext.rootDir,  'src/main/groovy')]
-    resources.srcDirs = [new File(project.ext.rootDir, 'src/main/resources')]
-  }
-}
+sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
 
-apply from: new File(ext.rootDir, 'gradle/dependencies-compile.gradle')
-
-apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
+apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
 
 codenarcMain.disabledRules.add 'ClassJavadoc' // TODO
 

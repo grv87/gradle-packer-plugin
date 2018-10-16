@@ -22,7 +22,3 @@ dependencies {
 configurations.each { println it }*/
 
 codenarcMain.disabledRules.add 'ClassJavadoc' // TODO
-
-plugins.each { println it }
-repositories.each { println it.url
-println it.credentials.username }
