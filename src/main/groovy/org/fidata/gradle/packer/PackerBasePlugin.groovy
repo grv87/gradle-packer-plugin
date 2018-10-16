@@ -26,7 +26,7 @@ import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.PostProcessor
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.builder.Null
-import com.github.hashicorp.packer.post_processor.Manifest
+import com.github.hashicorp.packer.postprocessor.Manifest
 import com.github.hashicorp.packer.provisioner.File
 import org.fidata.gradle.packer.tasks.PackerBuild
 import org.fidata.gradle.packer.tasks.PackerValidate

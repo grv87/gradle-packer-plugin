@@ -18,6 +18,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
+buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 plugins {
   id 'org.fidata.project.java' version '5.0.0-multi-project-SNAPSHOT' apply false
   id 'org.fidata.project.groovy' version '5.0.0-multi-project-SNAPSHOT' apply false
@@ -46,5 +49,9 @@ apply from: new File(ext.rootDir, 'gradle/gradle-plugin-markers.gradle')
 
 codenarcMain.disabledRules.add 'ClassJavadoc' // TODO
 
-// TODO: lazy
-compatTest.enabled = false
+// TODO
+allprojects {
+  gradle.taskGraph.useFilter { task -> Test.isInstance(task) }
+  gradle.taskGraph.useFilter { task -> task.name == 'lint' }
+  gradle.taskGraph.useFilter { task -> task.name == 'compatTest' }
+}

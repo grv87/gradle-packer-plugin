@@ -18,6 +18,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
+buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 plugins {
   id 'org.fidata.project.java' version '5.0.0-multi-project-SNAPSHOT'
   id 'org.fidata.project.groovy' version '5.0.0-multi-project-SNAPSHOT'
@@ -88,9 +91,10 @@ for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fi
     syntaxOnly = true
   }
   // TODO: CI doesn't have Packer installed
-  if ()
-  tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
-    packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
+  if (!System.getenv().with { containsKey('CI') || containsKey('JENKINS_URL') }) {
+    tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
+      packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
+    }
   }
 }
 
