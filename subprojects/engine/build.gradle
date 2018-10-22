@@ -10,7 +10,7 @@ dependencies {
   api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
   implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
-  api group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
+  api /* TODO: fixed in Gradle 5.1-20181022112637+0000 */ group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
   implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
 }
 
@@ -28,12 +28,3 @@ afterEvaluate {
 tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO
 }
-
-/*project.configurations.apiElements {
-    GroovyCompile compileGroovy = project.tasks.withType(GroovyCompile)['compileGroovy']
-  outgoing.variants['classes'].artifact(
-      file: compileGroovy.destinationDir, // TODO
-      type: ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-      builtBy: compileGroovy
-    )
-}*/

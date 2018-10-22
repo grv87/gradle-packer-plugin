@@ -6,8 +6,8 @@ plugins {
   id 'org.fidata.project.groovy'
 }
 dependencies {
-  annotationProcessor project(path: ':engine', configuration: 'runtimeElements')
-  api project(path: ':engine', configuration: 'apiElements')
+  annotationProcessor project(path: ':engine'/*, configuration: 'runtimeElements'*/)
+  api project(path: ':engine'/*, configuration: 'apiElements'*/)
   api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
 }
