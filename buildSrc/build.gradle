@@ -24,7 +24,6 @@ buildscript {
 plugins {
   id 'org.fidata.project.java' version '5.0.0-multi-project-SNAPSHOT' apply false
   id 'org.fidata.project.groovy' version '5.0.0-multi-project-SNAPSHOT' apply false
-  id 'org.fidata.plugin' version '5.0.0-multi-project-SNAPSHOT' apply false
 }
 
 ext.rootDir = file('..')
@@ -33,13 +32,14 @@ apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
 apply plugin: 'org.fidata.project.java'
 apply plugin: 'org.fidata.project.groovy'
-// apply plugin: 'org.fidata.plugin'
 
 sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
 
-codenarcMain.disabledRules.add 'ClassJavadoc' // TODO
+tasks.named('codenarcMain').configure {
+  disabledRules.add 'ClassJavadoc' // TODO
+}
 
 // TODO
 allprojects {

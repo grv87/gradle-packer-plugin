@@ -22,7 +22,7 @@ package org.fidata.gradle.packer.tasks
 import static org.fidata.gradle.packer.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
-import org.fidata.gradle.packer.enums.OnError
+import com.github.hashicorp.packer.engine.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Optional

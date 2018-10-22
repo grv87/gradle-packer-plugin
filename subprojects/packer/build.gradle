@@ -1,0 +1,28 @@
+buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+plugins {
+  id 'org.fidata.project.java'
+  id 'org.fidata.project.groovy'
+}
+dependencies {
+  annotationProcessor project(path: ':engine', configuration: 'runtimeElements')
+  api project(path: ':engine', configuration: 'apiElements')
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
+  api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
+}
+
+/*
+ * WORKAROUND:
+ * https://github.com/DanySK/javadoc.io-linker/issues/5
+ * `org.danilopianini.javadoc.io-linker` plugin doesn't work with `java-library` plugin
+ * <grv87 2018-06-23>
+ */
+afterEvaluate {
+  jvm.javadocLinks['com.fasterxml.jackson.databind'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-databind' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+  // jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/") TODO
+}
+
+tasks.named('codenarcMain').configure {
+  disabledRules.add 'ClassJavadoc' // TODO
+}

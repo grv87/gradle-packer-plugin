@@ -1,0 +1,39 @@
+buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+plugins {
+  id 'org.fidata.project.java'
+  id 'org.fidata.project.groovy'
+}
+dependencies {
+  api gradleApi()
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
+  implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
+  api group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
+  implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+}
+
+/*
+ * WORKAROUND:
+ * https://github.com/DanySK/javadoc.io-linker/issues/5
+ * `org.danilopianini.javadoc.io-linker` plugin doesn't work with `java-library` plugin
+ * <grv87 2018-06-23>
+ */
+afterEvaluate {
+  jvm.javadocLinks['com.fasterxml.jackson.databind'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-core' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+  jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+}
+
+tasks.named('codenarcMain').configure {
+  disabledRules.add 'ClassJavadoc' // TODO
+}
+
+/*project.configurations.apiElements {
+    GroovyCompile compileGroovy = project.tasks.withType(GroovyCompile)['compileGroovy']
+  outgoing.variants['classes'].artifact(
+      file: compileGroovy.destinationDir, // TODO
+      type: ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+      builtBy: compileGroovy
+    )
+}*/
