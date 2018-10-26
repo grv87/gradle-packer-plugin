@@ -7,8 +7,8 @@ plugins {
 }
 dependencies {
   api gradleApi()
-  api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
-  api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3.0['
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3.0['
   implementation group: 'com.samskivert', name: 'jmustache', version: '1.13'
   api /* TODO: fixed in Gradle 5.1-20181022112637+0000 */ group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '3.1.5'
   implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
