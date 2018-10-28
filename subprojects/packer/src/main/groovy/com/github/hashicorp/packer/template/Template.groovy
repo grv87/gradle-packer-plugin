@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import static Context.BUILD_NAME_VARIABLE_NAME
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -31,17 +32,19 @@ import com.github.hashicorp.packer.engine.types.InterpolableString
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
-@AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['envContext', 'variablesContext'])
+@AutoClone(style = AutoCloneStyle.SIMPLE/*, excludes = ['envContext', 'variablesContext'] TOTEST: This should not be needed*/)
 @CompileStatic
 class Template extends InterpolableObject {
   @Console
   String description
 
   @JsonProperty('min_packer_version')
-  @Internal
+  @Input
+  @Optional
   String minVersion
 
   @Internal
@@ -57,16 +60,26 @@ class Template extends InterpolableObject {
   @Nested
   List<PostProcessor.PostProcessorArrayDefinition> postProcessors
 
-  Context envContext
+  private final Context envContext
 
+  /**
+   * Context used to interpolate variables.
+   * Have {@code env} function
+   * @return Context used to interpolate variables
+   */
   @JsonIgnore
   @Internal
   Context getEnvContext() {
     this.envContext
   }
 
-  Context variablesContext
+  private final Context variablesContext
 
+  /**
+   * Context used to interpolate template itself.
+   * Doesn't have {@code env} function, but have variables
+   * @return Context used to interpolate template itself
+   */
   @JsonIgnore
   @Internal
   Context getVariablesContext() {
@@ -77,13 +90,13 @@ class Template extends InterpolableObject {
   protected void doInterpolate() {
     super.doInterpolate() // TOTEST
 
-    envContext = new Context(null, context.env, context.templateFile, context.task)
+    envContext = new Context(null, context.env, context.templateFile, context.cwd/*, context.task*/)
     variables.each.interpolate envContext
 
     Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
       [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
     }
-    Context variablesContext = new Context(userVariables, null, context.templateFile, context.task)
+    Context variablesContext = new Context(userVariables, null, context.templateFile, context.cwd/*, context.task*/)
     for (Builder builder in builders) {
       builder.header.interpolate variablesContext
     }
@@ -99,10 +112,10 @@ class Template extends InterpolableObject {
     builder = builder.clone()
     builder.interpolate context
     result.builders = [builder]
-    Context buildCtx = variablesContext/*TODO .addTemplateVariables([
-      'BuildName': buildName,
+    Context buildCtx = variablesContext.addTemplateVariables([
+      (BUILD_NAME_VARIABLE_NAME): buildName,
       'BuilderType': builder.header.type,
-    ])*/
+    ])
 
     result.provisioners = provisioners*.interpolateForBuilder(buildCtx).findAll()
     result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()

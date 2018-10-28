@@ -16,7 +16,7 @@ abstract class InterpolableObject {
   @JsonIgnore
   @Internal
   Context getContext() {
-    context
+    this.context
   }
 
   @JsonIgnore
