@@ -32,6 +32,10 @@ import org.gradle.api.tasks.Internal
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Ansible extends Provisioner<Configuration> {
+  Ansible() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
     @Internal
     InterpolableString command

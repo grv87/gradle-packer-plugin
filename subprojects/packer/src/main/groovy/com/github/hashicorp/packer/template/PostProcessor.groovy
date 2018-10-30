@@ -31,6 +31,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @JsonTypeInfo(
@@ -39,6 +40,7 @@ import org.gradle.api.tasks.Internal
   property = 'type'
 )
 @CompileStatic
+// REVIEWED
 class PostProcessor extends InterpolableObject {
   protected PostProcessor() {
   }
@@ -47,7 +49,7 @@ class PostProcessor extends InterpolableObject {
   @Internal // TODO
   OnlyExcept onlyExcept
 
-  @Input // TODO
+  @Input
   String type
 
   @Internal
@@ -59,7 +61,7 @@ class PostProcessor extends InterpolableObject {
   }
 
   final PostProcessor interpolateForBuilder(Context buildCtx) {
-    if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
+    if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
       PostProcessor result = this.clone()
       result.interpolate buildCtx
       result
@@ -68,8 +70,11 @@ class PostProcessor extends InterpolableObject {
     }
   }
 
-  static void registerSubtype(String type, Class<? extends PostProcessor> aClass) {
-    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
+  private static final Map<String, Class<? extends PostProcessor>> SUBTYPES = [:]
+
+  static void registerSubtype(String type, Class<? extends PostProcessor> clazz) {
+    SUBTYPES.put type, clazz
+    Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
@@ -79,7 +84,7 @@ class PostProcessor extends InterpolableObject {
     }
 
     @JsonValue
-    @Internal
+    @Nested
     Object rawValue
 
     private PostProcessorArrayDefinition() {
@@ -101,12 +106,14 @@ class PostProcessor extends InterpolableObject {
         ((ArrayClass)rawValue).each { PostProcessorDefinition postProcessorDefinition -> postProcessorDefinition.interpolate context }
       } else if (PostProcessorDefinition.isInstance(rawValue)) {
         ((PostProcessorDefinition)rawValue).interpolate context
-      }
+      } else {
+      throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+    }
     }
 
     PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
       if (ArrayClass.isInstance(rawValue)) {
-        ArrayClass result = (ArrayClass)((ArrayClass)rawValue)*.interpolateForBuilder(buildCtx)
+        ArrayClass result = (ArrayClass)(((ArrayClass)rawValue)*.interpolateForBuilder(buildCtx).findAll())
         if (result.size() > 0) {
           new PostProcessorArrayDefinition(result)
         } else {
@@ -129,7 +136,7 @@ class PostProcessor extends InterpolableObject {
   @CompileStatic
   static final class PostProcessorDefinition extends InterpolableObject {
     @JsonValue
-    @Internal
+    @Nested
     Object rawValue
 
     private PostProcessorDefinition() {
@@ -149,6 +156,8 @@ class PostProcessor extends InterpolableObject {
     protected void doInterpolate() {
       if (PostProcessor.isInstance(rawValue)) {
         ((PostProcessor)rawValue).interpolate context
+      } else if (!String.isInstance(rawValue)) {
+        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
       }
     }
 
@@ -161,7 +170,7 @@ class PostProcessor extends InterpolableObject {
           null
         }
       } else if (String.isInstance(rawValue)) {
-        new PostProcessorDefinition((String)rawValue)
+        new PostProcessorDefinition(SUBTYPES[(String)rawValue].newInstance())
       } else {
         throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
       }

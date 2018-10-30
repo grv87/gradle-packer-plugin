@@ -38,6 +38,10 @@ import org.gradle.api.tasks.Nested
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
+  Converge() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
     @Default(value = 'true')
     @Input

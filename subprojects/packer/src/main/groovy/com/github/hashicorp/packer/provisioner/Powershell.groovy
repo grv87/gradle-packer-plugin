@@ -29,6 +29,10 @@ import java.time.Duration
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Powershell extends Provisioner<Configuration> {
+  Powershell() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
     Boolean binary
 

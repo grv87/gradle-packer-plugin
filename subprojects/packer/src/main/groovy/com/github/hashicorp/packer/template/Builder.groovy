@@ -38,6 +38,7 @@ import org.gradle.api.tasks.Internal
   property = 'type'
 )
 @CompileStatic
+// REVIEWED
 class Builder extends InterpolableObject {
   protected Builder() {
   }
@@ -69,7 +70,7 @@ class Builder extends InterpolableObject {
     }
   }
 
-  static void registerSubtype(String type, Class<? extends Builder> aClass) {
-    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
+  static void registerSubtype(String type, Class<? extends Builder> clazz) {
+    Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
   }
 }

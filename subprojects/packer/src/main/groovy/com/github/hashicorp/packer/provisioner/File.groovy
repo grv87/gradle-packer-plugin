@@ -45,6 +45,10 @@ import java.util.zip.DataFormatException
 @AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['sourceFile', 'sourceDirectory', 'destinationFile', 'destinationDirectory'])
 @CompileStatic
 class File extends Provisioner<Configuration> {
+  File() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
     @Internal
     InterpolableString source

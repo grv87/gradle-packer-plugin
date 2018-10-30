@@ -19,19 +19,21 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.github.hashicorp.packer.engine.annotations.Inline
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ShellLocal extends Provisioner<Configuration> {
+  ShellLocal() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
-    @JsonUnwrapped
-    @Nested
+    @Inline
     com.github.hashicorp.packer.common.ShellLocal config
   }
 }

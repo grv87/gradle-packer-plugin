@@ -3,14 +3,13 @@ package com.github.hashicorp.packer.template
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
 import com.samskivert.mustache.Mustache
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Task
 
-// @EqualsAndHashCode(/*excludes = ['buildName'] TODO*/)
+@EqualsAndHashCode(excludes = ['buildName'])
 @CompileStatic
+// REVIEWED
 final class Context {
   final Map<String, String> userVariables
 
@@ -54,6 +53,7 @@ final class Context {
     if (templateVariables) {
       aContextTemplateData.putAll((Map<String, Serializable>)templateVariables.collectEntries { Map.Entry<String, ? extends Serializable> entry -> [".$entry.key", entry.value] })
     }
+    // TODO: Make sure all items are immutable / thread-safe
     contextTemplateData = aContextTemplateData.asImmutable()
   }
 
@@ -80,13 +80,14 @@ final class Context {
   String interpolateString(String value) {
     /*
      * WORKAROUND:
-     * Packer uses Go text/template library. It wasn't ported to Java/Groovy
+     * Packer uses Go text/template library. There is no port of it to Java/Groovy
      * This code uses Mustache to parse templates.
      * There could be errors due to slightly different syntax.
      * However, that most probably won't happen in simple templates.
      * <grv87 2018-08-19>
      */
-    Mustache.compiler().compile(value).execute(contextTemplateData)
+    // TODO: Make sure contextTemplateData is immutable / thread-safe
+    mustacheCompiler.compile(value).execute(contextTemplateData)
   }
 
   File interpolateFile(String value) {
@@ -95,4 +96,6 @@ final class Context {
   }
 
   static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
+
+  static private final Mustache.Compiler mustacheCompiler = Mustache.compiler()
 }

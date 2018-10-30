@@ -40,12 +40,16 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
+
 class Provisioner<P extends Configuration> extends InterpolableObject {
-  protected Provisioner() {
+  final Class<? extends Configuration> configurationClass
+
+  protected Provisioner(Class<? extends Configuration> configurationClass) {
+    this.configurationClass = configurationClass
   }
 
-  @Internal
   @JsonUnwrapped
+  @Internal
   OnlyExcept onlyExcept
 
   @Input // TODO
@@ -70,23 +74,28 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   @Inline
   P configuration
 
+  /**
+   * Interpolates instance of the provisioner for specific builder.
+   * * Copies `override` configuration
+   */
   @Override
   final protected void doInterpolate() {
     configuration.interpolate context
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
-      Class<? extends Configuration> aClass = P
+      overrideConfiguration.interpolate(context)
+      Class<? extends Configuration> clazz = configurationClass
       while (true) {
-        aClass.fields.each { Field field ->
+        clazz.fields.each { Field field ->
           Object value = field.get(overrideConfiguration)
           if (value) {
             field.set this, value
           }
         }
-        if (aClass == Configuration) {
+        if (clazz == Configuration) {
           break
         }
-        aClass = (Class<? extends Configuration>)aClass.superclass
+        clazz = (Class<? extends Configuration>)clazz.superclass
       }
     }
   }
@@ -101,7 +110,7 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
     }
   }
 
-  static void registerSubtype(String type, Class<? extends Provisioner> aClass) {
-    Template.MAPPER.registerSubtypes(new NamedType(aClass, type))
+  static void registerSubtype(String type, Class<? extends Provisioner> clazz) {
+    Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
   }
 }

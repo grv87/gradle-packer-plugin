@@ -31,6 +31,10 @@ import java.time.Duration
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class WindowsShell extends Provisioner<Configuration> {
+  WindowsShell() {
+    super(Configuration)
+  }
+
   static class Configuration extends Provisioner.Configuration {
     Boolean binary
 
@@ -43,13 +47,10 @@ class WindowsShell extends Provisioner<Configuration> {
     @JsonProperty('environment_vars')
     List<String> vars
 
-    @JsonProperty('remote_path')
     String remotePath
 
-    @JsonProperty('execute_command')
     String executeCommand
 
-    @JsonProperty('start_retry_timeout')
     @Internal
     Duration startRetryTimeout
   }

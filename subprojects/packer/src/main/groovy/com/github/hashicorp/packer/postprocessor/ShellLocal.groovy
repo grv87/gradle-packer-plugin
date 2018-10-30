@@ -19,17 +19,15 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.github.hashicorp.packer.engine.annotations.Inline
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
-import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ShellLocal extends PostProcessor {
-  @JsonUnwrapped
-  @Nested
+  @Inline
   com.github.hashicorp.packer.common.ShellLocal config
 }

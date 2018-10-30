@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -38,7 +39,11 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
 @AutoClone(style = AutoCloneStyle.SIMPLE/*, excludes = ['envContext', 'variablesContext'] TOTEST: This should not be needed*/)
 @CompileStatic
-class Template extends InterpolableObject {
+// REVIEWED
+final class Template extends InterpolableObject {
+  // TODO
+  String path
+
   @Console
   String description
 
@@ -50,6 +55,9 @@ class Template extends InterpolableObject {
   @Internal
   Map<String, InterpolableString> variables
 
+  @Console
+  List<String> sensitiveVariables
+
   @Nested
   /* TODO: Map<String, Builder> */ List<Builder> builders
 
@@ -60,7 +68,13 @@ class Template extends InterpolableObject {
   @Nested
   List<PostProcessor.PostProcessorArrayDefinition> postProcessors
 
-  private final Context envContext
+  // TODO
+  Map<String, String> comments
+
+  // TODO
+  byte[] rawContents
+
+  private Context envContext
 
   /**
    * Context used to interpolate variables.
@@ -73,7 +87,7 @@ class Template extends InterpolableObject {
     this.envContext
   }
 
-  private final Context variablesContext
+  private Context variablesContext
 
   /**
    * Context used to interpolate template itself.
@@ -96,13 +110,13 @@ class Template extends InterpolableObject {
     Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
       [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
     }
-    Context variablesContext = new Context(userVariables, null, context.templateFile, context.cwd/*, context.task*/)
+    variablesContext = new Context(userVariables, null, context.templateFile, context.cwd/*, context.task*/)
     for (Builder builder in builders) {
       builder.header.interpolate variablesContext
     }
   }
 
-  Template interpolateForBuilder(String buildName) {
+  final Template interpolateForBuilder(String buildName) {
     interpolate context
     Template result = new Template()
     Builder builder = builders.find { Builder builder -> builder.header.buildName == buildName }

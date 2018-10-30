@@ -64,12 +64,12 @@ class DefaultTransformation implements ASTTransformation {
       // defaultValue = defaultValue.asType(target)
 
       List<ClassNode> allAnnotations = field.annotations*.classNode
-      Collection<ClassNode> prohibitedAnnotations = allAnnotations.intersect([Nested, Optional, SkipWhenEmpty].collect { Class aClass -> ClassHelper.make(aClass) })
+      Collection<ClassNode> prohibitedAnnotations = allAnnotations.intersect([Nested, Optional, SkipWhenEmpty].collect { Class clazz -> ClassHelper.make(clazz) })
       if (prohibitedAnnotations?.size() > 0) {
         throw new IllegalArgumentException(sprintf('Annotations %s are prohibited on fields with defaults', prohibitedAnnotations*.name.join(', ')))
       }
 
-      Collection<ClassNode> annotations = allAnnotations.intersect([Input, InputFile, InputFiles, InputDirectory, OutputFile, OutputFiles, OutputDirectory, Console, Internal, Destroys, LocalState, OutputDirectories, PathSensitive].collect { Class aClass -> ClassHelper.make(aClass) })
+      Collection<ClassNode> annotations = allAnnotations.intersect([Input, InputFile, InputFiles, InputDirectory, OutputFile, OutputFiles, OutputDirectory, Console, Internal, Destroys, LocalState, OutputDirectories, PathSensitive].collect { Class clazz -> ClassHelper.make(clazz) })
       field.annotations.removeAll { AnnotationNode annotationNode -> annotations.contains(annotationNode.classNode.typeClass) }
       field.annotations.add(new AnnotationNode(new ClassNode(Internal)))
 
