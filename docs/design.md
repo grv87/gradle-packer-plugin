@@ -1,15 +1,30 @@
 Design
 ======
 
+## Interpolation
+
+Interpolation is made in several stages:
+1.  Interpolation of user variables
+2.  Interpolation of builder headers
+    (there is only one interpolable string, build name)
+3.  Interpolation of the whole builder,
+    and also provisioners and post-processors
+
+When plugin is applied to `Settings` and tasks are created automatically
+then stages 1 and 2 are passed before task creation.
+Stage 3 is passed when Gradle detects task inputs/outputs
+before its run.
+
+## Inputs
 Not considered as inputs:
-* timing settings
-* passwords
-* connection settings
-* staging/temp paths on images
+*   timing settings
+*   passwords
+*   connection settings
+*   staging/temp paths on images
 
 Considered:
-* paths on images (except staging/temp)
-* users under which provisioning is happening, sudo settings
+*   paths on images (except staging/temp)
+*   users under which provisioning is happening, sudo settings
 
 
 ------------------------------------------------------------------------

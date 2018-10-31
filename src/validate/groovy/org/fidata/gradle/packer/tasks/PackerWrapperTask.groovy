@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.PackerToolExtension
 import org.fidata.gradle.packer.tasks.arguments.PackerArgument
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.Internal
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
@@ -32,7 +33,11 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   protected PackerWrapperTask() {
     super()
     packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)
+    workingDir.set(project.layout.projectDirectory) // TODO
   }
+
+  @Internal
+  final DirectoryProperty workingDir = newInputDirectory()
 
   @Override
   protected PackerExecSpec createExecSpec() {
@@ -50,6 +55,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     execSpec.cmdArgs cmdArgs
+    execSpec.workingDir workingDir.get().asFile
     execSpec
   }
 }

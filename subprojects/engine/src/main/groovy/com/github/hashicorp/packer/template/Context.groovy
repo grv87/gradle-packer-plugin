@@ -31,9 +31,9 @@ final class Context {
 
   @SuppressWarnings(['NoJavaUtilDate', 'UnnecessaryCast']) // TODO
   private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, File cwd/*, Task task*/) {
-    this.userVariables = userVariables.asImmutable()
-    this.env = env.asImmutable()
-    this.templateVariables = templateVariables.asImmutable()
+    this.userVariables = userVariables?.asImmutable()
+    this.env = env?.asImmutable()
+    this.templateVariables = templateVariables?.asImmutable()
     this.templateFile = templateFile
     this.cwd = cwd
     // this.task = task
@@ -72,7 +72,7 @@ final class Context {
       templateVariables.putAll this.templateVariables
     }
     templateVariables.putAll variables
-    new Context((Map<String, String>)userVariables.clone(), (Map<String, String>)env.clone(), templateVariables, templateFile, cwd/*, task*/)
+    new Context((Map<String, String>)userVariables?.clone(), (Map<String, String>)env?.clone(), templateVariables, templateFile, cwd/*, task*/)
   }
 
   private final Map<String, Serializable> contextTemplateData
@@ -90,7 +90,7 @@ final class Context {
     mustacheCompiler.compile(value).execute(contextTemplateData)
   }
 
-  File interpolateFile(String value) {
+  File /* TODO: RegularFile ? */ interpolateFile(String value) {
     cwd.toPath().resolve(interpolateString(value)).toFile()
     // Paths.get()
   }

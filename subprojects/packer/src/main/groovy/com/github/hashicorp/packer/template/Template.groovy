@@ -19,7 +19,13 @@
  */
 package com.github.hashicorp.packer.template
 
+import org.gradle.api.provider.Provider
+
 import static Context.BUILD_NAME_VARIABLE_NAME
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.tasks.OutputFiles
+import javax.inject.Inject
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -104,9 +110,11 @@ final class Template extends InterpolableObject {
   protected void doInterpolate() {
     super.doInterpolate() // TOTEST
 
+    // Stage 1
     envContext = new Context(null, context.env, context.templateFile, context.cwd/*, context.task*/)
     variables.each.interpolate envContext
 
+    // Stage 2
     Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
       [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
     }
@@ -123,6 +131,7 @@ final class Template extends InterpolableObject {
     if (!builder) {
       throw new IllegalArgumentException(sprintf('Build with name `%s` not found.', [buildName]))
     }
+    // Stage 3
     builder = builder.clone()
     builder.interpolate context
     result.builders = [builder]
@@ -135,6 +144,29 @@ final class Template extends InterpolableObject {
     result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()
     result
   }
+
+  private final ConfigurableFileCollection artifacts = projectLayout.configurableFiles()
+
+  @OutputFiles
+  ConfigurableFileCollection getArtifacts() {
+    projectLayout.configurableFiles(this.artifacts) // TODO
+  }
+
+  @Internal
+  private final List<Provider<Boolean>> upToDateWhen = []
+
+  List<Provider<Boolean>> getUpToDateWhen() {
+    this.upToDateWhen
+  }
+
+
+  @Inject
+  final ProjectLayout projectLayout
+
+  // @Inject // TOTEST
+  // Template(/*ProjectLayout projectLayout*/) {
+    // artifacts = projectLayout.configurableFiles()
+  // }
 
   // @PackageScope
   static final ObjectMapper MAPPER = new ObjectMapper()

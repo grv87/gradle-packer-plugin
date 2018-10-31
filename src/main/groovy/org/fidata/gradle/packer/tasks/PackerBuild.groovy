@@ -19,6 +19,11 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
+
+import javax.inject.Inject
+
 import static org.fidata.gradle.packer.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
@@ -84,24 +89,40 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
     this.template
   }
 
+  private final Provider<List<Template>> interpolatedTemplates
+
   @Nested
-  List<Template> getInterpolatedTemplates() {
-    if (!template.interpolated) {
-      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, this)
+  Provider<List<Template>> getInterpolatedTemplates() {
+    this.interpolatedTemplates
+  }
+
+  PackerBuild() {
+    interpolatedTemplates = project.providers.provider {
+      if (!template.interpolated) {
+        template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile/*, this*/)
+      }
+
+      List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
+      for (Builder builder in template.builders) {
+        String buildName = builder.header.buildName
+        if (!onlyExcept.skip(buildName)) {
+          result.add template.interpolateForBuilder(buildName)
+        }
+      }
+      result
     }
 
-    List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
-    for (Builder builder in template.builders) {
-      String buildName = builder.header.buildName
-      if (!onlyExcept.skip(buildName)) {
-        result.add template.interpolateForBuilder(buildName)
+    outputs.upToDateWhen {
+      interpolatedTemplates.get().every() { Template interpolatedTemplate ->
+        !interpolatedTemplate.upToDateWhen || interpolatedTemplate.upToDateWhen.every { Provider<Boolean> upToDateWhenProvider ->
+          upToDateWhenProvider.get()
+        }
       }
     }
-    result
   }
 
   @Override
-    protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
+  protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     PackerExecSpec result = super.configureExecSpec(execSpec)
     result.command 'build'
     result

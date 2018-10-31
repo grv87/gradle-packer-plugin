@@ -60,6 +60,10 @@ class PostProcessor extends InterpolableObject {
     keepInputArtifacts.interpolate context
   }
 
+  protected void doInterpolate(List<File> artifacts, boolean keep) {
+
+  }
+
   final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
       PostProcessor result = this.clone()
