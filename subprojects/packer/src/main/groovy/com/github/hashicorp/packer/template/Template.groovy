@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
 import static Context.BUILD_NAME_VARIABLE_NAME
@@ -124,7 +125,7 @@ final class Template extends InterpolableObject {
 
   final Template interpolateForBuilder(String buildName) {
     if (context.buildName) {
-      throw new IllegalStateException('Оbject is already interpolated for builder')
+      throw new ObjectAlreadyInterpolatedForBuilder()
     }
     interpolate context
     Template result = new Template()

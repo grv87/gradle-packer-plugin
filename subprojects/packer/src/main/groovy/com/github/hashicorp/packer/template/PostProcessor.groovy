@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.github.hashicorp.packer.engine.annotations.Default
+import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
@@ -67,7 +69,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
 
   final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (context.buildName) {
-      throw new IllegalStateException('Оbject is already interpolated for builder')
+      throw new ObjectAlreadyInterpolatedForBuilder()
     }
     // Stage 3
     if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
@@ -127,13 +129,13 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       } else if (PostProcessorDefinition.isInstance(rawValue)) {
         ((PostProcessorDefinition)rawValue).interpolate context
       } else {
-      throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
-    }
+        throw new InvalidRawValueClass(rawValue)
+      }
     }
 
     final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
-        throw new IllegalStateException('Оbject is already interpolated for builder')
+        throw new ObjectAlreadyInterpolatedForBuilder()
       }
       // Stage 3
       if (ArrayClass.isInstance(rawValue)) {
@@ -151,7 +153,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
           null
         }
       } else {
-        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+        throw new InvalidRawValueClass(rawValue)
       }
     }
 
@@ -182,7 +184,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
         Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = ((PostProcessorDefinition)rawValue).postProcess(priorArtifact)
         new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
       } else {
-        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+        throw new InvalidRawValueClass(rawValue)
       }
     }
   }
@@ -212,13 +214,13 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       if (PostProcessor.isInstance(rawValue)) {
         ((PostProcessor)rawValue).interpolate context
       } else if (!String.isInstance(rawValue)) {
-        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+        throw new InvalidRawValueClass(rawValue)
       }
     }
 
     final PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
-        throw new IllegalStateException('Оbject is already interpolated for builder')
+        throw new ObjectAlreadyInterpolatedForBuilder()
       }
       // Stage 3
       if (PostProcessor.isInstance(rawValue)) {
@@ -231,7 +233,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       } else if (String.isInstance(rawValue)) {
         new PostProcessorDefinition(SUBTYPES[(String)rawValue].newInstance())
       } else {
-        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+        throw new InvalidRawValueClass(rawValue)
       }
     }
 
@@ -243,7 +245,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       if (PostProcessor.isInstance(rawValue)) {
         ((PostProcessor)rawValue).postProcess priorArtifact
       } else {
-        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+        throw new InvalidRawValueClass(rawValue)
       }
     }
   }

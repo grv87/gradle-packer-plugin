@@ -22,6 +22,7 @@ package com.github.hashicorp.packer.template
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -102,7 +103,7 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
 
   final Provisioner interpolateForBuilder(Context buildCtx) {
     if (context.buildName) {
-      throw new IllegalStateException('Оbject is already interpolated for builder')
+      throw new ObjectAlreadyInterpolatedForBuilder()
     }
     // Stage 3
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {

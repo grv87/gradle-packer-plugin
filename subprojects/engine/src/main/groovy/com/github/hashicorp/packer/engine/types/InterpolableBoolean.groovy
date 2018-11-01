@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -30,7 +31,7 @@ class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
       ((InterpolableString)rawValue).interpolate context
       ((InterpolableString)rawValue).interpolatedValue.toBoolean() // TOTEST
     } else {
-      throw new IllegalStateException(sprintf('Invalid interpolable boolean raw value: %s', [rawValue]))
+      throw new InvalidRawValueClass(rawValue)
     }
   }
 }

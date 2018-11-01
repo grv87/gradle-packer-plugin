@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -34,7 +35,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
       ((InterpolableString)rawValue).interpolate context
       new ArrayList<String>(((InterpolableString)rawValue).interpolatedValue.split(',').toList())
     } else {
-      throw new IllegalStateException(sprintf('Invalid interpolable string array raw value: %s', [rawValue]))
+      throw new InvalidRawValueClass(rawValue)
     }
   }
 }
