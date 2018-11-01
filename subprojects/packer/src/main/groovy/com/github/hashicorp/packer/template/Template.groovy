@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
 
 import static Context.BUILD_NAME_VARIABLE_NAME
@@ -145,23 +146,20 @@ final class Template extends InterpolableObject {
     result
   }
 
-  private final ConfigurableFileCollection artifacts = projectLayout.configurableFiles()
-
-  @OutputFiles
-  ConfigurableFileCollection getArtifacts() {
-    projectLayout.configurableFiles(this.artifacts) // TODO
-  }
-
-  @Internal
-  private final List<Provider<Boolean>> upToDateWhen = []
-
-  List<Provider<Boolean>> getUpToDateWhen() {
-    this.upToDateWhen
-  }
-
-
   @Inject
-  final ProjectLayout projectLayout
+  private final ProjectLayout projectLayout
+
+  @JsonIgnore
+  @Nested
+  final List<Artifact> artifacts
+
+  /*ConfigurableFileCollection getArtifacts() {
+    projectLayout.configurableFiles(this.artifacts) // TODO
+  }*/
+
+  @JsonIgnore
+  @Internal
+  final List<Provider<Boolean>> upToDateWhen = []
 
   // @Inject // TOTEST
   // Template(/*ProjectLayout projectLayout*/) {

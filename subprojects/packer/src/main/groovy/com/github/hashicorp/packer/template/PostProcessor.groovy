@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -41,12 +42,13 @@ import org.gradle.api.tasks.Nested
 )
 @CompileStatic
 // REVIEWED
-class PostProcessor extends InterpolableObject {
+abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
   protected PostProcessor() {
   }
 
   @JsonUnwrapped
-  @Internal // TODO
+  @Internal
+  // TODO
   OnlyExcept onlyExcept
 
   @Input
@@ -60,10 +62,6 @@ class PostProcessor extends InterpolableObject {
     keepInputArtifacts.interpolate context
   }
 
-  protected void doInterpolate(List<File> artifacts, boolean keep) {
-
-  }
-
   final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
       PostProcessor result = this.clone()
@@ -73,6 +71,15 @@ class PostProcessor extends InterpolableObject {
       null
     }
   }
+
+  final Tuple2<Artifact, Boolean> postProcess(Artifact priorArtifact) {
+    if (!interpolated) {
+      throw new IllegalStateException('') // TODO
+    }
+    doPostProcess priorArtifact
+  }
+
+  protected abstract Tuple2<Artifact, Boolean> doPostProcess(Artifact priorArtifact)
 
   private static final Map<String, Class<? extends PostProcessor>> SUBTYPES = [:]
 

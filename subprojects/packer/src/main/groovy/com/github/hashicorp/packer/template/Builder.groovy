@@ -22,6 +22,7 @@ package com.github.hashicorp.packer.template
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -39,7 +40,7 @@ import org.gradle.api.tasks.Internal
 )
 @CompileStatic
 // REVIEWED
-class Builder extends InterpolableObject {
+abstract /* TOTEST */ class Builder extends InterpolableObject {
   protected Builder() {
   }
 
@@ -50,6 +51,15 @@ class Builder extends InterpolableObject {
   protected void doInterpolate() {
     header.interpolate context
   }
+
+  final Artifact run() {
+    if (!interpolated) {
+      throw new IllegalStateException('') // TODO
+    }
+    doRun()
+  }
+
+  protected abstract Artifact doRun()
 
   static final class BuilderHeader extends InterpolableObject {
     @Internal
