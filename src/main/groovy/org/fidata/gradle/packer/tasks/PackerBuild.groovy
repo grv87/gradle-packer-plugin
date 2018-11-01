@@ -74,7 +74,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
       cmdArgs.add 0, "-on-error=${ onError.name().toLowerCase() }"
     }
     if (project.gradle.startParameter.rerunTasks) {
-      cmdArgs.add 0, '-force' // TODO: as property
+      cmdArgs.add 0, '-force' // TODO: as property / Use Gradle rebuild CL argument
     }
     if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
       cmdArgs.add 0, '-debug'
@@ -89,29 +89,23 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
     this.template
   }
 
-  private final Provider<List<Template>> interpolatedTemplates
-
   @Nested
-  Provider<List<Template>> getInterpolatedTemplates() {
-    this.interpolatedTemplates
+  final Provider<List<Template>> interpolatedTemplates = project.providers.provider {
+    if (!template.interpolated) { // TODO
+      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile/*, this*/)
+    }
+
+    List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
+    for (Builder builder in template.builders) {
+      String buildName = builder.header.buildName
+      if (!onlyExcept.skip(buildName)) {
+        result.add template.interpolateForBuilder(buildName)
+      }
+    }
+    result
   }
 
   PackerBuild() {
-    interpolatedTemplates = project.providers.provider {
-      if (!template.interpolated) {
-        template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile/*, this*/)
-      }
-
-      List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
-      for (Builder builder in template.builders) {
-        String buildName = builder.header.buildName
-        if (!onlyExcept.skip(buildName)) {
-          result.add template.interpolateForBuilder(buildName)
-        }
-      }
-      result
-    }
-
     outputs.upToDateWhen {
       interpolatedTemplates.get().every() { Template interpolatedTemplate ->
         !interpolatedTemplate.upToDateWhen || interpolatedTemplate.upToDateWhen.every { Provider<Boolean> upToDateWhenProvider ->

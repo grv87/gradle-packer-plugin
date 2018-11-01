@@ -43,9 +43,9 @@ import java.lang.reflect.Field
 @CompileStatic
 
 class Provisioner<P extends Configuration> extends InterpolableObject {
-  final Class<? extends Configuration> configurationClass
+  final Class<P> configurationClass
 
-  protected Provisioner(Class<? extends Configuration> configurationClass) {
+  protected Provisioner(Class<P> configurationClass) {
     this.configurationClass = configurationClass
   }
 

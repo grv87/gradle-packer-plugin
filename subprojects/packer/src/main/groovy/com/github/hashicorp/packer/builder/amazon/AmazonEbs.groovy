@@ -19,12 +19,36 @@
  */
 package com.github.hashicorp.packer.builder.amazon
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.github.hashicorp.packer.builder.amazon.common.AMIConfig
+import com.github.hashicorp.packer.builder.amazon.common.AccessConfig
+import com.github.hashicorp.packer.builder.amazon.common.BlockDevices
+import com.github.hashicorp.packer.builder.amazon.common.RunConfig
+import com.github.hashicorp.packer.builder.amazon.common.TagMap
+import com.github.hashicorp.packer.engine.annotations.Inline
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.gradle.api.tasks.Internal
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class AmazonEbs extends Builder {
+  @Inline
+  AccessConfig accessConfig
+
+  @Inline
+  AMIConfig amiConfig
+
+  @Inline
+  BlockDevices blockDevices
+
+  @Inline
+  RunConfig runConfig
+
+  @JsonProperty('run_volume_tags')
+  @Internal
+  TagMap volumeRunTags
 }

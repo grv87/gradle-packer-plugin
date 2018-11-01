@@ -20,8 +20,9 @@
 package com.github.hashicorp.packer.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.github.hashicorp.packer.engine.types.InterpolableObject
 
-class ShellLocal {
+class ShellLocal extends InterpolableObject {
   List<String> inline
 
   @JsonProperty('inline_shebang')

@@ -20,43 +20,118 @@
 package com.github.hashicorp.packer.builder.virtualbox
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.github.hashicorp.packer.builder.virtualbox.common.ExportConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.ExportOpts
+import com.github.hashicorp.packer.builder.virtualbox.common.OutputConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.RunConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.SSHConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.ShutdownConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxManageConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxManagePostConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
+import com.github.hashicorp.packer.common.FloppyConfig
+import com.github.hashicorp.packer.common.HTTPConfig
+import com.github.hashicorp.packer.common.ISOConfig
+import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import com.github.hashicorp.packer.engine.annotations.Default
+import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import com.github.hashicorp.packer.engine.types.InterpolableInteger
+import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class VirtualBoxIso extends Builder {
-  /*@JsonUnwrapped
-  common.HTTPConfig               `mapstructure:",squash"`
-  common.ISOConfig                `mapstructure:",squash"`
-  common.FloppyConfig             `mapstructure:",squash"`
-  bootcommand.BootConfig          `mapstructure:",squash"`
-  vboxcommon.ExportConfig         `mapstructure:",squash"`
-  vboxcommon.ExportOpts           `mapstructure:",squash"`
-  vboxcommon.OutputConfig         `mapstructure:",squash"`
-  vboxcommon.RunConfig            `mapstructure:",squash"`
-  vboxcommon.ShutdownConfig       `mapstructure:",squash"`
-  vboxcommon.SSHConfig            `mapstructure:",squash"`
-  vboxcommon.VBoxManageConfig     `mapstructure:",squash"`
-  vboxcommon.VBoxManagePostConfig `mapstructure:",squash"`
-  vboxcommon.VBoxVersionConfig    `mapstructure:",squash"`
+  @Inline
+  HTTPConfig httpConfig
 
-  UInte
+  @Inline
+  ISOConfig isoConfig
 
-  DiskSize               uint   `mapstructure:"disk_size"`
-  GuestAdditionsMode     string `mapstructure:"guest_additions_mode"`
-  GuestAdditionsPath     string `mapstructure:"guest_additions_path"`
-  GuestAdditionsSHA256   string `mapstructure:"guest_additions_sha256"`
-  GuestAdditionsURL      string `mapstructure:"guest_additions_url"`
-  GuestOSType            string `mapstructure:"guest_os_type"`
-  HardDriveDiscard       bool   `mapstructure:"hard_drive_discard"`
-  HardDriveInterface     string `mapstructure:"hard_drive_interface"`
-  SATAPortCount          int    `mapstructure:"sata_port_count"`
-  HardDriveNonrotational bool   `mapstructure:"hard_drive_nonrotational"`
-  ISOInterface           string `mapstructure:"iso_interface"`
-  KeepRegistered         bool   `mapstructure:"keep_registered"`
-  SkipExport             bool   `mapstructure:"skip_export"`
-  VMName                 string `mapstructure:"vm_name"`*/
+  @Inline
+  FloppyConfig floppyConfig
+
+  @Inline
+  BootConfig bootConfig
+
+  @Inline
+  ExportConfig exportConfig
+
+  @Inline
+  ExportOpts exportOpts
+
+  @Inline
+  OutputConfig outputConfig
+
+  @Inline
+  RunConfig runConfig
+
+  @Inline
+  ShutdownConfig shutdownConfig
+
+  @Inline
+  SSHConfig sshConfig
+
+  @Inline
+  VBoxManageConfig vboxManageConfig
+
+  @Inline
+  VBoxManagePostConfig vboxManagePostConfig
+
+  @Inline
+  VBoxVersionConfig vboxVersionConfig
+
+  @Input
+  @Default(value = '40000')
+  InterpolableUnsignedInteger diskSize
+
+  @Default(value = 'upload')
+  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
+
+  InterpolableString guestAdditionsPath
+
+  InterpolableString guestAdditionsSHA256
+
+  InterpolableString guestAdditionsURL
+
+  @Input
+  @Default(value = 'other')
+  InterpolableString guestOSType // TODO: Enum ? (VBoxManage list ostypes)
+
+  @Input
+  InterpolableBoolean hardDriveDiscard
+
+  @Input
+  @Default(value = 'ide')
+  InterpolableString hardDriveInterface // TODO: Enum
+
+  @Input
+  @Default(value = '1')
+  InterpolableInteger sataPortCount
+
+  @Input
+  InterpolableBoolean hardDriveNonrotational
+
+  @Default(value = 'ide')
+  InterpolableString isoInterface // TODO: Enum
+
+  @Input
+  @Default(value = 'false')
+  InterpolableBoolean keepRegistered
+
+  @Input
+  @Default(value = 'false')
+  InterpolableBoolean skipExport // TODO: handle
+
+  @Internal // name of the OVF file for the new virtual machine, without the file extension
+  // @Default(value = 'packer-BUILDNAME') // TODO
+  InterpolableString vmName
 }

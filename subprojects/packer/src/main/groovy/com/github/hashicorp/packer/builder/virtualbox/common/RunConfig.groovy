@@ -1,0 +1,22 @@
+package com.github.hashicorp.packer.builder.virtualbox.common
+
+import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+
+class RunConfig extends InterpolableObject {
+  @Internal // TOTEST
+  InterpolableBoolean headless
+
+  @Input // TOTEST
+  InterpolableString vrdpBindAddress
+
+  @Input // TOTEST
+  InterpolableUnsignedInteger vrdpPortMin
+
+  @Input // TOTEST
+  InterpolableUnsignedInteger vrdpPortMax
+}

@@ -4,7 +4,6 @@ import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.types.InterpolableValue
 import com.fasterxml.jackson.annotation.JsonCreator
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)

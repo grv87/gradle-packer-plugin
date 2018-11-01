@@ -19,38 +19,105 @@
  */
 package com.github.hashicorp.packer.builder.virtualbox
 
+import com.github.hashicorp.packer.builder.virtualbox.common.ExportConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.ExportOpts
+import com.github.hashicorp.packer.builder.virtualbox.common.OutputConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.RunConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.SSHConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.ShutdownConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxManageConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxManagePostConfig
+import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
+import com.github.hashicorp.packer.common.FloppyConfig
+import com.github.hashicorp.packer.common.HTTPConfig
+import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import com.github.hashicorp.packer.engine.annotations.Default
+import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
+import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.github.hashicorp.packer.engine.types.InterpolableStringArray
+import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class VirtualBoxOvf extends Builder {
-  /*common.HTTPConfig               `mapstructure:",squash"`
-  common.FloppyConfig             `mapstructure:",squash"`
-  bootcommand.BootConfig          `mapstructure:",squash"`
-  vboxcommon.ExportConfig         `mapstructure:",squash"`
-  vboxcommon.ExportOpts           `mapstructure:",squash"`
-  vboxcommon.OutputConfig         `mapstructure:",squash"`
-  vboxcommon.RunConfig            `mapstructure:",squash"`
-  vboxcommon.SSHConfig            `mapstructure:",squash"`
-  vboxcommon.ShutdownConfig       `mapstructure:",squash"`
-  vboxcommon.VBoxManageConfig     `mapstructure:",squash"`
-  vboxcommon.VBoxManagePostConfig `mapstructure:",squash"`
-  vboxcommon.VBoxVersionConfig    `mapstructure:",squash"`
+  @Inline
+  HTTPConfig httpConfig
 
-  Checksum             string   `mapstructure:"checksum"`
-  ChecksumType         string   `mapstructure:"checksum_type"`
-  GuestAdditionsMode   string   `mapstructure:"guest_additions_mode"`
-  GuestAdditionsPath   string   `mapstructure:"guest_additions_path"`
-  GuestAdditionsSHA256 string   `mapstructure:"guest_additions_sha256"`
-  GuestAdditionsURL    string   `mapstructure:"guest_additions_url"`
-  ImportFlags          []string `mapstructure:"import_flags"`
-  ImportOpts           string   `mapstructure:"import_opts"`
-  SourcePath           string   `mapstructure:"source_path"`
-  TargetPath           string   `mapstructure:"target_path"`
-  VMName               string   `mapstructure:"vm_name"`
-  KeepRegistered       bool     `mapstructure:"keep_registered"`
-  SkipExport           bool     `mapstructure:"skip_export"`*/
+  @Inline
+  FloppyConfig floppyConfig
+
+  @Inline
+  BootConfig bootConfig
+
+  @Inline
+  ExportConfig exportConfig
+
+  @Inline
+  ExportOpts exportOpts
+
+  @Inline
+  OutputConfig outputConfig
+
+  @Inline
+  RunConfig runConfig
+
+  @Inline
+  SSHConfig sshConfig
+
+  @Inline
+  ShutdownConfig shutdownConfig
+
+  @Inline
+  VBoxManageConfig vboxManageConfig
+
+  @Inline
+  VBoxManagePostConfig vboxManagePostConfig
+
+  @Inline
+  VBoxVersionConfig vboxVersionConfig
+
+  @Input
+  InterpolableString chechsum
+
+  @Input
+  InterpolableChecksumType chechsumType
+
+  @Default(value = 'upload')
+  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
+
+  InterpolableString guestAdditionsPath
+
+  InterpolableString guestAdditionsSHA256
+
+  InterpolableString guestAdditionsURL
+
+  @Input
+  InterpolableStringArray importFlags
+
+  @Input
+  InterpolableString importOpts
+
+  InterpolableString sourcePath
+
+  InterpolableString targetPath
+
+  @Internal // name of the OVF file for the new virtual machine, without the file extension
+  // @Default(value = 'packer-BUILDNAME') // TODO
+  InterpolableString vmName
+
+  @Input
+  @Default(value = 'false')
+  InterpolableBoolean keepRegistered
+
+  @Input
+  @Default(value = 'false')
+  InterpolableBoolean skipExport // TODO: handle
 }

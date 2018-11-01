@@ -1,34 +1,34 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.annotation.JsonCreator
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
-class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
-  protected InterpolableBoolean() {
+class InterpolableLong extends InterpolableValue<Object, Long> {
+  protected InterpolableLong() {
   }
 
   @JsonCreator
-  InterpolableBoolean(Boolean rawValue) {
+  InterpolableLong(Long rawValue) {
     super(rawValue)
   }
 
   @JsonCreator
-  InterpolableBoolean(InterpolableString rawValue) {
+  InterpolableLong(InterpolableString rawValue) {
     super(rawValue)
   }
 
   @Override
-  protected Boolean doInterpolatePrimitive() {
-    if (Boolean.isInstance(rawValue)) {
-      (Boolean)rawValue
+  protected Long doInterpolatePrimitive() {
+    if (Long.isInstance(rawValue)) {
+      (Long)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {
       ((InterpolableString)rawValue).interpolate context
-      ((InterpolableString)rawValue).interpolatedValue.asBoolean() // TOTEST
+      ((InterpolableString)rawValue).interpolatedValue.toLong()
     } else {
       throw new InvalidRawValueClass(rawValue)
     }
