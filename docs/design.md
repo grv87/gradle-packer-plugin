@@ -3,15 +3,28 @@ Design
 
 ## Interpolation
 
-Interpolation is made in several stages:
+Run is made in several stages:
 1.  Interpolation of user variables
 2.  Interpolation of builder headers
     (there is only one interpolable string, build name)
 3.  Interpolation of the whole builder,
     and also provisioners and post-processors
+4.  Determining of output artifacts
+
+The first two stages are implemented in `Template.doInterpolate`.
+The third stage is implemented in the following methods:
+*   `Template.interpolateForBuilder`
+*   `Builder.doInterpolate`
+*   `Provisioner.interpolateForBuilder`
+*   `PostProcessor.interpolateForBuilder`
+
+The forth stage is implemented in the following methods:
+*   `Template.interpolateForBuilder`
+*   `Builder.run`
+*   `PostProcessor.postProcess`
 
 When plugin is applied to `Settings` and tasks are created automatically
-then stages 1 and 2 are passed before task creation.
+then stages 1 and 2 are passed before task creation. // TODO
 Stage 3 is passed when Gradle detects task inputs/outputs
 before its run.
 
