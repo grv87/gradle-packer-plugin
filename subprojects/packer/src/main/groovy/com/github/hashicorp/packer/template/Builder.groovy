@@ -29,6 +29,7 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
@@ -52,14 +53,15 @@ abstract /* TOTEST */ class Builder extends InterpolableObject {
     header.interpolate context
   }
 
-  final Artifact run() {
+  final Tuple2<Artifact, List<Provider<Boolean>>> run() {
     if (!interpolated) {
       throw new IllegalStateException('') // TODO
     }
+    // Stage 4
     doRun()
   }
 
-  protected abstract Artifact doRun()
+  protected abstract Tuple2<Artifact, List<Provider<Boolean>>> doRun()
 
   static final class BuilderHeader extends InterpolableObject {
     @Internal

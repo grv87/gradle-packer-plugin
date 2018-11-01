@@ -24,12 +24,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -55,6 +57,7 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
   String type
 
   @Internal
+  @Default(value = 'false') // TODO
   InterpolableBoolean keepInputArtifacts
 
   @Override
@@ -63,6 +66,10 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
   }
 
   final PostProcessor interpolateForBuilder(Context buildCtx) {
+    if (context.buildName) {
+      throw new IllegalStateException('Оbject is already interpolated for builder')
+    }
+    // Stage 3
     if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
       PostProcessor result = this.clone()
       result.interpolate buildCtx
@@ -72,14 +79,16 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
     }
   }
 
-  final Tuple2<Artifact, Boolean> postProcess(Artifact priorArtifact) {
+  final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
     if (!interpolated) {
       throw new IllegalStateException('') // TODO
     }
-    doPostProcess priorArtifact
+    // Stage 4
+    Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = doPostProcess(priorArtifact)
+    new Tuple2(new Tuple2(result.first.first, result.first.second || keepInputArtifacts.interpolatedValue), result.second)
   }
 
-  protected abstract Tuple2<Artifact, Boolean> doPostProcess(Artifact priorArtifact)
+  protected abstract Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
   private static final Map<String, Class<? extends PostProcessor>> SUBTYPES = [:]
 
@@ -122,7 +131,11 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
     }
     }
 
-    PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
+    final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
+      if (context.buildName) {
+        throw new IllegalStateException('Оbject is already interpolated for builder')
+      }
+      // Stage 3
       if (ArrayClass.isInstance(rawValue)) {
         ArrayClass result = (ArrayClass)(((ArrayClass)rawValue)*.interpolateForBuilder(buildCtx).findAll())
         if (result.size() > 0) {
@@ -137,6 +150,37 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
         } else {
           null
         }
+      } else {
+        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+      }
+    }
+
+    final Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
+      if (!interpolated) {
+        throw new IllegalStateException('') // TODO
+      }
+      // Stage 4
+      if (ArrayClass.isInstance(rawValue)) {
+        List<Artifact> artifacts = []
+        Boolean keep = true
+        List<Provider<Boolean>> upToDateWhen = []
+        Artifact _priorArtifact = priorArtifact
+        ((ArrayClass)rawValue).eachWithIndex {  PostProcessorDefinition postProcessorDefinition, Integer i ->
+          Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = postProcessorDefinition.postProcess(_priorArtifact)
+          _priorArtifact = result.first.first
+          boolean _keep = result.first.second
+          keep = keep && _keep
+          if (_keep) {
+            artifacts.add _priorArtifact
+          } else {
+            artifacts = [_priorArtifact]
+          }
+          upToDateWhen.addAll result.second
+        }
+        new Tuple2(new Tuple2(artifacts, keep), upToDateWhen)
+      } else if (PostProcessorDefinition.isInstance(rawValue)) {
+        Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = ((PostProcessorDefinition)rawValue).postProcess(priorArtifact)
+        new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
       } else {
         throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
       }
@@ -172,7 +216,11 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       }
     }
 
-    PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
+    final PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
+      if (context.buildName) {
+        throw new IllegalStateException('Оbject is already interpolated for builder')
+      }
+      // Stage 3
       if (PostProcessor.isInstance(rawValue)) {
         PostProcessor result = ((PostProcessor)rawValue).interpolateForBuilder(buildCtx)
         if (result) {
@@ -182,6 +230,18 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
         }
       } else if (String.isInstance(rawValue)) {
         new PostProcessorDefinition(SUBTYPES[(String)rawValue].newInstance())
+      } else {
+        throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
+      }
+    }
+
+    final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
+      if (!interpolated) {
+        throw new IllegalStateException('') // TODO
+      }
+      // Stage 4
+      if (PostProcessor.isInstance(rawValue)) {
+        ((PostProcessor)rawValue).postProcess priorArtifact
       } else {
         throw new IllegalStateException(sprintf('Invalid rawValue class: %s', [rawValue.class]))
       }

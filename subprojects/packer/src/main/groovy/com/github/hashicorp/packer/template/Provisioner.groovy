@@ -101,6 +101,10 @@ class Provisioner<P extends Configuration> extends InterpolableObject {
   }
 
   final Provisioner interpolateForBuilder(Context buildCtx) {
+    if (context.buildName) {
+      throw new IllegalStateException('Оbject is already interpolated for builder')
+    }
+    // Stage 3
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
       Provisioner result = this.clone()
       result.interpolate buildCtx

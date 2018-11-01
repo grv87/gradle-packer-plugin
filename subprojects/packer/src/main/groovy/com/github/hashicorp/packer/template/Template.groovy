@@ -21,11 +21,8 @@ package com.github.hashicorp.packer.template
 
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
-
 import static Context.BUILD_NAME_VARIABLE_NAME
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.OutputFiles
 import javax.inject.Inject
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
@@ -126,6 +123,9 @@ final class Template extends InterpolableObject {
   }
 
   final Template interpolateForBuilder(String buildName) {
+    if (context.buildName) {
+      throw new IllegalStateException('Оbject is already interpolated for builder')
+    }
     interpolate context
     Template result = new Template()
     Builder builder = builders.find { Builder builder -> builder.header.buildName == buildName }
@@ -143,7 +143,31 @@ final class Template extends InterpolableObject {
 
     result.provisioners = provisioners*.interpolateForBuilder(buildCtx).findAll()
     result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()
+    // Stage 4
+    result.run()
     result
+  }
+
+  private void run() {
+    if (builders.size() != 1) {
+      throw new IllegalStateException(sprintf('Expected 1 builder. Found: %d', builders.size()))
+    }
+    // Stage 4
+    Tuple2<Artifact, List<Provider<Boolean>>> builderResult = builders[0].run()
+    Boolean keep = true
+    upToDateWhen.addAll builderResult.second
+
+    // Provisioners don't add anything to artifacts or upToDateWhen
+
+    postProcessors.each { PostProcessor.PostProcessorArrayDefinition postProcessorArrayDefinition ->
+      Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> postProcessorResult = postProcessorArrayDefinition.postProcess(builderResult.first)
+      artifacts.addAll postProcessorResult.first.first
+      keep = keep || postProcessorResult.first.second
+      upToDateWhen.addAll postProcessorResult.second
+    }
+    if (keep) {
+      artifacts.add builderResult.first
+    }
   }
 
   @Inject
@@ -151,7 +175,7 @@ final class Template extends InterpolableObject {
 
   @JsonIgnore
   @Nested
-  final List<Artifact> artifacts
+  final List<Artifact> artifacts = []
 
   /*ConfigurableFileCollection getArtifacts() {
     projectLayout.configurableFiles(this.artifacts) // TODO

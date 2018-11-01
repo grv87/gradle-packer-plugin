@@ -61,5 +61,5 @@ class Artifact {
    * such as if a post-processor has processed this artifact and it is
    * no longer needed.
    */
-  void destroy() { }
+  void destroy() { } // TODO
 }
