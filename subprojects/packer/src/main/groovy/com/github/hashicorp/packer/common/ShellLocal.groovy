@@ -25,22 +25,17 @@ import com.github.hashicorp.packer.engine.types.InterpolableObject
 class ShellLocal extends InterpolableObject {
   List<String> inline
 
-  @JsonProperty('inline_shebang')
   String inlineShebang
 
-  @JsonProperty('tempfile_extension')
   String tempfileExtension
 
   String script
 
   List<String> scripts
 
-  @JsonProperty('environment_vars')
   List<String> environmentVars
 
-  @JsonProperty('execute_command')
   List<String> executeCommand
 
-  @JsonProperty('use_linux_pathing')
   List<String> useLinuxPathing
 }

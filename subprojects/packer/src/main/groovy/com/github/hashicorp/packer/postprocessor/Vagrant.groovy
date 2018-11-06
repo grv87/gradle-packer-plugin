@@ -28,7 +28,6 @@ import com.github.hashicorp.packer.template.PostProcessor
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Vagrant extends PostProcessor {
-  @JsonProperty('compression_level')
   Integer compressionLevel
 
   List<String> include
@@ -38,6 +37,5 @@ class Vagrant extends PostProcessor {
 
   Map<String, Object> override
 
-  @JsonProperty('vagrantfile_template')
   String vagrantfileTemplate
 }

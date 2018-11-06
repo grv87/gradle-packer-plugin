@@ -32,18 +32,13 @@ class VagrantCloud extends PostProcessor {
 
   String version
 
-  @JsonProperty('version_description')
   String versionDescription
 
-  @JsonProperty('no_release')
   Boolean noRelease
 
-  @JsonProperty('access_token')
   String accessToken
 
-  @JsonProperty('vagrant_cloud_url')
   String vagrantCloudUrl
 
-  @JsonProperty('box_download_url')
   String boxDownloadUrl
 }
