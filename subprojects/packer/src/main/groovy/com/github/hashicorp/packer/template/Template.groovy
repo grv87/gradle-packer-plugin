@@ -125,6 +125,7 @@ final class Template extends InterpolableObject {
 
   final Template interpolateForBuilder(String buildName) {
     if (context.buildName) {
+      // This will never be true
       throw new ObjectAlreadyInterpolatedForBuilder()
     }
     interpolate context
