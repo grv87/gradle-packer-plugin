@@ -5,9 +5,24 @@ import com.fasterxml.uuid.NoArgGenerator
 import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import org.gradle.api.Task
+import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.RegularFile
 
+import java.nio.file.Path
+import java.time.Instant
+
+// equals is used in InterpolableObject to check whether
+// TODO: maybe this is not required at all, if we just throw exception whenever object is already interpolated.
+// This would be cheaper + give us a possibility to catch some errors
 @EqualsAndHashCode(excludes = ['buildName'])
+/* NOT NEEDED
+//
+// @ImmutableBase // TODO: Groovy 2.5.0
+*/
 @CompileStatic
 // REVIEWED
 final class Context {
@@ -25,23 +40,24 @@ final class Context {
 
   final File templateFile
 
-  // final Task task TODO: This should not be necessary
+  final Path cwd
 
-  final File cwd
+  final Project project
 
-  @SuppressWarnings(['NoJavaUtilDate', 'UnnecessaryCast']) // TODO
-  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, File cwd/*, Task task*/) {
+  @SuppressWarnings('UnnecessaryCast') // TODO
+  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
     this.userVariables = userVariables?.asImmutable()
     this.env = env?.asImmutable()
     this.templateVariables = templateVariables?.asImmutable()
     this.templateFile = templateFile
-    this.cwd = cwd
-    // this.task = task
+    this.cwd = project.file(cwd.toFile()).absoluteFile.toPath() // cwd is absolute, so all resolutions
+    this.project = project
 
+    // TODO: mark string as mutable if timestamp or uuid is used
     Map<String, Serializable> aContextTemplateData = (Map<String, Serializable>)[
       'pwd': new File('.').canonicalPath,
       'template_dir': templateFile.parentFile.absolutePath,
-      'timestamp': new Date().time.intdiv(1000),
+      'timestamp': Instant.now().epochSecond,
       'uuid': UUID_GENERATOR.generate().toString(), // TODO: We can generate uuid for specific builds only, not for general template
     ]
     if (userVariables) {
@@ -57,8 +73,8 @@ final class Context {
     contextTemplateData = aContextTemplateData.asImmutable()
   }
 
-  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, File cwd/*, Task task*/) {
-    this(userVariables, env, null, templateFile, cwd/*, task*/)
+  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, Path cwd, Project project) {
+    this(userVariables, env, null, templateFile, cwd, project)
   }
 
   /**
@@ -72,7 +88,7 @@ final class Context {
       templateVariables.putAll this.templateVariables
     }
     templateVariables.putAll variables
-    new Context((Map<String, String>)userVariables?.clone(), (Map<String, String>)env?.clone(), templateVariables, templateFile, cwd/*, task*/)
+    new Context((Map<String, String>)userVariables?.clone(), (Map<String, String>)env?.clone(), templateVariables, templateFile, cwd, project)
   }
 
   private final Map<String, Serializable> contextTemplateData
@@ -90,9 +106,39 @@ final class Context {
     mustacheCompiler.compile(value).execute(contextTemplateData)
   }
 
-  File /* TODO: RegularFile ? */ interpolateFile(String value) {
-    cwd.toPath().resolve(interpolateString(value)).toFile()
+  Path /* TODO: RegularFile ? */ interpolatePath(String value) {
+    resolvePath(interpolateString(value))
     // Paths.get()
+  }
+
+  /*
+   * TOTHINK: maybe these should be private. But they are convenient for File provisioner.
+   * Also, if we wouldn't operate with Path at all, we could use instance of Directory as cwd
+   */
+  // Result of this is always absolute
+  Path resolvePath(Path path) {
+    cwd.resolve(path)
+  }
+
+  // Result of this is always absolute
+  /* TOTHINK private*/ Path resolvePath(String path) {
+    cwd.resolve(path)
+  }
+
+  RegularFile resolveRegularFile(Path path) {
+    project.layout.projectDirectory.file(resolvePath(path).toString())
+  }
+
+  Directory resolveDirectory(Path path) {
+    project.layout.projectDirectory.dir(resolvePath(path).toString())
+  }
+
+  FileCollection resolveFiles(Path... paths) {
+    project.files paths.collect { Path path -> resolvePath(path) }
+  }
+
+  FileTree resolveFileTree(Path path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
+    project.fileTree resolvePath(path), closure
   }
 
   static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()

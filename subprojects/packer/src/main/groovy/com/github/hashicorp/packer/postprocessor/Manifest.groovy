@@ -19,32 +19,73 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.types.InterpolablePath
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputFile
-import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import com.github.hashicorp.packer.packer.Artifact
+
+import java.nio.file.Paths
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')
   @Internal
-  InterpolableString outputPath
+  // TODO: @Default('packer-manifest.json')
+  InterpolablePath outputPath
 
   @Input
   InterpolableBoolean stripPath
 
-  @JsonIgnore
-  @OutputFile
-  File getOutputFile() {
-    context.task.project.file(outputPath.interpolatedValue ?: 'packer-manifest.json')
+  // TODO
+  class Artifact implements com.github.hashicorp.packer.packer.Artifact {
+    @Override
+    String builderId() {
+      'packer.post-processor.manifest'
+    }
+    final String buildName
+    final String builderType
+    final long buildTime
+    final ArtifactFiles
+    final String artifactId
+    final UUID packerRunUUID
+
+    Artifact(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
+
+
+      builderId: ,
+      files: context.resolveFiles(outputPath.interpolatedValue ?: Paths.get('packer-manifest.json') /* TODO */),
+      id: priorArtifact.id,
+      string: "$context.buildName-$priorArtifact.id"
+    }
+  }
+
+  @Override
+  protected Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact) {
+    Artifact artifact = new Artifact() {
+
+    }
+
+      new Artifact() {
+
+    }
+
+    }
+      // TODO: Packer creates the whole subclass and instance here. We just use generic class for now
+      builderId: 'packer.post-processor.manifest',
+      files: context.resolveFiles(outputPath.interpolatedValue ?: Paths.get('packer-manifest.json') /* TODO */),
+      id: priorArtifact.id,
+      string: "$context.buildName-$priorArtifact.id",
+      // TODO
+    )
+    return new Tuple2(new Tuple2(artifact, true), null)
   }
 
   /*@Override

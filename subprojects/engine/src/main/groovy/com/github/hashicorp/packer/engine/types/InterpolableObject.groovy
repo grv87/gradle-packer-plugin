@@ -4,13 +4,15 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.PackageScope
 import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.template.Context
 
-@AutoClone(style = AutoCloneStyle.SIMPLE/*, excludes = ['interpolated', 'context']*/)
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 abstract class InterpolableObject {
-  private boolean interpolated = false
+  // It can be changed in InterpolableValue.forInterpolatedValue
+  /*private*/ @PackageScope boolean interpolated = false
   private Context context
 
   @JsonIgnore

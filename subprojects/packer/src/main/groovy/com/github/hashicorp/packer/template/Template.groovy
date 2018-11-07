@@ -42,7 +42,7 @@ import org.gradle.api.tasks.Optional
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
-@AutoClone(style = AutoCloneStyle.SIMPLE/*, excludes = ['envContext', 'variablesContext'] TOTEST: This should not be needed*/)
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // REVIEWED
 final class Template extends InterpolableObject {
@@ -110,14 +110,14 @@ final class Template extends InterpolableObject {
     super.doInterpolate() // TOTEST
 
     // Stage 1
-    envContext = new Context(null, context.env, context.templateFile, context.cwd/*, context.task*/)
+    envContext = new Context(null, context.env, context.templateFile, context.cwd, context.project) // TODO: maybe make these as methods in Context ?
     variables.each.interpolate envContext
 
     // Stage 2
     Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
       [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
     }
-    variablesContext = new Context(userVariables, null, context.templateFile, context.cwd/*, context.task*/)
+    variablesContext = new Context(userVariables, null, context.templateFile, context.cwd, context.project)
     for (Builder builder in builders) {
       builder.header.interpolate variablesContext
     }

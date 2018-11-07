@@ -8,7 +8,9 @@ import groovy.transform.CompileStatic
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableLong extends InterpolableValue<Object, Long> {
+  // This constructor is required for Externalizable
   protected InterpolableLong() {
   }
 

@@ -123,6 +123,14 @@
       <textMaps />
     </LinkMapSettings>
   </component>
+  <component name="ProjectDictionaryState">
+    <dictionary name="Basil">
+      <words>
+        <w>externalizable</w>
+        <w>gradle</w>
+      </words>
+    </dictionary>
+  </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/gradle-packer-plugin.iml" filepath="$PROJECT_DIR$/gradle-packer-plugin.iml" />

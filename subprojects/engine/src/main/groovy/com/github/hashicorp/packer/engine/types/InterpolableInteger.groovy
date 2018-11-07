@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonCreator
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableInteger extends InterpolableValue<Object, Integer> {
+  // This constructor is required for Externalizable
   protected InterpolableInteger() {
   }
 

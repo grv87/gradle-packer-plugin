@@ -71,7 +71,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
       /*if (onError == OnError.ASK &&  {
         TODO: ASK will work in interactive mode only
       }*/
-      cmdArgs.add 0, "-on-error=${ onError.name().toLowerCase() }"
+      cmdArgs.add 0, "-on-error=$onError"
     }
     if (project.gradle.startParameter.rerunTasks) {
       cmdArgs.add 0, '-force' // TODO: as property / Use Gradle rebuild CL argument
@@ -92,7 +92,7 @@ class PackerBuild extends PackerWrapperTask implements PackerMachineReadableArgu
   @Nested
   final Provider<List<Template>> interpolatedTemplates = project.providers.provider {
     if (!template.interpolated) { // TODO
-      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile/*, this*/)
+      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile.toPath(), project)
     }
 
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))

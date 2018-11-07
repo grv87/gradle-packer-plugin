@@ -1,9 +1,12 @@
 package com.github.hashicorp.packer.engine.enums
 
+import groovy.transform.CompileStatic
+
 /**
  * This key determines what to do when a normal multistep step fails
  * What to do when the build fails
  */
+@CompileStatic
 enum OnError {
   /**
    * Run cleanup steps
@@ -20,4 +23,9 @@ enum OnError {
    * Present a prompt and wait for user to decide to clean up, abort, or retry the failed step
    */
   ASK
+
+  @Override
+  String toString() {
+    this.name().toLowerCase()
+  }
 }

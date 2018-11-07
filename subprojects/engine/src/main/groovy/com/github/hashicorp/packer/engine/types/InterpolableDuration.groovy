@@ -10,6 +10,7 @@ import java.time.Duration
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
+// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableDuration extends InterpolableValue<InterpolableString, Duration> {
   @Override
   protected Duration doInterpolatePrimitive() {

@@ -5,22 +5,22 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonValue
-import org.gradle.api.tasks.Internal
-import com.fasterxml.jackson.annotation.JsonCreator
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
+// equals is required for Gradle up-to-date checking
 @EqualsAndHashCode(includes = ['interpolatedValue'])
-@AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['interpolatedValue'])
+// @AutoExternalize(excludes = ['rawValue']) // TODO: Groovy 2.5.0
 @CompileStatic
-abstract class InterpolableValue<Source, Target extends Serializable> extends InterpolableObject implements Serializable {
+// Serializable and Externalizable are required for Gradle up-to-date checking
+abstract class InterpolableValue<Source, Target extends Serializable> extends InterpolableObject implements Externalizable {
   @JsonValue
-  @Internal
   Source rawValue
 
+  // This constructor is required for Externalizable
   protected InterpolableValue() {
   }
 
-  @JsonCreator
-  protected /* TOTEST */ InterpolableValue(Source rawValue) {
+  protected InterpolableValue(Source rawValue) {
     this.rawValue = rawValue
   }
 
@@ -40,19 +40,22 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
 
   abstract protected Target doInterpolatePrimitive()
 
-  private static final long serialVersionUID = 1L
+  @SuppressWarnings('unused') // IDEA bug
+  private static final long serialVersionUID = 7881876550613522317L
 
-  /*private void writeObject(ObjectOutputStream out) throws IOException {
-    out.writeChars(interpolatedValue)
-  }*/
-  /*
-   * WORKAROUND:
-   * Bug in CodeNarc
-   * <grv87 2018-08-19>
-   */
-  @SuppressWarnings('UnusedPrivateMethod')
-  private Object writeReplace() throws ObjectStreamException {
-    interpolatedValue
+  void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(interpolatedValue)
   }
 
+  void readExternal(ObjectInput oin) throws IOException, ClassNotFoundException {
+    interpolatedValue = (Target)oin.readObject()
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableValue<Source, Target> forInterpolatedValue(Target interpolatedValue) {
+    InterpolableValue<Source, Target> result = InterpolableValue<Source, Target>.newInstance()
+    result.interpolated = true
+    result.interpolatedValue = interpolatedValue
+    result
+  }
 }

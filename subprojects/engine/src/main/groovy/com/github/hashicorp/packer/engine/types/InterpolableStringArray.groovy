@@ -12,12 +12,13 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
   static class ArrayClass extends ArrayList<InterpolableString> {
   }
 
+  // This constructor is required for Externalizable
   protected InterpolableStringArray() {
   }
 
   @JsonCreator
   InterpolableStringArray(ArrayClass rawValue) {
-    super(rawValue.asImmutable())
+    super(rawValue.asImmutable()) // TODO: no sense to make rawValue immutable since it is not final anyway
   }
 
   @JsonCreator

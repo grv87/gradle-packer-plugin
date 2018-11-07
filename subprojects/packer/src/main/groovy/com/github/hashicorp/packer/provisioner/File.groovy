@@ -19,10 +19,10 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import java.io.File as JavaFile
+import com.github.hashicorp.packer.engine.annotations.Default
+import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
-import com.github.hashicorp.packer.engine.types.InterpolableValue
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -30,8 +30,6 @@ import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.fasterxml.jackson.annotation.JsonIgnore
-import groovy.transform.InheritConstructors
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -39,10 +37,10 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.regex.Pattern
-import java.util.zip.DataFormatException
 
-@AutoClone(style = AutoCloneStyle.SIMPLE, excludes = ['sourceFile', 'sourceDirectory', 'destinationFile', 'destinationDirectory'])
+@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class File extends Provisioner<Configuration> {
   File() {
@@ -57,25 +55,27 @@ class File extends Provisioner<Configuration> {
     InterpolableString destination
 
     @Internal
+    @Default('Direction.UPLOAD')
     InterpolableDirection direction
 
+    /* TODO: Default ?
     @JsonIgnore
     @Input
     Direction getDirectionValue() {
       direction.interpolatedValue ?: Direction.UPLOAD
-    }
+    }*/
 
     @Internal
-    InterpolableBoolean generated // TODO
+    InterpolableBoolean generated
 
     private Boolean isDirectory
 
-    private JavaFile inputFile
+    private Path inputFile
 
     @JsonIgnore
     @InputFile
     @Optional
-    JavaFile getInputFile() {
+    Path getInputFile() {
       if (!isDirectory) {
         this.inputFile
       }
@@ -84,18 +84,19 @@ class File extends Provisioner<Configuration> {
     @JsonIgnore
     @InputDirectory
     @Optional
-    JavaFile getSourceDirectory() {
+    Path getSourceDirectory() {
       if (isDirectory) {
         this.inputFile
       }
     }
 
-    private JavaFile outputFile
+    private Path outputFile
+
     @JsonIgnore
     @OutputFile
     @Optional
-    JavaFile getOutputFile() {
-      if (isDirectory) {
+    Path getOutputFile() {
+      if (!isDirectory) {
         this.outputFile
       }
     }
@@ -103,7 +104,7 @@ class File extends Provisioner<Configuration> {
     @JsonIgnore
     @OutputDirectory
     @Optional
-    JavaFile getOutputDirectory() {
+    Path getOutputDirectory() {
       if (isDirectory) {
         this.outputFile
       }
@@ -117,28 +118,34 @@ class File extends Provisioner<Configuration> {
       source?.interpolate context
       destination?.interpolate context
       direction?.interpolate context
+      if (!direction?.interpolatedValue) {
+        direction = (InterpolableDirection)InterpolableDirection.forInterpolatedValue(Direction.UPLOAD)
+      }
       generated?.interpolate context
+      if (!generated?.interpolatedValue) {
+        generated = (InterpolableBoolean)InterpolableBoolean.forInterpolatedValue(false)
+      }
 
       Path sourcePath = null
       if (source) {
-        sourcePath = new JavaFile(source.interpolatedValue).toPath()
+        sourcePath = Paths.get(source.interpolatedValue)
         isDirectory = source.interpolatedValue ==~ DIR_PATTERN
       }
 
-      switch (directionValue) {
+      switch (direction.interpolatedValue /*directionValue*/) {
         case Direction.UPLOAD:
-          if (source && !generated?.interpolatedValue) {
-            inputFile = context.task.project.file(sourcePath)
+          if (source && !generated.interpolatedValue) {
+            inputFile = context.resolvePath(sourcePath)
           }
           break
         case Direction.DOWNLOAD:
           if (source && destination) {
-            Path outputPath = new JavaFile(destination.interpolatedValue).toPath()
+            Path outputPath = Paths.get(destination.interpolatedValue)
             Boolean destinationIsDirectory = destination.interpolatedValue ==~ DIR_PATTERN
             if (destinationIsDirectory) {
               outputPath = outputPath.resolve(sourcePath.getName(sourcePath.nameCount - 1))
             }
-            outputFile = context.task.project.file(outputPath)
+            outputFile = context.resolvePath(outputPath)
           }
           break
         default:
@@ -147,7 +154,6 @@ class File extends Provisioner<Configuration> {
     }
   }
 
-  @CompileStatic
   enum Direction {
     UPLOAD,
     DOWNLOAD
@@ -157,25 +163,23 @@ class File extends Provisioner<Configuration> {
     String toString() {
       this.name().toLowerCase()
     }
-
-    @JsonCreator
-    static Direction forValue(String value) throws DataFormatException {
-      if (value == value.toLowerCase()) {
-        valueOf(value.toUpperCase())
-      } else {
-        throw new DataFormatException(sprintf('%s if not a valid direction value', [value])) // TODO
-      }
-    }
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
-  @InheritConstructors
-  @CompileStatic
-  static class InterpolableDirection extends InterpolableValue<InterpolableString, File.Direction> {
-    @Override
-    protected File.Direction doInterpolatePrimitive() {
-      rawValue.interpolate context
-      File.Direction.forValue(rawValue.interpolatedValue)
+  // @KnownImmutable // TODO: Groovy 2.5
+  static class InterpolableDirection extends InterpolableEnum<Direction> {
+    // This constructor is required for Externalizable
+    protected InterpolableDirection() {
+      super(Direction)
+    }
+
+    InterpolableDirection(Direction rawValue) {
+      super(rawValue, Direction)
+    }
+
+    @JsonCreator
+    InterpolableDirection(String rawValue) {
+      super(rawValue, Direction)
     }
   }
 }

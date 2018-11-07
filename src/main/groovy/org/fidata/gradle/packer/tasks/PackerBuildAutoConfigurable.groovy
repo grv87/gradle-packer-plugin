@@ -11,7 +11,7 @@ class PackerBuildAutoConfigurable extends PackerBuild {
   }
 
   @Inject
-  PackerBuildAutoConfigurable(File templateFile, Template template, Closure configureClosure = null) {
+  PackerBuildAutoConfigurable(File templateFile, Template template, @DelegatesTo(PackerBuildAutoConfigurable) Closure configureClosure = null) {
     super()
     this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile = templateFile
     group = BUILD_GROUP

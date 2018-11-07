@@ -25,7 +25,7 @@ import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableFile
+import com.github.hashicorp.packer.engine.types.InterpolablePath
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
@@ -49,19 +49,19 @@ class ChefSolo extends Provisioner<Configuration> {
     InterpolableString configTemplate
 
     @InputFiles
-    List<InterpolableFile> cookbookPaths
+    List<InterpolablePath> cookbookPaths
 
     @InputDirectory
-    InterpolableFile rolesPath
+    InterpolablePath rolesPath
 
     @InputDirectory
-    InterpolableFile dataBagsPath
+    InterpolablePath dataBagsPath
 
     @Internal
     InterpolableString encryptedDataBagSecretPath
 
     @InputDirectory
-    InterpolableFile environmentsPath
+    InterpolablePath environmentsPath
 
     @Input
     InterpolableString executeCommand

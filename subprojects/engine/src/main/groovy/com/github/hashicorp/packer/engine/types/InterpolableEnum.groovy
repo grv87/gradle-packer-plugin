@@ -8,15 +8,33 @@ import groovy.transform.CompileStatic
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
   final Class<E> enumClass
 
+  // This constructor is required for Externalizable
   protected InterpolableEnum(Class<E> enumClass) {
+    super()
     this.enumClass = enumClass
   }
 
-  InterpolableEnum(InterpolableString rawValue, Class<E> enumClass) {
+  protected InterpolableEnum(E rawValue, Class<E> enumClass) {
     super(rawValue)
+    this.enumClass = enumClass
+  }
+
+  private static final Object tryCastStringToEnum(String rawValue, Class<E> enumClass) {
+    String rawValueUpperCase = rawValue.toUpperCase()
+    for (E enumConstant : enumClass.enumConstants) {
+      if (enumConstant.name() == rawValueUpperCase) {
+        return enumConstant
+      }
+    }
+    return new InterpolableString(rawValue)
+  }
+
+  protected InterpolableEnum(String rawValue, Class<E> enumClass) {
+    super(tryCastStringToEnum(rawValue, enumClass))
     this.enumClass = enumClass
   }
 
@@ -25,8 +43,9 @@ class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
     if (enumClass.isInstance(rawValue)) {
       (E)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate context
-      Enum.valueOf enumClass, ((InterpolableString) rawValue).interpolatedValue.toUpperCase()
+      InterpolableString rawInterpolableString = (InterpolableString)rawValue
+      rawInterpolableString.interpolate context
+      Enum.valueOf enumClass, rawInterpolableString.interpolatedValue.toUpperCase()
     } else {
       throw new InvalidRawValueClass(rawValue)
     }

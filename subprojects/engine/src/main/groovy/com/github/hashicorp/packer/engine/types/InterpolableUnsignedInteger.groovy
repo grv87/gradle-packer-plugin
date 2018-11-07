@@ -9,7 +9,9 @@ import groovy.transform.CompileStatic
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger> {
+  // This constructor is required for Externalizable
   protected InterpolableUnsignedInteger() {
   }
 

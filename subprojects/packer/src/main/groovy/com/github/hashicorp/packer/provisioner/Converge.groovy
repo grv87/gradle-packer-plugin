@@ -19,7 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import groovy.json.JsonOutput
+import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -27,13 +27,16 @@ import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableFile
+import com.github.hashicorp.packer.engine.types.InterpolablePath
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
@@ -76,7 +79,7 @@ class Converge extends Provisioner<Configuration> {
 
     static class ModuleDir extends InterpolableObject {
       @Internal
-      InterpolableFile source
+      InterpolablePath source
 
       @Input
       InterpolableString destination
@@ -86,17 +89,26 @@ class Converge extends Provisioner<Configuration> {
 
       // TODO
 
+      @JsonIgnore
+      @InputFiles
+      FileTree inputFileTree
+
       @Override
       protected void doInterpolate() {
         source.interpolate context
         destination.interpolate context
         exclude.interpolate context
         if (exclude?.interpolatedValue?.size() > 0) {
-          context.task.inputs.files(context.task.project.fileTree(source) { ConfigurableFileTree configurableFileTree ->
+          inputFileTree = context.resolveFileTree(source.interpolatedValue) { ConfigurableFileTree configurableFileTree ->
             configurableFileTree.exclude exclude.interpolatedValue
-          })
+          }
         } else {
-          context.task.inputs.dir source
+          /*
+           * CAVEAT:
+           * We make shortcut and save input directory as file tree, to save some code.
+           * There could be some troubles with this approach
+           */
+          inputFileTree = context.resolveDirectory(source.interpolatedValue).asFileTree
         }
       }
     }
