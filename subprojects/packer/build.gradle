@@ -10,7 +10,22 @@ dependencies {
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
   api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
-  api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
+  // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
+  // api(group: 'org.apache.jclouds.labs', name: 'aliyun-ecs', version: '[2, 3[').status = 'integration'
+  api group: 'org.apache.jclouds.provider', name: 'aws-ec2', version: '[2, 3['
+  api group: 'org.apache.jclouds.api', name: 'ec2', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'azurecompute', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'azurecompute-arm', version: '[2, 3['
+  api group: 'org.apache.jclouds.api', name: 'cloudstack', version: '[2, 3['
+  api group: 'org.apache.jclouds.provider', name: 'digitalocean2', version: '[2, 3['
+  api group: 'org.apache.jclouds.api', name: 'docker', version: '[2, 3['
+  api group: 'org.apache.jclouds.provider', name: 'google-compute-engine', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'oneandone', version: '[2, 3['
+  api group: 'org.apache.jclouds.api', name: 'openstack-nova', version: '[2, 3['
+  api group: 'org.apache.jclouds.provider', name: 'profitbricks', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'joyent-cloudapi', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'joyentcloud', version: '[2, 3['
+  api group: 'org.apache.jclouds.labs', name: 'vagrant', version: '[2, 3['
 }
 
 configurations.named('implementation').configure { exclude(group: 'org.slf4j', module: 'slf4j-api') }
