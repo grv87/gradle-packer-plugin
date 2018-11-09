@@ -129,14 +129,6 @@ tasks.named('functionalTest').configure {
   shouldRunAfter 'integTest'
 }
 
-dependencies {
-  testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
-  testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
-
-  integTestImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
-  integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
-}
-
 stutter {
   sparse = true
   java(8) {

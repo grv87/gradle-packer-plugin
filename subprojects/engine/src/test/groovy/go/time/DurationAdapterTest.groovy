@@ -23,6 +23,8 @@
  */
 package go.time
 
+import groovy.transform.CompileStatic
+
 import static org.hamcrest.Matchers.startsWith
 import java.time.Duration
 import java.time.format.DateTimeParseException
@@ -40,6 +42,7 @@ import org.junit.runner.RunWith
  * from {@code go/time} package
  */
 @RunWith(JUnitParamsRunner)
+@CompileStatic
 final class DurationAdapterTest {
   /*
    * WORKAROUND:
@@ -52,7 +55,7 @@ final class DurationAdapterTest {
   @SuppressWarnings('PublicInstanceField')
   public final ExpectedException thrown = ExpectedException.none()
 
-  static final Object[] durationTests() {
+  private static final Object[] durationTests() {
     [
       ['0s', Duration.ZERO],
       ['1ns', Duration.ofNanos(1)],
@@ -70,7 +73,7 @@ final class DurationAdapterTest {
 
   @Test
   @Parameters(method = 'durationTests')
-  @TestCaseName('string("{1}") == {0}')
+  @TestCaseName('string({1}) == "{0}"')
   void testString(final String expected, final Duration d) {
     assert DurationAdapter.string(d) == expected
     if (!(d.negative || d.zero)) {
@@ -78,7 +81,7 @@ final class DurationAdapterTest {
     }
   }
 
-  static final Object[] parseDurationTests() {
+  private static final Object[] parseDurationTests() {
     [
       // simple
       ['0', true, Duration.ZERO],

@@ -23,6 +23,10 @@ afterEvaluate {
   // jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/") TODO
 }
 
+dependencies {
+  integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
+}
+
 tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO
 }

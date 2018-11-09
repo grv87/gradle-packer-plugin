@@ -1,6 +1,5 @@
 package com.github.hashicorp.packer.engine.annotations
 
-
 import org.junit.Test
 
 class DefaultTest {

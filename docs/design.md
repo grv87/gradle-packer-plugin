@@ -29,6 +29,7 @@ Stage 3 is passed when Gradle detects task inputs/outputs
 before its run.
 
 ## Inputs
+
 Not considered as inputs:
 *   timing settings
 *   passwords
@@ -40,10 +41,37 @@ Considered:
 *   users under which provisioning is happening, sudo settings
 
 ## Paths
-Context resolved cwd relatively to project dir, and after that cwd
-`Project#file` and `Project#dir` methods are not used.
-Other methods get paths resolved to absolute paths already, so that
-project dir doesn't mess with them.
+
+Context gets `cwd` resolved relatively to project dir already,
+and after that `Project#file` and `Project#dir` methods
+are not necessary.
+Other methods (`Project#files` and `Project#fileTree`) get paths
+resolved to `cwd`, so that project dir doesn't mess with them.
+
+Usually classes (builders, provisioners, post-processors)
+have properties of `InterpolableInputDirectory`,
+`InterpolableInputRegularFile`, `InterpolableInputURI` types.
+Their interpolated values are marked as Gradle task inputs.
+
+`InterpolablePath` and `InterpolableURI` types are used
+in the following situations only:
+
+1.  Task outputs
+
+    Builders, provisioners, post-processors usually don't expose
+    output files and directories as properties.
+
+    All regular outputs of builders and post-processors are handled
+    by separate mechanism, with `Artifact` instances.
+    The only known exception is `File` provisioner
+    which could download files to local machine.
+
+    So, there is no reason to have separate classes for outputs.
+
+2.  Paths that are not considered as inputs, such as local cache
+
+    They are marked with `@Internal` annotation at whole,
+    so that annotation on `interpolatedValue` field is irrelevant.
 
 
 ------------------------------------------------------------------------
