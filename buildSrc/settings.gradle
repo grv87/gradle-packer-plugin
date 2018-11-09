@@ -40,7 +40,7 @@ pluginManagement {
   }
 }
 
-// rootProject.name = 'gradle-packer-plugin'
+rootProject.name = 'gradle-packer-plugin'
 
 ext.rootDir = file('..')
 

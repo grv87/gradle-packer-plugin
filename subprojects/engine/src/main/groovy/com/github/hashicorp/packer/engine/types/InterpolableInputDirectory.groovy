@@ -11,10 +11,10 @@ import java.nio.file.Path
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
-class InterpolableInputDirectory extends InterpolablePath {
+class InterpolableInputDirectory extends InterpolableFile {
   @JsonIgnore
   @InputDirectory
-  Path getInterpolatedValue() { // TODO: Directory ?
+  File getInterpolatedValue() { // TODO: Directory ?
     super.interpolatedValue
   }
 }

@@ -55,8 +55,8 @@ class File extends Provisioner<Configuration> {
     InterpolableString destination
 
     @Internal
-    @Default('Direction.UPLOAD')
-    InterpolableDirection direction
+    // @Default('Direction.UPLOAD')
+    InterpolableEnum<Direction> direction
 
     /* TODO: Default ?
     @JsonIgnore
@@ -167,19 +167,6 @@ class File extends Provisioner<Configuration> {
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
   // @KnownImmutable // TODO: Groovy 2.5
-  static class InterpolableDirection extends InterpolableEnum<Direction> {
-    // This constructor is required for Externalizable
-    protected InterpolableDirection() {
-      super(Direction)
-    }
-
-    InterpolableDirection(Direction rawValue) {
-      super(rawValue, Direction)
-    }
-
-    @JsonCreator
-    InterpolableDirection(String rawValue) {
-      super(rawValue, Direction)
-    }
+  static class InterpolableDirection extends  {
   }
 }

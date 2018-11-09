@@ -24,7 +24,7 @@ class InterpolableURI extends InterpolableValue<InterpolableString, URI> {
   }
 
   @Override
-  protected URI doInterpolatePrimitive() {
+  protected final URI doInterpolatePrimitive() {
     rawValue.interpolate context
     context.resolveUri rawValue.interpolatedValue
   }

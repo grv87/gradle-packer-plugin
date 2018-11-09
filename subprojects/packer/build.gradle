@@ -49,7 +49,7 @@ if (!isBuildSrc) {
 
   // TODO: CI doesn't have Packer installed
   if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
-    for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
+    for (File singleTemplateFile in project.fileTree('src/integTest/resources/com/github/hashicorp/packer/template') { ConfigurableFileTree fileTree ->
       fileTree.include '**/*.json'
     }) {
       TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {

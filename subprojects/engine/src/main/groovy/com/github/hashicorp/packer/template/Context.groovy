@@ -50,7 +50,7 @@ final class Context {
   private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
     this.userVariablesValues = userVariablesValues?.asImmutable()
     this.env = env?.asImmutable()
-    this.templateVariables = templateVariables?.asImmutable() ?: [:]
+    this.templateVariables = templateVariables?.asImmutable() ?: (Map<String, ? extends Serializable>)[:]
     this.templateFile = templateFile
     this.cwd = cwd
     this.project = project

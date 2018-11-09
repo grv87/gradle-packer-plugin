@@ -12,7 +12,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
   static class ArrayClass extends ArrayList<InterpolableString> {
   }
 
-  // This constructor is required for Externalizable
+  // This constructor is required for Externalizable and AutoClone
   protected InterpolableStringArray() {
   }
 
@@ -28,7 +28,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
 
   @SuppressWarnings('ImplementationAsType')
   @Override
-  protected ArrayList<String> doInterpolatePrimitive() {
+  protected final ArrayList<String> doInterpolatePrimitive() {
     if (ArrayClass.isInstance(rawValue)) {
       new ArrayList<String>(((ArrayClass)rawValue).collect { it.interpolate context; it.interpolatedValue })
     } else if (InterpolableString.isInstance(rawValue)) {

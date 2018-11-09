@@ -24,6 +24,7 @@ buildscript {
 plugins {
   id 'org.fidata.project.java' version '5.0.0' apply false
   id 'org.fidata.project.groovy' version '5.0.0' apply false
+  // id 'org.fidata.plugin' version '5.0.0' apply false
 }
 
 ext.rootDir = file('..')
@@ -32,6 +33,7 @@ apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
 apply plugin: 'org.fidata.project.java'
 apply plugin: 'org.fidata.project.groovy'
+// apply plugin: 'org.fidata.plugin'
 
 sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
 
@@ -43,7 +45,9 @@ tasks.named('codenarcMain').configure {
 
 // TODO
 allprojects {
-  gradle.taskGraph.useFilter { task -> Test.isInstance(task) }
-  gradle.taskGraph.useFilter { task -> task.name == 'lint' }
-  gradle.taskGraph.useFilter { task -> task.name == 'compatTest' }
+  gradle.taskGraph.useFilter { task -> !Test.isInstance(task) }
+  gradle.taskGraph.useFilter { task -> task.name != 'lint' }
+  gradle.taskGraph.useFilter { task -> task.name != 'compatTest' }
 }
+
+dependencies.runtime project(path)

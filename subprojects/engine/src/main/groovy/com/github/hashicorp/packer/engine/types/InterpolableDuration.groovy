@@ -13,7 +13,7 @@ import java.time.Duration
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableDuration extends InterpolableValue<InterpolableString, Duration> {
   @Override
-  protected Duration doInterpolatePrimitive() {
+  protected final Duration doInterpolatePrimitive() {
     rawValue.interpolate context
     parseDuration(rawValue.interpolatedValue)
   }

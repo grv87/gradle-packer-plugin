@@ -1,15 +1,15 @@
 package com.github.hashicorp.packer.builder.virtualbox.common
 
+import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import com.github.hashicorp.packer.helper.Communicator
 
 class SSHConfig extends InterpolableObject {
-  Comm communicator.Config `mapstructure:",squash"`
+  @Inline
+  Communicator comm
 
-  SSHHostPortMin    uint `mapstructure:"ssh_host_port_min"`
-  SSHHostPortMax    uint `mapstructure:"ssh_host_port_max"`
-  SSHSkipNatMapping bool `mapstructure:"ssh_skip_nat_mapping"`
-
-  // These are deprecated, but we keep them around for BC
-  // TODO(@mitchellh): remove
-  SSHWaitTimeout time.Duration `mapstructure:"ssh_wait_timeout"`
+  InterpolableUnsignedInteger sshHostPortMin
+  InterpolableUnsignedInteger sshHostPortMax
+  InterpolableUnsignedInteger sshSkipNatMapping
 }

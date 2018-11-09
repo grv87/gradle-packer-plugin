@@ -10,7 +10,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableLong extends InterpolableValue<Object, Long> {
-  // This constructor is required for Externalizable
+  // This constructor is required for Externalizable and AutoClone
   protected InterpolableLong() {
   }
 
@@ -25,7 +25,7 @@ class InterpolableLong extends InterpolableValue<Object, Long> {
   }
 
   @Override
-  protected Long doInterpolatePrimitive() {
+  protected final Long doInterpolatePrimitive() {
     if (Long.isInstance(rawValue)) {
       (Long)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {

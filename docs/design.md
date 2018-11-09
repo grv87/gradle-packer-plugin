@@ -53,7 +53,7 @@ have properties of `InterpolableInputDirectory`,
 `InterpolableInputRegularFile`, `InterpolableInputURI` types.
 Their interpolated values are marked as Gradle task inputs.
 
-`InterpolablePath` and `InterpolableURI` types are used
+`InterpolableFile` and `InterpolableURI` types are used
 in the following situations only:
 
 1.  Task outputs

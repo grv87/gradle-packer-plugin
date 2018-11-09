@@ -4,17 +4,14 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.InheritConstructors
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.types.InterpolableValue
-
-import java.nio.file.Path
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
-class InterpolablePath extends InterpolableValue<InterpolableString, Path> {
+class InterpolableFile extends InterpolableValue<InterpolableString, File> {
   @Override
-  protected Path doInterpolatePrimitive() {
+  protected final File doInterpolatePrimitive() {
     rawValue.interpolate context
-    context.interpolatePath rawValue.interpolatedValue
+    context.interpolatePath(rawValue.interpolatedValue).toFile()
   }
 }

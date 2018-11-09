@@ -5,25 +5,24 @@ import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
+import java.lang.reflect.ParameterizedType
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
-  final Class<E> enumClass
+  static final Class<E> enumClass = (Class<E>)((ParameterizedType)this.genericSuperclass).actualTypeArguments[0]
 
-  // This constructor is required for Externalizable
-  protected InterpolableEnum(Class<E> enumClass) {
+  // This constructor is required for Externalizable and AutoClone
+  protected InterpolableEnum() {
     super()
-    this.enumClass = enumClass
   }
 
-  protected InterpolableEnum(E rawValue, Class<E> enumClass) {
+  InterpolableEnum(E rawValue) {
     super(rawValue)
-    this.enumClass = enumClass
   }
 
-  private static final Object tryCastStringToEnum(String rawValue, Class<E> enumClass) {
+  private static final Object tryCastStringToEnum(String rawValue) {
     String rawValueUpperCase = rawValue.toUpperCase()
     for (E enumConstant : enumClass.enumConstants) {
       if (enumConstant.name() == rawValueUpperCase) {
@@ -33,13 +32,13 @@ class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
     return new InterpolableString(rawValue)
   }
 
-  protected InterpolableEnum(String rawValue, Class<E> enumClass) {
-    super(tryCastStringToEnum(rawValue, enumClass))
-    this.enumClass = enumClass
+  @JsonCreator
+  InterpolableEnum(String rawValue) {
+    super(tryCastStringToEnum(rawValue))
   }
 
   @Override
-  protected E doInterpolatePrimitive() {
+  protected final E doInterpolatePrimitive() {
     if (enumClass.isInstance(rawValue)) {
       (E)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {

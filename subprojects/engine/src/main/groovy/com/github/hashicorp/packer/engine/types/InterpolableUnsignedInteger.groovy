@@ -11,7 +11,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger> {
-  // This constructor is required for Externalizable
+  // This constructor is required for Externalizable and AutoClone
   protected InterpolableUnsignedInteger() {
   }
 
@@ -26,7 +26,7 @@ class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInte
   }
 
   @Override
-  protected UnsignedInteger doInterpolatePrimitive() {
+  protected final UnsignedInteger doInterpolatePrimitive() {
     if (UnsignedInteger.isInstance(rawValue)) {
       (UnsignedInteger)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {

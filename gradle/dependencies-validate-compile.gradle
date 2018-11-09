@@ -21,5 +21,6 @@
 dependencies {
   api gradleApi()
   api localGroovy()
+  api project(path: ':packer'/*, configuration: 'runtimeElements'*/)
   api group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
 }

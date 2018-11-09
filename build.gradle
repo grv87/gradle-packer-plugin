@@ -43,10 +43,6 @@ ext.rootDir = '.'
 
 apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
 
-dependencies {
-  api project(path: ':packer'/*, configuration: 'runtimeElements'*/)
-}
-
 sourceSets.main.groovy.srcDirs new File(project.ext.rootDir,  'src/validate/groovy')
 
 /*

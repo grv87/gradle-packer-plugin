@@ -11,10 +11,10 @@ import java.nio.file.Path
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
-class InterpolableInputRegularFile extends InterpolablePath {
+class InterpolableInputRegularFile extends InterpolableFile {
   @JsonIgnore
   @InputFile
-  Path getInterpolatedValue() { // TODO: RegularFile ?
+  File getInterpolatedValue() { // TODO: RegularFile ?
     super.interpolatedValue
   }
 }

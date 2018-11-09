@@ -33,11 +33,12 @@ import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.engine.enums.ChecksumType
+import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
+import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
-import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -88,10 +89,10 @@ class VirtualBoxOvf extends Builder {
   InterpolableString chechsum
 
   @Input
-  InterpolableChecksumType chechsumType
+  InterpolableEnum<ChecksumType> chechsumType
 
-  @Default(value = 'upload')
-  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
+  // @Default(value = 'upload')
+  InterpolableEnum<VBoxGuestAdditionsMode> guestAdditionsMode
 
   InterpolableString guestAdditionsPath
 

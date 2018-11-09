@@ -19,7 +19,8 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
-import com.github.hashicorp.packer.engine.types.InterpolablePath
+
+import com.github.hashicorp.packer.engine.types.InterpolableFile
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -37,7 +38,7 @@ class Manifest extends PostProcessor {
   @JsonProperty('output')
   @Internal
   // TODO: @Default('packer-manifest.json')
-  InterpolablePath outputPath
+  InterpolableFile outputPath
 
   @Input
   InterpolableBoolean stripPath

@@ -16,12 +16,12 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   @JsonValue
   Source rawValue
 
-  // This constructor is required for Externalizable
+  // This constructor is required for Externalizable and AutoClone
   protected InterpolableValue() {
   }
 
   protected InterpolableValue(Source rawValue) {
-    this.rawValue = rawValue
+    this.@rawValue = rawValue
   }
 
   private Target interpolatedValue
@@ -53,9 +53,10 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
 
   // This is used to create instances with default values
   static final InterpolableValue<Source, Target> forInterpolatedValue(Target interpolatedValue) {
-    InterpolableValue<Source, Target> result = InterpolableValue<Source, Target>.newInstance()
-    result.interpolated = true
-    result.interpolatedValue = interpolatedValue
+    InterpolableValue<Source, Target> result = InterpolableValue.newInstance()
+    // TODO
+    result.@interpolated = true
+    result.@interpolatedValue = interpolatedValue
     result
   }
 }

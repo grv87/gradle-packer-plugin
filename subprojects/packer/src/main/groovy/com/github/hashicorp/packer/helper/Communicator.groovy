@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.helper
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -12,6 +13,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableDuration
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// TODO: communicator/config ?
 class Communicator extends InterpolableObject {
   // SSH
   @Internal
@@ -32,6 +34,7 @@ class Communicator extends InterpolableObject {
   @Internal
   InterpolableBoolean sshPty
 
+  @JsonAlias('ssh_wait_timeout')
   @Internal
   InterpolableDuration sshTimeout
 

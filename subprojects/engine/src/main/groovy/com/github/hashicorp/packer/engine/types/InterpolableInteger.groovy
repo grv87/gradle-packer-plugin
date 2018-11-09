@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 @CompileStatic
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableInteger extends InterpolableValue<Object, Integer> {
-  // This constructor is required for Externalizable
+  // This constructor is required for Externalizable and AutoClone
   protected InterpolableInteger() {
   }
 
@@ -25,7 +25,7 @@ class InterpolableInteger extends InterpolableValue<Object, Integer> {
   }
 
   @Override
-  protected Integer doInterpolatePrimitive() {
+  protected final Integer doInterpolatePrimitive() {
     if (Integer.isInstance(rawValue)) {
       (Integer)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {
