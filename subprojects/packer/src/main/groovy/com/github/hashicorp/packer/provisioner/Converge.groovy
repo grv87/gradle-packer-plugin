@@ -125,11 +125,11 @@ class Converge extends Provisioner<Configuration> {
       params.values()*.interpolate context
       preventSudo.interpolate context
 
-      /*TODO bootstrap.interpolate context.addTemplateVariables([
+      /*TODO bootstrap.interpolate context.withTemplateVariables([
         'Sudo': !preventBootstrapSudo.interpolatedValue,
         'Version': version.interpolatedValue,
       ])
-      executeCommand.interpolate context.addTemplateVariables([
+      executeCommand.interpolate context.withTemplateVariables([
         'WorkingDirectory': workingDirectory.interpolatedValue,
         'Sudo': !preventSudo.interpolatedValue,
         'ParamsJSON': JsonOutput.toJson(params),

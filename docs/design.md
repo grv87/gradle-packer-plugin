@@ -39,6 +39,12 @@ Considered:
 *   paths on images (except staging/temp)
 *   users under which provisioning is happening, sudo settings
 
+## Paths
+Context resolved cwd relatively to project dir, and after that cwd
+`Project#file` and `Project#dir` methods are not used.
+Other methods get paths resolved to absolute paths already, so that
+project dir doesn't mess with them.
+
 
 ------------------------------------------------------------------------
 Copyright © 2018  Basil Peace

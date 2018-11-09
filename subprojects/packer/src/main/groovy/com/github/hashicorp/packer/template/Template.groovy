@@ -110,14 +110,11 @@ final class Template extends InterpolableObject {
     super.doInterpolate() // TOTEST
 
     // Stage 1
-    envContext = new Context(null, context.env, context.templateFile, context.cwd, context.project) // TODO: maybe make these as methods in Context ?
+    envContext = context.forVariables
     variables.each.interpolate envContext
 
     // Stage 2
-    Map<String, String> userVariables = (Map<String, String>)variables.collectEntries { Map.Entry<String, InterpolableString> entry ->
-      [entry.key, context.userVariables.getOrDefault(entry.key, entry.value.interpolatedValue)]
-    }
-    variablesContext = new Context(userVariables, null, context.templateFile, context.cwd, context.project)
+    variablesContext = context.forTemplateBody(variables)
     for (Builder builder in builders) {
       builder.header.interpolate variablesContext
     }
@@ -138,7 +135,7 @@ final class Template extends InterpolableObject {
     builder = builder.clone()
     builder.interpolate context
     result.builders = [builder]
-    Context buildCtx = variablesContext.addTemplateVariables([
+    Context buildCtx = variablesContext.withTemplateVariables([
       (BUILD_NAME_VARIABLE_NAME): buildName,
       'BuilderType': builder.header.type,
     ])

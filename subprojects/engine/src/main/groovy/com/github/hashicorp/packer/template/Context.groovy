@@ -1,7 +1,9 @@
 package com.github.hashicorp.packer.template
 
+import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
+import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -11,7 +13,6 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFile
-
 import java.nio.file.Path
 import java.time.Instant
 
@@ -26,31 +27,32 @@ import java.time.Instant
 @CompileStatic
 // REVIEWED
 final class Context {
-  final Map<String, String> userVariables
+  private final Map<String, String> userVariablesValues
 
-  final Map<String, String> env
+  private final Map<String, String> env
 
   static final String BUILD_NAME_VARIABLE_NAME = 'BuildName'
 
   String getBuildName() {
-    templateVariables?.get(BUILD_NAME_VARIABLE_NAME)
+    templateVariables.get(BUILD_NAME_VARIABLE_NAME)
   }
 
-  final Map<String, ? extends Serializable> templateVariables
+  private final Map<String, ? extends Serializable> templateVariables
 
-  final File templateFile
+  private final File templateFile
 
-  final Path cwd
+  private final Path cwd
 
-  final Project project
+  private final Project project
 
+  // cwd should be already resolved relatively to project dir
   @SuppressWarnings('UnnecessaryCast') // TODO
-  private Context(Map<String, String> userVariables, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
-    this.userVariables = userVariables?.asImmutable()
+  private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
+    this.userVariablesValues = userVariablesValues?.asImmutable()
     this.env = env?.asImmutable()
-    this.templateVariables = templateVariables?.asImmutable()
+    this.templateVariables = templateVariables?.asImmutable() ?: [:]
     this.templateFile = templateFile
-    this.cwd = project.file(cwd.toFile()).absoluteFile.toPath() // cwd is absolute, so all resolutions
+    this.cwd = cwd
     this.project = project
 
     // TODO: mark string as mutable if timestamp or uuid is used
@@ -60,8 +62,8 @@ final class Context {
       'timestamp': Instant.now().epochSecond,
       'uuid': UUID_GENERATOR.generate().toString(), // TODO: We can generate uuid for specific builds only, not for general template
     ]
-    if (userVariables) {
-      aContextTemplateData.putAll((Map<String, Serializable>)userVariables.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`", entry.value] })
+    if (userVariablesValues) {
+      aContextTemplateData.putAll((Map<String, Serializable>)userVariablesValues.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`", entry.value] })
     }
     if (env) {
       aContextTemplateData.putAll((Map<String, Serializable>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`", entry.value] })
@@ -73,8 +75,37 @@ final class Context {
     contextTemplateData = aContextTemplateData.asImmutable()
   }
 
-  Context(Map<String, String> userVariables, Map<String, String> env, File templateFile, Path cwd, Project project) {
-    this(userVariables, env, null, templateFile, cwd, project)
+  Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd, Project project) {
+    this(
+      userVariablesValues,
+      env,
+      null,
+      templateFile,
+      cwd,
+      project
+    )
+  }
+
+  Context getForVariables() {
+    new Context(
+      null,
+      (Map<String, String>)env?.clone(),
+      templateFile,
+      cwd,
+      project
+    )
+  }
+
+  Context forTemplateBody(Map<String, InterpolableString> userVariables) {
+    new Context(
+      (Map<String, String>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
+        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.interpolatedValue)]
+      },
+      null,
+      templateFile,
+      cwd,
+      project
+    )
   }
 
   /**
@@ -82,13 +113,15 @@ final class Context {
    * @param variables Template variables to add
    * @return Clone of this context with added variables
    */
-  Context addTemplateVariables(Map<String, ? extends Serializable> variables) {
-    Map<String, ? extends Serializable> templateVariables = (Map<String, ? extends Serializable>)[:]
-    if (this.templateVariables) {
-      templateVariables.putAll this.templateVariables
-    }
-    templateVariables.putAll variables
-    new Context((Map<String, String>)userVariables?.clone(), (Map<String, String>)env?.clone(), templateVariables, templateFile, cwd, project)
+  Context withTemplateVariables(Map<String, ? extends Serializable> templateVariables) {
+    new Context(
+      (Map<String, String>)userVariablesValues?.clone(),
+      (Map<String, String>)env?.clone(),
+      (Map<String, ? extends Serializable>)(this.templateVariables + templateVariables),
+      templateFile,
+      cwd,
+      project
+    )
   }
 
   private final Map<String, Serializable> contextTemplateData
@@ -125,10 +158,6 @@ final class Context {
     cwd.resolve(path)
   }
 
-  RegularFile resolveRegularFile(Path path) {
-    project.layout.projectDirectory.file(resolvePath(path).toString())
-  }
-
   Directory resolveDirectory(Path path) {
     project.layout.projectDirectory.dir(resolvePath(path).toString())
   }
@@ -139,6 +168,37 @@ final class Context {
 
   FileTree resolveFileTree(Path path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
     project.fileTree resolvePath(path), closure
+  }
+
+  // DownloadableURL processes a URL that may also be a file path and returns
+  // a completely valid URL representing the requested file. For example,
+  // the original URL might be "local/file.iso" which isn't a valid URL,
+  // and so DownloadableURL will return "file://local/file.iso"
+  // No other transformations are done to the path.
+  URI resolveUri(String original) {
+    // Code from packer/common DownloadableURL
+    String result
+
+    // Check that the user specified a UNC path, and promote it to an smb:// uri.
+    if (original.startsWith('\\\\') && original.length() > 2 && original[2] != '?') {
+      result = separatorsToUnix(original[2..-1])
+      return /*project.uri*/new URI("smb://$result")
+    }
+
+    // Fix the url if it's using bad characters commonly mistaken with a path.
+    result = separatorsToUnix(original)
+
+    // Check to see that this is a parseable URL with a scheme and a host.
+    // If so, then just pass it through.
+    try {
+      URI resultUri = new URI(result)
+      if (!resultUri.scheme.empty && !resultUri.host.empty) {
+        return resultUri
+      }
+    } catch (URISyntaxException ignored) { }
+
+    // Otherwise we rely on built-in Java algorithms
+    return resolvePath(result).toUri()
   }
 
   static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()

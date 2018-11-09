@@ -29,8 +29,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.packer.Artifact
-
 import java.nio.file.Paths
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)

@@ -20,18 +20,18 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
+import com.github.hashicorp.packer.engine.types.InterpolableInputRegularFile
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolablePath
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
@@ -48,20 +48,20 @@ class ChefSolo extends Provisioner<Configuration> {
     @Input
     InterpolableString configTemplate
 
-    @InputFiles
-    List<InterpolablePath> cookbookPaths
+    @Nested
+    List<InterpolableInputDirectory> cookbookPaths
 
-    @InputDirectory
-    InterpolablePath rolesPath
+    @Nested
+    InterpolableInputDirectory rolesPath
 
-    @InputDirectory
-    InterpolablePath dataBagsPath
+    @Nested
+    InterpolableInputDirectory dataBagsPath
 
     @Internal
-    InterpolableString encryptedDataBagSecretPath
+    InterpolableInputRegularFile encryptedDataBagSecretPath
 
-    @InputDirectory
-    InterpolablePath environmentsPath
+    @Nested
+    InterpolableInputDirectory environmentsPath
 
     @Input
     InterpolableString executeCommand

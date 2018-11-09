@@ -1,14 +1,14 @@
 package com.github.hashicorp.packer.common
 
-import com.github.hashicorp.packer.engine.types.InterpolablePath
+import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 
 class HTTPConfig extends InterpolableObject {
-  @InputDirectory
-  InterpolablePath httpDir
+  @Nested
+  InterpolableInputDirectory httpDir
 
   @Internal
   InterpolableUnsignedInteger httpPortMin

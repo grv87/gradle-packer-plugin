@@ -85,11 +85,11 @@ class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is s
 //      params.values*.interpolate context
 //      preventSudo.interpolate context
 //
-//      bootstrap.interpolate context.addTemplateVariables([
+//      bootstrap.interpolate context.withTemplateVariables([
 //        'Sudo': !preventBootstrapSudo.interpolatedValue,
 //        'Version': version.interpolatedValue,
 //      ])
-//      executeCommand.interpolate context.addTemplateVariables([
+//      executeCommand.interpolate context.withTemplateVariables([
 //        'WorkingDirectory': workingDirectory.interpolatedValue,
 //        'Sudo': !preventSudo.interpolatedValue,
 //        'ParamsJSON': JsonOutput.toJson(params),
