@@ -79,56 +79,6 @@ tasks.named('codenarcMain').configure {
 tasks.named('codenarcFunctionalTest').configure { disabledRules.add 'JavaIoPackageAccess' }
 tasks.named('codenarcBuildSrc').configure { disabledRules.add 'JavaIoPackageAccess' }
 
-sourceSets {
-  integTest {
-    groovy.srcDirs = ['src/integTest/groovy']
-    resources.srcDirs = ['src/integTest/resources']
-    compileClasspath += sourceSets['main'].output
-    runtimeClasspath += output + sourceSets['main'].output
-  }
-}
-
-sourceSets.named('integTest').configure {
-  plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClasspath it
-}
-plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('integTest')
-plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['integTest'].implementationConfigurationName)
-
-tasks.register('packerValidate-integTest')
-
-import org.apache.commons.io.FilenameUtils
-
-// TODO: CI doesn't have Packer installed
-if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
-  for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
-    fileTree.include '**/*.json'
-  }) {
-    TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
-      templateFile = singleTemplateFile
-      syntaxOnly = true
-    }
-    tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
-      packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
-    }
-  }
-}
-
-tasks.register('integTest', Test) {
-  group = 'Verification'
-  description = 'Runs integration tests'
-  shouldRunAfter 'test' // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
-  dependsOn 'packerValidate-integTest'
-  testClassesDirs = sourceSets['integTest'].output.classesDirs
-  classpath = sourceSets['integTest'].runtimeClasspath
-  reports.junitXml.destination = new File(xmlReportsDir, 'integTest')
-  reports.html.destination = new File(htmlReportsDir, 'integTest')
-}
-
-// WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
-tasks.named('functionalTest').configure {
-  shouldRunAfter 'integTest'
-}
-
 stutter {
   sparse = true
   java(8) {

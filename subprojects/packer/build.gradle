@@ -6,8 +6,8 @@ plugins {
   id 'org.fidata.project.groovy'
 }
 dependencies {
-  annotationProcessor project(path: ':engine', configuration: 'runtimeElements')
-  api project(path: ':engine', configuration: 'apiElements')
+  annotationProcessor project(path: ':engine'/*, configuration: 'runtimeElements'*/)
+  api project(path: ':engine'/*, configuration: 'apiElements'*/)
   api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
 }
@@ -23,8 +23,57 @@ afterEvaluate {
   // jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/") TODO
 }
 
+sourceSets {
+  integTest {
+    groovy.srcDirs = ['src/integTest/groovy']
+    resources.srcDirs = ['src/integTest/resources']
+    compileClasspath += sourceSets['main'].output
+    runtimeClasspath += output + sourceSets['main'].output
+  }
+}
+
+sourceSets.named('integTest').configure {
+  plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClasspath it
+}
+plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('integTest')
+plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['integTest'].implementationConfigurationName)
+
 dependencies {
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
+}
+
+import org.apache.commons.io.FilenameUtils
+
+if (!isBuildSrc) {
+  tasks.register('packerValidate-integTest')
+
+  // TODO: CI doesn't have Packer installed
+  if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
+    for (File singleTemplateFile in project.fileTree('src/integTest/resources/org/fidata/gradle/packer/template') { ConfigurableFileTree fileTree ->
+      fileTree.include '**/*.json'
+    }) {
+      TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
+        templateFile = singleTemplateFile
+        syntaxOnly = true
+      }
+      tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
+        packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
+      }
+    }
+  }
+}
+
+tasks.register('integTest', Test) {
+  group = 'Verification'
+  description = 'Runs integration tests'
+  shouldRunAfter 'test' // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
+  if (!isBuildSrc) {
+    dependsOn 'packerValidate-integTest'
+  }
+  testClassesDirs = sourceSets['integTest'].output.classesDirs
+  classpath = sourceSets['integTest'].runtimeClasspath
+  reports.junitXml.destination = new File(xmlReportsDir, 'integTest')
+  reports.html.destination = new File(htmlReportsDir, 'integTest')
 }
 
 tasks.named('codenarcMain').configure {

@@ -6,4 +6,4 @@ com.fasterxml.jackson.core:jackson-core:2.9.7
 com.fasterxml.jackson.core:jackson-databind:2.9.7
 com.fasterxml.jackson.module:jackson-module-afterburner:2.9.7
 com.fasterxml.uuid:java-uuid-generator:3.1.5
-org.projectlombok:lombok:1.18.2
+org.projectlombok:lombok:1.18.4
