@@ -19,15 +19,12 @@
  */
 package com.github.hashicorp.packer.template
 
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.gradle.internal.impldep.com.google.common.collect.ImmutableList
-
 import javax.annotation.concurrent.Immutable
 
 // Unlike most other classes, this is immutable as it is used in task arguments too
-@AutoClone(style = AutoCloneStyle.SIMPLE)
+// Also, note that it is not interpolable and not cloneable TODO
 // @KnownImmutable TODO: Groovy 2.5
 @Immutable
 @CompileStatic
@@ -36,11 +33,11 @@ class OnlyExcept {
   final ImmutableList<String> except
 
   boolean skip(String n) {
-    if (only?.empty == false) {
+    if (only.empty == false) {
       return !only.contains(n)
     }
     // TOTEST: if
-    if (except?.empty == false) {
+    if (except.empty == false) {
       return except.contains(n)
     }
     false
@@ -48,5 +45,31 @@ class OnlyExcept {
 
   int sizeAfterSkip(int originalSize) {
     only?.empty == false ? only.size() : originalSize - except?.size() ?: 0
+  }
+
+  OnlyExcept(ImmutableList<String> only, ImmutableList<String> except) {
+    this.only = only ?: (ImmutableList<String>)ImmutableList.of()
+    this.except = except ?: (ImmutableList<String>)ImmutableList.of()
+  }
+
+  static final OnlyExcept only(List<String> only) {
+    new OnlyExcept(
+      ImmutableList.copyOf(only),
+      null
+    )
+  }
+
+  static final OnlyExcept except(List<String> except) {
+    new OnlyExcept(
+      null,
+      ImmutableList.copyOf(except)
+    )
+  }
+
+  static final onlyExcept(List<String> only, List<String> except) {
+    new OnlyExcept(
+      ImmutableList.copyOf(only),
+      ImmutableList.copyOf(except)
+    )
   }
 }

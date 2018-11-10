@@ -95,7 +95,7 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
       TaskProvider<AbstractPackerBuild> buildProvider = subproject.tasks.register(PACKER_BUILD_TASK_NAME, PackerBuildAutoConfigurable,
         buildDescriptor.template.path.toFile(),
         buildDescriptor.template.clone(),
-        new OnlyExcept(only: [buildDescriptor.buildName]),
+        OnlyExcept.only([buildDescriptor.buildName]),
         configureClosure(project, subproject.layout.projectDirectory)
       )
       subproject.plugins.withType(LifecycleBasePlugin) {
