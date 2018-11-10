@@ -23,8 +23,7 @@ class InterpolableURI extends InterpolableValue<InterpolableString, URI> {
     interpolatedValue?.scheme != 'file' ? interpolatedValue : null
   }
 
-  @Override
-  protected final URI doInterpolatePrimitive() {
+  protected final URI doInterpolatePrimitive(InterpolableString rawValue) {
     rawValue.interpolate context
     context.resolveUri rawValue.interpolatedValue
   }

@@ -24,15 +24,12 @@ class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
     super(rawValue)
   }
 
-  @Override
-  protected final Boolean doInterpolatePrimitive() {
-    if (Boolean.isInstance(rawValue)) {
-      (Boolean)rawValue
-    } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate context
-      ((InterpolableString)rawValue).interpolatedValue // TOTEST
-    } else {
-      throw new InvalidRawValueClass(rawValue)
-    }
+  protected final Boolean doInterpolatePrimitive(Boolean rawValue) {
+    rawValue
+  }
+
+  protected final Boolean doInterpolatePrimitive(InterpolableString rawValue) {
+    rawValue.interpolate context
+    rawValue.interpolatedValue // TOTEST
   }
 }

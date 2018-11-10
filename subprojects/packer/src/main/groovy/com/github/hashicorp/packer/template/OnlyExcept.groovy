@@ -30,17 +30,17 @@ class OnlyExcept {
   List<String> except
 
   boolean skip(String n) {
-    if (only?.size() > 0) {
+    if (only?.empty == false) {
       return !only.contains(n)
     }
     // TOTEST: if
-    if (except?.size() > 0) {
+    if (except?.empty == false) {
       return except.contains(n)
     }
     false
   }
 
   int sizeAfterSkip(int originalSize) {
-    only?.size() > 0 ? only.size() : originalSize - except?.size() ?: 0
+    only?.empty == false ? only.size() : originalSize - except?.size() ?: 0
   }
 }

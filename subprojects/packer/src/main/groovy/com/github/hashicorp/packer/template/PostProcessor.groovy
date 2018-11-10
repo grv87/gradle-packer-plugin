@@ -131,76 +131,92 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     @Override
+    @CompileDynamic
     protected void doInterpolate() {
-      if (ArrayClass.isInstance(rawValue)) {
-        ((ArrayClass)rawValue).each { PostProcessorDefinition postProcessorDefinition -> postProcessorDefinition.interpolate context }
-      } else if (PostProcessorDefinition.isInstance(rawValue)) {
-        ((PostProcessorDefinition)rawValue).interpolate context
-      } else {
-        throw new InvalidRawValueClass(rawValue)
+      interpolateRawValue rawValue
+    }
+
+    private void interpolateRawValue(ArrayClass rawValue) {
+      rawValue.each { PostProcessorDefinition postProcessorDefinition ->
+        postProcessorDefinition.interpolate context
       }
     }
 
+    private void interpolateRawValue(PostProcessorDefinition rawValue) {
+      rawValue.interpolate context
+    }
+
+    private void interpolateRawValue(Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
+    }
+
+    @CompileDynamic
     final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
         throw new ObjectAlreadyInterpolatedForBuilder()
       }
       // Stage 3
-      if (ArrayClass.isInstance(rawValue)) {
-        ArrayClass result = (ArrayClass)(((ArrayClass)rawValue)*.interpolateForBuilder(buildCtx).findAll())
-        if (result.size() > 0) {
-          new PostProcessorArrayDefinition(result)
-        } else {
-          null
-        }
-      } else if (PostProcessorDefinition.isInstance(rawValue)) {
-        PostProcessorDefinition result = ((PostProcessorDefinition)rawValue).interpolateForBuilder(buildCtx)
-        if (result) {
-          new PostProcessorArrayDefinition(result)
-        } else {
-          null
-        }
+      interpolateRawValueForBuilder buildCtx, rawValue
+    }
+
+    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, ArrayClass rawValue) {
+      ArrayClass result = (ArrayClass)(rawValue*.interpolateForBuilder(buildCtx).findAll())
+      if (result.empty == false) {
+        new PostProcessorArrayDefinition(result)
       } else {
-        throw new InvalidRawValueClass(rawValue)
+        null
       }
     }
 
-    /*
-     * WORKAROUND:
-     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-     * Nested generics are not supported in static compile mode.
-     * <grv87 2018-11-10>
-     */
+    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessorDefinition rawValue) {
+      PostProcessorDefinition result = rawValue.interpolateForBuilder(buildCtx)
+      if (result) {
+        new PostProcessorArrayDefinition(result)
+      } else {
+        null
+      }
+    }
+
+    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
+    }
+
     @CompileDynamic
     final Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO
       }
       // Stage 4
-      if (ArrayClass.isInstance(rawValue)) {
-        List<Artifact> artifacts = []
-        Boolean keep = true
-        List<Provider<Boolean>> upToDateWhen = []
-        Artifact _priorArtifact = priorArtifact
-        ((ArrayClass)rawValue).eachWithIndex {  PostProcessorDefinition postProcessorDefinition, Integer i ->
-          Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = postProcessorDefinition.postProcess(_priorArtifact)
-          _priorArtifact = result.first.first
-          boolean _keep = result.first.second
-          keep = keep && _keep
-          if (_keep) {
-            artifacts.add _priorArtifact
-          } else {
-            artifacts = [_priorArtifact]
-          }
-          upToDateWhen.addAll result.second
+      doPostProcess priorArtifact, rawValue
+    }
+
+    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
+      List<Artifact> artifacts = []
+      Boolean keep = true
+      List<Provider<Boolean>> upToDateWhen = []
+      Artifact _priorArtifact = priorArtifact
+      rawValue.eachWithIndex {  PostProcessorDefinition postProcessorDefinition, Integer i ->
+        Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = postProcessorDefinition.postProcess(_priorArtifact)
+        _priorArtifact = result.first.first
+        boolean _keep = result.first.second
+        keep = keep && _keep
+        if (_keep) {
+          artifacts.add _priorArtifact
+        } else {
+          artifacts = [_priorArtifact]
         }
-        new Tuple2(new Tuple2(artifacts, keep), upToDateWhen)
-      } else if (PostProcessorDefinition.isInstance(rawValue)) {
-        Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = ((PostProcessorDefinition)rawValue).postProcess(priorArtifact)
-        new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
-      } else {
-        throw new InvalidRawValueClass(rawValue)
+        upToDateWhen.addAll result.second
       }
+      new Tuple2(new Tuple2(artifacts, keep), upToDateWhen)
+    }
+
+    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
+      Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = rawValue.postProcess(priorArtifact)
+      new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
+    }
+
+    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
     }
   }
 
@@ -225,12 +241,20 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     @Override
+    @CompileDynamic
     protected void doInterpolate() {
-      if (PostProcessor.isInstance(rawValue)) {
-        ((PostProcessor)rawValue).interpolate context
-      } else if (!String.isInstance(rawValue)) {
-        throw new InvalidRawValueClass(rawValue)
-      }
+      interpolateRawValue rawValue
+    }
+
+    private void interpolateRawValue(PostProcessor rawValue) {
+      rawValue.interpolate context
+    }
+
+    private void interpolateRawValue(String rawValue) {
+    }
+
+    private void interpolateRawValue(Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
     }
 
     final PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
@@ -238,37 +262,41 @@ abstract class PostProcessor extends InterpolableObject {
         throw new ObjectAlreadyInterpolatedForBuilder()
       }
       // Stage 3
-      if (PostProcessor.isInstance(rawValue)) {
-        PostProcessor result = ((PostProcessor)rawValue).interpolateForBuilder(buildCtx)
-        if (result) {
-          new PostProcessorDefinition(result)
-        } else {
-          null
-        }
-      } else if (String.isInstance(rawValue)) {
-        new PostProcessorDefinition(SUBTYPES[(String)rawValue].newInstance())
+      interpolateRawValueForBuilder buildCtx, rawValue
+    }
+
+    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessor rawValue) {
+      PostProcessor result = rawValue.interpolateForBuilder(buildCtx)
+      if (result) {
+        new PostProcessorDefinition(result)
       } else {
-        throw new InvalidRawValueClass(rawValue)
+        null
       }
     }
 
-    /*
-     * WORKAROUND:
-     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-     * Nested generics are not supported in static compile mode.
-     * <grv87 2018-11-10>
-     */
+    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
+      new PostProcessorDefinition(SUBTYPES[rawValue].newInstance())
+    }
+
+    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
+    }
+
     @CompileDynamic
     final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO
       }
       // Stage 4
-      if (PostProcessor.isInstance(rawValue)) {
-        ((PostProcessor)rawValue).postProcess priorArtifact
-      } else {
-        throw new InvalidRawValueClass(rawValue)
-      }
+      doPostProcess priorArtifact, rawValue
+    }
+
+    private Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessor rawValue) {
+      rawValue.postProcess priorArtifact
+    }
+
+    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
+      throw new InvalidRawValueClass(rawValue)
     }
   }
 }

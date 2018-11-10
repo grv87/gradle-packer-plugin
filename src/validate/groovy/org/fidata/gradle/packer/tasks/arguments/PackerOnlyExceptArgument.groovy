@@ -32,9 +32,9 @@ trait PackerOnlyExceptArgument extends PackerArgument {
   @Override
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
-    if (onlyExcept?.only?.size() > 0) {
+    if (onlyExcept?.only?.empty == false) {
       cmdArgs.add "-only=${ onlyExcept.only.join(',')}"
-    } else if (onlyExcept?.except?.size() > 0) {
+    } else if (onlyExcept?.except?.empty  == false) {
       cmdArgs.add "-except=${ onlyExcept.except.join(',')}"
     }
     cmdArgs

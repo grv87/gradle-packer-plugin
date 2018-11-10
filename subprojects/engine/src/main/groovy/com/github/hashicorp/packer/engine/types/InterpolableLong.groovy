@@ -24,15 +24,12 @@ class InterpolableLong extends InterpolableValue<Object, Long> {
     super(rawValue)
   }
 
-  @Override
-  protected final Long doInterpolatePrimitive() {
-    if (Long.isInstance(rawValue)) {
-      (Long)rawValue
-    } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate context
-      ((InterpolableString)rawValue).interpolatedValue.toLong()
-    } else {
-      throw new InvalidRawValueClass(rawValue)
-    }
+  protected final Long doInterpolatePrimitive(Long rawValue) {
+    rawValue
+  }
+
+  protected final Long doInterpolatePrimitive(InterpolableString rawValue) {
+    rawValue.interpolate context
+    rawValue.interpolatedValue.toLong()
   }
 }

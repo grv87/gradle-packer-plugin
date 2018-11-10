@@ -38,16 +38,12 @@ class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
     super(tryCastStringToEnum(rawValue))
   }
 
-  @Override
-  protected final E doInterpolatePrimitive() {
-    if (enumClass.isInstance(rawValue)) {
-      (E)rawValue
-    } else if (InterpolableString.isInstance(rawValue)) {
-      InterpolableString rawInterpolableString = (InterpolableString)rawValue
-      rawInterpolableString.interpolate context
-      Enum.valueOf enumClass, rawInterpolableString.interpolatedValue.toUpperCase()
-    } else {
-      throw new InvalidRawValueClass(rawValue)
-    }
+  protected final E doInterpolatePrimitive(E rawValue) {
+    rawValue
+  }
+
+  protected final E doInterpolatePrimitive(InterpolableString rawValue) {
+    rawValue.interpolate context
+    Enum.valueOf enumClass, rawValue.interpolatedValue.toUpperCase()
   }
 }

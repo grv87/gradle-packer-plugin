@@ -1,10 +1,12 @@
 package com.github.hashicorp.packer.engine.types
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonValue
+import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 // equals is required for Gradle up-to-date checking
@@ -34,11 +36,18 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   }
 
   @Override
+  @CompileDynamic
   protected final void doInterpolate() {
-    interpolatedValue = doInterpolatePrimitive()
+    interpolatedValue = doInterpolatePrimitive(rawValue)
   }
 
-  abstract protected Target doInterpolatePrimitive()
+  protected Target doInterpolatePrimitive(Object rawValue) {
+    throw new InvalidRawValueClass(rawValue)
+  }
+
+  /* TODO protected Target doInterpolatePrimitive(Target rawValue) {
+    this.@rawValue = rawValue
+  }*/
 
   @SuppressWarnings('unused') // IDEA bug
   private static final long serialVersionUID = 7881876550613522317L

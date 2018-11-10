@@ -9,8 +9,7 @@ import groovy.transform.CompileStatic
 @InheritConstructors
 @CompileStatic
 class InterpolableFile extends InterpolableValue<InterpolableString, File> {
-  @Override
-  protected final File doInterpolatePrimitive() {
+  protected final File doInterpolatePrimitive(InterpolableString rawValue) {
     rawValue.interpolate context
     context.interpolatePath(rawValue.interpolatedValue).toFile()
   }

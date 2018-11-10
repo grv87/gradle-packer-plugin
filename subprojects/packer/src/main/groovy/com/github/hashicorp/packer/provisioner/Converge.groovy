@@ -92,7 +92,7 @@ class Converge extends Provisioner<Configuration> {
         source.interpolate context
         destination.interpolate context
         exclude.interpolate context
-        if (exclude?.interpolatedValue?.size() > 0) {
+        if (exclude?.interpolatedValue?.empty == false) {
           inputFileTree = context.resolveFileTree(source.interpolatedValue) { ConfigurableFileTree configurableFileTree ->
             configurableFileTree.exclude exclude.interpolatedValue
           }

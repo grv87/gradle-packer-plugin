@@ -25,15 +25,12 @@ class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInte
     super(rawValue)
   }
 
-  @Override
-  protected final UnsignedInteger doInterpolatePrimitive() {
-    if (UnsignedInteger.isInstance(rawValue)) {
-      (UnsignedInteger)rawValue
-    } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate context
-      UnsignedInteger.valueOf(((InterpolableString)rawValue).interpolatedValue)
-    } else {
-      throw new InvalidRawValueClass(rawValue)
-    }
+  protected final UnsignedInteger doInterpolatePrimitive(UnsignedInteger rawValue) {
+    rawValue
+  }
+
+  protected final UnsignedInteger doInterpolatePrimitive(InterpolableString rawValue) {
+    rawValue.interpolate context
+    UnsignedInteger.valueOf(rawValue.interpolatedValue)
   }
 }

@@ -24,15 +24,12 @@ class InterpolableInteger extends InterpolableValue<Object, Integer> {
     super(rawValue)
   }
 
-  @Override
-  protected final Integer doInterpolatePrimitive() {
-    if (Integer.isInstance(rawValue)) {
-      (Integer)rawValue
-    } else if (InterpolableString.isInstance(rawValue)) {
-      ((InterpolableString)rawValue).interpolate context
-      ((InterpolableString)rawValue).interpolatedValue.toInteger()
-    } else {
-      throw new InvalidRawValueClass(rawValue)
-    }
+  protected final Integer doInterpolatePrimitive(Integer rawValue) {
+    rawValue
+  }
+
+  protected final Integer doInterpolatePrimitive(InterpolableString rawValue) {
+    rawValue.interpolate context
+    rawValue.interpolatedValue.toInteger()
   }
 }
