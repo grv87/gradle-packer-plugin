@@ -19,12 +19,10 @@
  */
 package org.fidata.gradle.packer.tasks
 
-import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
-
 import static org.fidata.gradle.utils.StringUtils.stringize
-import org.gradle.api.model.ObjectFactory
+import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptReadOnlyArgument
+import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
 import org.gradle.api.provider.Provider
-import javax.inject.Inject
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.engine.enums.OnError
@@ -32,8 +30,6 @@ import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Optional
 import org.fidata.gradle.packer.PackerExecSpec
-import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
-import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Template
@@ -42,7 +38,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Console
 
 @CompileStatic
-abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
+abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
   @Console
   @Optional
   Boolean color = true

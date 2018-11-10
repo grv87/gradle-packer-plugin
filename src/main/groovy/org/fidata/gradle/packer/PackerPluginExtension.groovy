@@ -20,10 +20,8 @@
  */
 package org.fidata.gradle.packer
 
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.gradle.api.Project
 
 /**

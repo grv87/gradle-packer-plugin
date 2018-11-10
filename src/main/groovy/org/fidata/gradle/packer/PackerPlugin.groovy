@@ -66,18 +66,14 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     }
 
     // TODO: https://github.com/gradle/gradle/issues/5546 ?
-    PackerPluginsSharedData sharedData
-    try { // TOTHINK: use find ?
-      sharedData = ((ExtensionAware) (project.gradle)).extensions.getByType(PackerPluginsSharedData)
-    } catch (UnknownDomainObjectException e) {
-      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.', e)
+    PackerPluginsSharedData sharedData = ((ExtensionAware) (project.gradle)).extensions.findByType(PackerPluginsSharedData)
+    if (!sharedData) {
+      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.')
     }
 
-    PackerPluginsSharedData.SourceSetDescriptor sourceSet
-    try { // TOTHINK: use find ?
-      sourceSet = sharedData.sourceSets[project.path]
-    } catch (UnknownDomainObjectException e) {
-      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.', e)
+    PackerPluginsSharedData.SourceSetDescriptor sourceSet = sharedData.sourceSets[project.path]
+    if (!sourceSet) {
+      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.')
     }
 
     sourceSet.templateDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor templateDescriptor ->
