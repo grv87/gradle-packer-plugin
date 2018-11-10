@@ -1,5 +1,6 @@
 package org.fidata.gradle.packer.tasks
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -10,6 +11,7 @@ import spock.lang.Specification
 /**
  * Specification for {@code PackerValidate} Gradle task class
  */
+@CompileStatic
 class PackerValidateSpec extends Specification {
   // fields
   @Rule

@@ -1,11 +1,13 @@
 package org.fidata.gradle.packer.tasks
 
 import com.github.hashicorp.packer.template.OnlyExcept
+import groovy.transform.CompileStatic
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
 import com.github.hashicorp.packer.template.Template
 import javax.inject.Inject
 
+@CompileStatic
 class PackerBuildAutoConfigurable extends AbstractPackerBuild {
   private final Template template
 

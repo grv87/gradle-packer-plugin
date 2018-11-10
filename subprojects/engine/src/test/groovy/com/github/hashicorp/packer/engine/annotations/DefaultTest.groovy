@@ -1,7 +1,9 @@
 package com.github.hashicorp.packer.engine.annotations
 
+import groovy.transform.CompileStatic
 import org.junit.Test
 
+@CompileStatic
 class DefaultTest {
   @Test
   void testAnnotation() {
