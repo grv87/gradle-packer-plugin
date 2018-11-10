@@ -1,10 +1,11 @@
 package com.github.hashicorp.packer.template
 
-import com.google.common.collect.ImmutableMap
-
-import javax.annotation.concurrent.Immutable
-
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
+import com.google.common.collect.ImmutableMap
+import org.checkerframework.checker.nullness.qual.Nullable
+import javax.annotation.concurrent.Immutable
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
 import com.github.hashicorp.packer.engine.types.InterpolableString
@@ -41,7 +42,6 @@ final class Context {
     templateVariables.get(BUILD_NAME_VARIABLE_NAME)
   }
 
-
   private final Map<String, ? extends Serializable> templateVariables
 
   private final File templateFile
@@ -63,27 +63,11 @@ final class Context {
     this.templateFile = templateFile
     this.cwd = cwd
     this.project = project
-
-    // TODO: mark string as mutable if timestamp or uuid is used
-    Map<String, Serializable> aContextTemplateData = (Map<String, Serializable>)[
-      'pwd': new File('.').canonicalPath,
-      'template_dir': templateFile.parentFile.absolutePath,
-      'timestamp': Instant.now().epochSecond,
-      'uuid': UUID_GENERATOR.generate().toString(), // TODO: We can generate uuid for specific builds only, not for general template
-    ]
-    if (userVariablesValues) {
-      aContextTemplateData.putAll((Map<String, Serializable>)userVariablesValues.collectEntries { Map.Entry<String, String> entry -> ["user `$entry.key`", entry.value] })
-    }
-    if (env) {
-      aContextTemplateData.putAll((Map<String, Serializable>)env.collectEntries { Map.Entry<String, String> entry -> ["env `$entry.key`", entry.value] })
-    }
-    if (templateVariables) {
-      aContextTemplateData.putAll((Map<String, Serializable>)templateVariables.collectEntries { Map.Entry<String, ? extends Serializable> entry -> [".$entry.key", entry.value] })
-    }
-    // TODO: Make sure all items are immutable / thread-safe
-    contextTemplateData = ImmutableMap.copyOf(aContextTemplateData)
   }
 
+  /**
+   * Creates new context
+   */
   Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd) {
     this(
       userVariablesValues,
@@ -95,6 +79,10 @@ final class Context {
     )
   }
 
+  /**
+   * Gets context for stage 1
+   * @return
+   */
   Context getForVariables() {
     new Context(
       null,
@@ -104,6 +92,10 @@ final class Context {
     )
   }
 
+  /**
+   * Gets context for stage 2
+   * @return
+   */
   Context forTemplateBody(Map<String, InterpolableString> userVariables) {
     new Context(
       (Map<String, String>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
@@ -115,6 +107,10 @@ final class Context {
     )
   }
 
+  /**
+   * Gets context for stage 3
+   * @return
+   */
   Context forProject(Project project) {
     new Context(
       userVariablesValues,
@@ -128,7 +124,8 @@ final class Context {
 
 
   /**
-   * Clones this instance adding specified template variables
+   * Clones this instance adding specified template variables.
+   * It is used in stage 3 whenever new variables become available
    * @param variables Template variables to add
    * @return Clone of this context with added variables
    */
@@ -143,8 +140,6 @@ final class Context {
     )
   }
 
-  private final Map<String, Serializable> contextTemplateData
-
   String interpolateString(String value) {
     /*
      * WORKAROUND:
@@ -155,7 +150,7 @@ final class Context {
      * <grv87 2018-08-19>
      */
     // TODO: Make sure contextTemplateData is immutable / thread-safe
-    mustacheCompiler.compile(value).execute(contextTemplateData)
+    mustacheCompiler.compile(value).execute(interpolationContext)
   }
 
   Path /* TODO: RegularFile ? */ interpolatePath(String value) {
@@ -223,4 +218,35 @@ final class Context {
   static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
 
   static private final Mustache.Compiler mustacheCompiler = Mustache.compiler()
+
+  class InterpolationContext extends ImmutableMap<String, String> /* TODO implements Mustache.CustomContext */ {
+    @Override
+    final String get(@Nullable Object key) {
+      String stringKey = (String)key
+      parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
+        Matcher matcher = stringKey =~ pattern
+        if (matcher.matches()) {
+          return values[matcher.group(1)] // TOTEST
+        }
+      }
+      return parameterlessFunctions[stringKey]
+    }
+
+    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = copyOf((Map<Pattern, Map<String, ? extends Serializable>>)[
+      ~/^env\s+`(\S+)`$/: env,
+      ~/^user\s+`(\S+)`$/: userVariablesValues,
+      ~/^\.(\S+)$/: templateVariables,
+    ])
+
+    // TODO: mark string as mutable if timestamp or uuid is used
+    private final Map<String, Serializable> parameterlessFunctions = copyOf((Map<String, Serializable>)[
+      'pwd': new File('.').canonicalPath, // TODO ???
+      'template_dir': templateFile.parentFile.absolutePath,
+      'timestamp': Instant.now().epochSecond,
+      'uuid': UUID_GENERATOR.generate()/*.toString()*/,
+    ])
+  }
+
+  @Lazy
+  private volatile InterpolationContext interpolationContext = { new InterpolationContext() }()
 }

@@ -27,10 +27,12 @@ import com.github.hashicorp.packer.builder.amazon.common.BlockDevices
 import com.github.hashicorp.packer.builder.amazon.common.RunConfig
 import com.github.hashicorp.packer.builder.amazon.common.TagMap
 import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
@@ -51,4 +53,9 @@ class AmazonEbs extends Builder {
   @JsonProperty('run_volume_tags')
   @Internal
   TagMap volumeRunTags
+
+  @Override
+  protected Tuple2<Artifact, List<Provider<Boolean>>> doRun() {
+    // TODO
+  }
 }
