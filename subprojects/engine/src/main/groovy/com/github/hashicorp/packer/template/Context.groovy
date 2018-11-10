@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.template
 
+import com.google.common.collect.ImmutableMap
+
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
@@ -47,9 +49,9 @@ final class Context {
   // cwd should be already resolved relatively to project dir
   @SuppressWarnings('UnnecessaryCast') // TODO
   private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
-    this.userVariablesValues = userVariablesValues?.asImmutable()
-    this.env = env?.asImmutable()
-    this.templateVariables = templateVariables?.asImmutable() ?: (Map<String, ? extends Serializable>)[:]
+    this.userVariablesValues = userVariablesValues ? ImmutableMap.copyOf(userVariablesValues) : null
+    this.env = env ? ImmutableMap.copyOf(env) : null
+    this.templateVariables = templateVariables ? ImmutableMap.copyOf(templateVariables) : (Map<String, ? extends Serializable>)[:]
     this.templateFile = templateFile
     this.cwd = cwd
     this.project = project
@@ -71,7 +73,7 @@ final class Context {
       aContextTemplateData.putAll((Map<String, Serializable>)templateVariables.collectEntries { Map.Entry<String, ? extends Serializable> entry -> [".$entry.key", entry.value] })
     }
     // TODO: Make sure all items are immutable / thread-safe
-    contextTemplateData = aContextTemplateData.asImmutable()
+    contextTemplateData = ImmutableMap.copyOf(aContextTemplateData)
   }
 
   Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd, Project project) {

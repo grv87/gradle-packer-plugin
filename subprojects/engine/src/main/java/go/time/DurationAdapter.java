@@ -22,6 +22,7 @@
  */
 package go.time;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -359,18 +360,16 @@ public final class DurationAdapter {
     return Duration.ofNanos(d);
   }
 
-  private final static Map<String, Long> unitMap = new HashMap<>(8);
-
-  static {
-    unitMap.put("ns", NANOSECOND.toNanos());
-    unitMap.put("us", MICROSECOND.toNanos());
-    unitMap.put("µs", MICROSECOND.toNanos());
-    unitMap.put("μs", MICROSECOND.toNanos());
-    unitMap.put("ms", MILLISECOND.toNanos());
-    unitMap.put("s", SECOND.toNanos());
-    unitMap.put("m", MINUTE.toNanos());
-    unitMap.put("h", HOUR.toNanos());
-  }
+  private final static Map<String, Long> unitMap = new ImmutableMap.Builder<String, Long>()
+    .put("ns", NANOSECOND.toNanos())
+    .put("us", MICROSECOND.toNanos())
+    .put("µs", MICROSECOND.toNanos())
+    .put("μs", MICROSECOND.toNanos())
+    .put("ms", MILLISECOND.toNanos())
+    .put("s", SECOND.toNanos())
+    .put("m", MINUTE.toNanos())
+    .put("h", HOUR.toNanos())
+    .build();
 
   private DurationAdapter() {
     throw new UnsupportedOperationException();

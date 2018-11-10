@@ -18,7 +18,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
 
   @JsonCreator
   InterpolableStringArray(ArrayClass rawValue) {
-    super(rawValue.asImmutable()) // TODO: no sense to make rawValue immutable since it is not final anyway
+    super(rawValue)
   }
 
   @JsonCreator
