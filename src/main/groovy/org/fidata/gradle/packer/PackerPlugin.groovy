@@ -20,6 +20,8 @@
  */
 package org.fidata.gradle.packer
 
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.template.OnlyExcept
@@ -43,9 +45,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.impldep.org.apache.commons.io.FileUtils
 import org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 
 /**
  * `org.fidata.packer` plugin
