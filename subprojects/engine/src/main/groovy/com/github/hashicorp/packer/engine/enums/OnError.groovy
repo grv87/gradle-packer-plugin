@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.enums
 
+import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 
 /**
@@ -24,6 +25,7 @@ enum OnError {
    */
   ASK
 
+  @JsonValue
   @Override
   String toString() {
     this.name().toLowerCase()
