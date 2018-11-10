@@ -86,6 +86,7 @@ abstract class PostProcessor extends InterpolableObject {
    * WORKAROUND:
    * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
    * Nested generics are not supported in static compile mode.
+   * Fixed in Groovy 2.5.0-rc-3
    * <grv87 2018-11-10>
    */
   @CompileDynamic
@@ -208,6 +209,14 @@ abstract class PostProcessor extends InterpolableObject {
       doPostProcess priorArtifact, rawValue
     }
 
+    /*
+     * WORKAROUND:
+     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+     * Nested generics are not supported in static compile mode.
+     * Fixed in Groovy 2.5.0-rc-3
+     * <grv87 2018-11-10>
+     */
+    @CompileDynamic
     private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
       List<Artifact> artifacts = []
       Boolean keep = true
@@ -228,6 +237,14 @@ abstract class PostProcessor extends InterpolableObject {
       new Tuple2(new Tuple2(artifacts, keep), upToDateWhen)
     }
 
+    /*
+     * WORKAROUND:
+     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+     * Nested generics are not supported in static compile mode.
+     * Fixed in Groovy 2.5.0-rc-3
+     * <grv87 2018-11-10>
+     */
+    @CompileDynamic
     private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
       Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = rawValue.postProcess(priorArtifact)
       new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
@@ -328,6 +345,14 @@ abstract class PostProcessor extends InterpolableObject {
       doPostProcess priorArtifact, rawValue
     }
 
+    /*
+     * WORKAROUND:
+     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+     * Nested generics are not supported in static compile mode.
+     * Fixed in Groovy 2.5.0-rc-3
+     * <grv87 2018-11-10>
+     */
+    @CompileDynamic
     private Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessor rawValue) {
       rawValue.postProcess priorArtifact
     }

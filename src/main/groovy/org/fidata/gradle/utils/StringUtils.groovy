@@ -1,4 +1,4 @@
-package org.fidata.gradle.packer.utils
+package org.fidata.gradle.utils
 
 import groovy.transform.CompileStatic
 

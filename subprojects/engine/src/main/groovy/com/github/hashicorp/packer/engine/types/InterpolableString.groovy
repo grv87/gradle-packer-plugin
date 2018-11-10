@@ -10,7 +10,6 @@ import groovy.transform.CompileStatic
 @CompileStatic
 // @KnownImmutable // TODO: Groovy 2.5
 class InterpolableString extends InterpolableValue<String, String> {
-  @Override
   protected final String doInterpolatePrimitive(String rawValue) {
     context.interpolateString rawValue
   }

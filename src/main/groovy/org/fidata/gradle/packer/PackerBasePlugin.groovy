@@ -51,7 +51,9 @@ class PackerBasePlugin implements Plugin<Project> {
   }
 
   void apply(Project project) {
-    registerBuiltInPackerPlugins()
+    registerBuiltInPackerPlugins() // TODO: 1) run only one and synchronized 2) required for settings too
+
+    project.pluginManager.apply LifecycleBasePlugin
 
     for (Class taskClass : [PackerBuild, PackerValidate]) {
       project.extensions.extraProperties[taskClass.simpleName] = taskClass

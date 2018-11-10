@@ -38,6 +38,7 @@ final class Context {
     templateVariables.get(BUILD_NAME_VARIABLE_NAME)
   }
 
+
   private final Map<String, ? extends Serializable> templateVariables
 
   private final File templateFile
@@ -45,6 +46,10 @@ final class Context {
   private final Path cwd
 
   private final Project project
+
+  String getTemplateName() {
+    userVariablesValues['name'] ?: templateFile.toPath().fileName.toString()
+  }
 
   // cwd should be already resolved relatively to project dir
   @SuppressWarnings('UnnecessaryCast') // TODO

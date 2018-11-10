@@ -26,6 +26,9 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
     this.@rawValue = rawValue
   }
 
+  /**
+   * @serial Interpolated value
+   */
   private Target interpolatedValue
 
   Target getInterpolatedValue() throws IllegalStateException {
@@ -58,20 +61,24 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   @SuppressWarnings('unused') // IDEA bug
   private static final long serialVersionUID = 7881876550613522317L
 
+  /**
+   * @serialData interpolatedValue
+   */
   void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(interpolatedValue)
   }
 
   void readExternal(ObjectInput oin) throws IOException, ClassNotFoundException {
     interpolatedValue = (Target)oin.readObject()
+    interpolated = true
   }
 
   // This is used to create instances with default values
   static final InterpolableValue<Source, Target> forInterpolatedValue(Target interpolatedValue) {
     InterpolableValue<Source, Target> result = InterpolableValue.newInstance()
     // TODO
-    result.@interpolated = true
     result.@interpolatedValue = interpolatedValue
+    result.@interpolated = true
     result
   }
 }

@@ -28,6 +28,13 @@ then stages 1 and 2 are passed before task creation. // TODO
 Stage 3 is passed when Gradle detects task inputs/outputs
 before its run.
 
+1. Interpolate variables with env function
+2. Strigize provided variable values
+3. Remove env function
+4. Combine variables with provided values
+5. Interpolate builder headers (name)
+6. Add name
+
 ## Inputs
 
 Not considered as inputs:

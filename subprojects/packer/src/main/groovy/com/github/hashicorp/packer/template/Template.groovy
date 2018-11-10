@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.template
 
+import java.nio.file.Path
+
 import static Context.BUILD_NAME_VARIABLE_NAME
 import groovy.transform.CompileDynamic
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
@@ -46,7 +48,7 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 // REVIEWED
 final class Template extends InterpolableObject {
   // TODO
-  String path
+  Path path
 
   @Console
   String description
@@ -150,6 +152,7 @@ final class Template extends InterpolableObject {
    * WORKAROUND:
    * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
    * Nested generics are not supported in static compile mode.
+   * Fixed in Groovy 2.5.0-rc-3
    * <grv87 2018-11-10>
    */
   @CompileDynamic
