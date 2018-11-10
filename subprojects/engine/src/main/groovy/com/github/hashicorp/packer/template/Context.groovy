@@ -2,6 +2,8 @@ package com.github.hashicorp.packer.template
 
 import com.google.common.collect.ImmutableMap
 
+import javax.annotation.concurrent.Immutable
+
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
@@ -23,8 +25,9 @@ import java.time.Instant
 @EqualsAndHashCode(excludes = ['buildName'])
 /* NOT NEEDED
 //
-// @ImmutableBase // TODO: Groovy 2.5.0
+// @ImmutableBase // TODO: Groovy 2.5.0 ?
 */
+@Immutable
 @CompileStatic
 // REVIEWED
 final class Context {
