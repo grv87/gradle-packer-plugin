@@ -22,12 +22,18 @@ package com.github.hashicorp.packer.template
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
+import org.gradle.internal.impldep.com.google.common.collect.ImmutableList
 
+import javax.annotation.concurrent.Immutable
+
+// Unlike most other classes, this is immutable as it is used in task arguments too
 @AutoClone(style = AutoCloneStyle.SIMPLE)
+// @KnownImmutable TODO: Groovy 2.5
+@Immutable
 @CompileStatic
 class OnlyExcept {
-  List<String> only
-  List<String> except
+  final ImmutableList<String> only
+  final ImmutableList<String> except
 
   boolean skip(String n) {
     if (only?.empty == false) {

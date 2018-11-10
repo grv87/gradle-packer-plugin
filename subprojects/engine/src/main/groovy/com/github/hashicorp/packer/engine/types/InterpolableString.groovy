@@ -8,7 +8,6 @@ import groovy.transform.CompileStatic
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
-// @KnownImmutable // TODO: Groovy 2.5
 class InterpolableString extends InterpolableValue<String, String> {
   protected final String doInterpolatePrimitive(String rawValue) {
     context.interpolateString rawValue

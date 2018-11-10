@@ -1,6 +1,5 @@
 package com.github.hashicorp.packer.engine.types
 
-import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic

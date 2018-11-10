@@ -156,7 +156,6 @@ class File extends Provisioner<Configuration> {
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
   @InheritConstructors
-// @KnownImmutable // TODO: Groovy 2.5
   static class InterpolableDirection extends InterpolableEnum<Direction>  {
   }
 }
