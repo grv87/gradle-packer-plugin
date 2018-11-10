@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.template
 
+import org.gradle.api.Project
+
 import java.nio.file.Path
 
 import static Context.BUILD_NAME_VARIABLE_NAME
@@ -80,7 +82,7 @@ final class Template extends InterpolableObject {
   // TODO
   byte[] rawContents
 
-  private Context envContext
+  private Context envCtx
 
   /**
    * Context used to interpolate variables.
@@ -89,11 +91,11 @@ final class Template extends InterpolableObject {
    */
   @JsonIgnore
   @Internal
-  Context getEnvContext() {
-    this.envContext
+  Context getenvCtx() {
+    this.envCtx
   }
 
-  private Context variablesContext
+  private Context variablesCtx
 
   /**
    * Context used to interpolate template itself.
@@ -102,8 +104,8 @@ final class Template extends InterpolableObject {
    */
   @JsonIgnore
   @Internal
-  Context getVariablesContext() {
-    this.variablesContext
+  Context getvariablesCtx() {
+    this.variablesCtx
   }
 
   @Override
@@ -111,17 +113,17 @@ final class Template extends InterpolableObject {
     super.doInterpolate() // TOTEST
 
     // Stage 1
-    envContext = context.forVariables
-    variables.each.interpolate envContext
+    envCtx = context.forVariables
+    variables.each.interpolate envCtx
 
     // Stage 2
-    variablesContext = context.forTemplateBody(variables)
+    variablesCtx = context.forTemplateBody(variables)
     for (Builder builder in builders) {
-      builder.header.interpolate variablesContext
+      builder.header.interpolate variablesCtx
     }
   }
 
-  final Template interpolateForBuilder(String buildName) {
+  final Template interpolateForBuilder(String buildName, Project project) {
     if (context.buildName) {
       // This will never be true
       throw new ObjectAlreadyInterpolatedForBuilder()
@@ -133,10 +135,11 @@ final class Template extends InterpolableObject {
       throw new IllegalArgumentException(sprintf('Build with name `%s` not found.', [buildName]))
     }
     // Stage 3
+    Context projectContext = variablesCtx.forProject(project)
     builder = builder.clone()
     builder.interpolate context
     result.builders = [builder]
-    Context buildCtx = variablesContext.withTemplateVariables([
+    Context buildCtx = projectContext.withTemplateVariables([
       (BUILD_NAME_VARIABLE_NAME): buildName,
       'BuilderType': builder.header.type,
     ])

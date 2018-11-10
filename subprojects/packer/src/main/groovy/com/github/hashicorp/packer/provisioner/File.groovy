@@ -19,7 +19,6 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue

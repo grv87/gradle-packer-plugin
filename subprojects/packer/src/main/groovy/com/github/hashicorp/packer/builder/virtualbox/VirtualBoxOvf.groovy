@@ -31,7 +31,6 @@ import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
 import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
@@ -114,10 +113,10 @@ class VirtualBoxOvf extends Builder {
   InterpolableString vmName
 
   @Input
-  @Default(value = 'false')
+  // @Default(value = 'false')
   InterpolableBoolean keepRegistered
 
   @Input
-  @Default(value = 'false')
+  // @Default(value = 'false')
   InterpolableBoolean skipExport // TODO: handle
 }

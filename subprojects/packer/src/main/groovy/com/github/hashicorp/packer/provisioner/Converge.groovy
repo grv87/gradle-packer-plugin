@@ -24,7 +24,6 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
@@ -40,7 +39,7 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
-    @Default(value = 'true')
+    // @Default(value = 'true')
     @Input
     InterpolableBoolean bootstrap
 

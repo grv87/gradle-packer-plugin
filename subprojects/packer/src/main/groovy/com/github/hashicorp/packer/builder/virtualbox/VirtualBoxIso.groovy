@@ -32,7 +32,6 @@ import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
@@ -89,7 +88,7 @@ class VirtualBoxIso extends Builder {
   VBoxVersionConfig vboxVersionConfig
 
   @Input
-  @Default(value = '40000')
+  // @Default(value = '40000')
   InterpolableUnsignedInteger diskSize
 
   // @Default(value = 'upload')
@@ -102,32 +101,32 @@ class VirtualBoxIso extends Builder {
   InterpolableString guestAdditionsURL
 
   @Input
-  @Default(value = 'other')
+  // @Default(value = 'other')
   InterpolableString guestOSType // TODO: Enum ? (VBoxManage list ostypes)
 
   @Input
   InterpolableBoolean hardDriveDiscard
 
   @Input
-  @Default(value = 'ide')
+  // @Default(value = 'ide')
   InterpolableString hardDriveInterface // TODO: Enum
 
   @Input
-  @Default(value = '1')
+  // @Default(value = '1')
   InterpolableInteger sataPortCount
 
   @Input
   InterpolableBoolean hardDriveNonrotational
 
-  @Default(value = 'ide')
+  // @Default(value = 'ide')
   InterpolableString isoInterface // TODO: Enum
 
   @Input
-  @Default(value = 'false')
+  // @Default(value = 'false')
   InterpolableBoolean keepRegistered
 
   @Input
-  @Default(value = 'false')
+  // @Default(value = 'false')
   InterpolableBoolean skipExport // TODO: handle
 
   @Internal // name of the OVF file for the new virtual machine, without the file extension

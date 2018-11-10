@@ -22,6 +22,8 @@ package org.fidata.gradle.packer
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import static org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils.removeExtension
+import static org.gradle.internal.impldep.org.apache.commons.io.FileUtils.iterateFiles
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.template.OnlyExcept
@@ -35,15 +37,12 @@ import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.Task
-import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.Directory
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.impldep.org.apache.commons.io.FileUtils
-import org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 /**
@@ -139,11 +138,11 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     PackerPluginsSharedData.SourceSetDescriptor sourceSetDescriptor = new PackerPluginsSharedData.SourceSetDescriptor()
 
     // TOTHINK: use `FileVisitor` to get pure `Path`s
-    FileUtils.iterateFiles(settings.rootDir, ['json'].toArray(new String[1]), true) { File templateFile ->
+    iterateFiles(settings.rootDir, ['json'].toArray(new String[1]), true) { File templateFile ->
       // TODO: Settings don't have logger ?
       // settings.logger.debug(sprintf('org.fidata.packer: Processing %s template', [templateFile]))
       File templateDir = templateFile.parentFile
-      String templateName = FilenameUtils.removeExtension(templateFile.toPath().fileName.toString())
+      String templateName = removeExtension(templateFile.toPath().fileName.toString())
       String projectPath = /* TOTEST settings.rootDir.toPath().relativize( or Project.relativePath*/templateDir.toPath().resolve(templateName)/*)*/.toString().replace(File.separatorChar, ':' as char)
 
       settings.include projectPath
@@ -156,7 +155,7 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
 
       sourceSetDescriptor.templateDescriptors.add new PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor(projectPath, template)
 
-      // TOTHINK: String aName = name ?: template.variablesContext.templateName ?: file.toPath().fileName.toString()
+      // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
 
       template.builders.each { Builder builder ->
         String buildName = builder.header.buildName // TODO: replace : in buildName

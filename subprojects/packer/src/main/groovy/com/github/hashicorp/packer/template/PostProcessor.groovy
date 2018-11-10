@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
 import com.github.hashicorp.packer.packer.Artifact
@@ -60,7 +59,7 @@ abstract class PostProcessor extends InterpolableObject {
   String type
 
   @Internal
-  @Default(value = 'false') // TODO
+  // @Default(value = 'false') // TODO
   InterpolableBoolean keepInputArtifacts
 
   @Override

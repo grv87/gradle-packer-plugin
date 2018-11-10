@@ -84,35 +84,24 @@ final class Context {
     contextTemplateData = ImmutableMap.copyOf(aContextTemplateData)
   }
 
-  Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd, Project project) {
+  Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd) {
     this(
       userVariablesValues,
       env,
       null,
       templateFile,
       cwd,
-      project
+      null
     )
   }
 
   Context getForVariables() {
-    Context result = new Context(
+    new Context(
       null,
-      /*
-       * WORKAROUND:
-       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
-       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
-       * Reason:
-       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
-       * Fixed in Groovy 2.5.0
-       * <grv87 2018-11-10>
-       */
-      (Map<String, String>)(((HashMap<String, String>)env)?.clone()),
+      env,
       templateFile,
-      cwd,
-      project
+      cwd
     )
-    result
   }
 
   Context forTemplateBody(Map<String, InterpolableString> userVariables) {
@@ -122,10 +111,21 @@ final class Context {
       },
       null,
       templateFile,
+      cwd
+    )
+  }
+
+  Context forProject(Project project) {
+    new Context(
+      userVariablesValues,
+      env,
+      templateVariables,
+      templateFile,
       cwd,
       project
     )
   }
+
 
   /**
    * Clones this instance adding specified template variables
@@ -134,26 +134,8 @@ final class Context {
    */
   Context withTemplateVariables(Map<String, ? extends Serializable> templateVariables) {
     new Context(
-      /*
-       * WORKAROUND:
-       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
-       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
-       * Reason:
-       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
-       * Fixed in Groovy 2.5.0
-       * <grv87 2018-11-10>
-       */
-      (Map<String, String>)(((HashMap<String, String>)userVariablesValues)?.clone()),
-      /*
-       * WORKAROUND:
-       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
-       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
-       * Reason:
-       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
-       * Fixed in Groovy 2.5.0
-       * <grv87 2018-11-10>
-       */
-      (Map<String, String>)(((HashMap<String, String>)env)?.clone()),
+      userVariablesValues,
+      env,
       (Map<String, ? extends Serializable>)(this.templateVariables + templateVariables),
       templateFile,
       cwd,

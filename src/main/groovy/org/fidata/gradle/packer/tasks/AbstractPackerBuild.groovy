@@ -84,14 +84,14 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   @Nested
   final Provider<List<Template>> interpolatedTemplates = project.providers.provider {
     if (!template.interpolated) { // TODO
-      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile.toPath(), project)
+      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile.toPath())
     }
 
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
     for (Builder builder in template.builders) {
       String buildName = builder.header.buildName
       if (!onlyExcept.skip(buildName)) {
-        result.add template.interpolateForBuilder(buildName)
+        result.add template.interpolateForBuilder(buildName, project)
       }
     }
     result

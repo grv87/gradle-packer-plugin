@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import static org.apache.commons.io.FilenameUtils.getBaseName
 import com.google.common.reflect.ClassPath
 import junitparams.JUnitParamsRunner
 import org.fidata.gradle.packer.PackerBasePlugin
@@ -27,7 +28,6 @@ import groovy.transform.CompileStatic
 import junitparams.Parameters
 import junitparams.naming.TestCaseName
 import org.junit.Test
-import org.apache.commons.io.FilenameUtils
 
 /**
  * Tests for parsing Packer templates with Jackson
@@ -52,6 +52,6 @@ class TemplateTest {
   }
 
   static Object[] parametersForTestParser() {
-    ClassPath.from(TemplateTest.classLoader).resources.findAll { ClassPath.ResourceInfo it -> it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [/* TODO new File(*/it.url().toURI().toFile(), FilenameUtils.getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
+    ClassPath.from(TemplateTest.classLoader).resources.findAll { ClassPath.ResourceInfo it -> it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [/* TODO new File(*/it.url().toURI().toFile(), getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
   }
 }

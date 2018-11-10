@@ -63,7 +63,7 @@ dependencies {
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
 }
 
-import org.apache.commons.io.FilenameUtils
+import static org.apache.commons.io.FilenameUtils.getBaseName
 
 if (!isBuildSrc) {
   tasks.register('packerValidate-integTest')
@@ -73,7 +73,7 @@ if (!isBuildSrc) {
     for (File singleTemplateFile in project.fileTree('src/integTest/resources/com/github/hashicorp/packer/template') { ConfigurableFileTree fileTree ->
       fileTree.include '**/*.json'
     }) {
-      TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ FilenameUtils.getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
+      TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
         templateFile = singleTemplateFile
         syntaxOnly = true
       }
