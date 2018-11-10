@@ -15,7 +15,7 @@ class PackerBuildAutoConfigurable extends PackerBuild {
     super()
     this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile = templateFile
     group = BUILD_GROUP
-    this.template = template // TODO: It is not necesary to pass both template and templateFile. However, it is cheaper to clone existing template instance than parse again
+    this.template = template // TODO: It is not necessary to pass both template and templateFile. However, it is cheaper to clone existing template instance than parse again
     configure configureClosure
     doConfigure() // TODO ?
   }

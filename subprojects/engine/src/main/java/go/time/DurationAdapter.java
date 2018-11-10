@@ -34,21 +34,22 @@ import java.util.concurrent.TimeUnit;
  * Java port of functions for Duration formatting and parsing
  * from {@code go/time} package
  */
+@SuppressWarnings({"HardCodedStringLiteral", "CharUsedInArithmeticContext", "UnnecessaryExplicitNumericCast"})
 public final class DurationAdapter {
   // Common durations. There is no definition for units of Day or larger
   // to avoid confusion across daylight savings time zone transitions.
-  public final static Duration NANOSECOND = Duration.of(1, ChronoUnit.NANOS);
-  public final static Duration MICROSECOND = Duration.of(1, ChronoUnit.MICROS);
-  public final static Duration MILLISECOND = Duration.of(1, ChronoUnit.MILLIS);
-  public final static Duration SECOND = Duration.of(1, ChronoUnit.SECONDS);
-  public final static Duration MINUTE = Duration.of(1, ChronoUnit.MINUTES);
-  public final static Duration HOUR = Duration.of(1, ChronoUnit.HOURS);
+  public final static Duration NANOSECOND = Duration.of(1L, ChronoUnit.NANOS);
+  public final static Duration MICROSECOND = Duration.of(1L, ChronoUnit.MICROS);
+  public final static Duration MILLISECOND = Duration.of(1L, ChronoUnit.MILLIS);
+  public final static Duration SECOND = Duration.of(1L, ChronoUnit.SECONDS);
+  public final static Duration MINUTE = Duration.of(1L, ChronoUnit.MINUTES);
+  public final static Duration HOUR = Duration.of(1L, ChronoUnit.HOURS);
 
-  final static long NANOSECONDS_PER_MICROSECOND = TimeUnit.MICROSECONDS.toNanos(1);
-  final static long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
-  final static long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
-  final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1);
-  final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1);
+  final static long NANOSECONDS_PER_MICROSECOND = TimeUnit.MICROSECONDS.toNanos(1L);
+  final static long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1L);
+  final static long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1L);
+  final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1L);
+  final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1L);
 
   final static UnsignedLong NANOSECONDS_PER_MICROSECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MICROSECOND);
   final static UnsignedLong NANOSECONDS_PER_MILLISECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MILLISECOND);
@@ -102,7 +103,7 @@ public final class DurationAdapter {
         // print microseconds
         prec = 3;
         // U+00B5 'µ' micro sign == 0xC2 0xB5
-        buf.append("µ");
+        buf.append('µ');
       } else {
         // print milliseconds
         prec = 6;
@@ -181,14 +182,14 @@ public final class DurationAdapter {
     }
   }
 
-  private static DateTimeParseException errLeadingInt(CharSequence parsedData, int errorIndex) throws DateTimeParseException {
+  private static DateTimeParseException errLeadingInt(CharSequence parsedData, int errorIndex) {
     return new DateTimeParseException("time: bad [0-9]*", parsedData, errorIndex); // never printed
   }
 
   /**
-   * Сonsumes the leading [0-9]* from s.
+   * Consumes the leading [0-9]* from s.
    */
-  private static Object[] leadingInt(String s, int w) throws DateTimeParseException {
+  private static Object[] leadingInt(CharSequence s, int w) throws DateTimeParseException {
     long x = 0L;
     int i;
     for (i = w; i < s.length(); i++){
@@ -210,14 +211,13 @@ public final class DurationAdapter {
   }
 
   /**
-   * Сonsumes the leading [0-9]* from s.
+   * Consumes the leading [0-9]* from s.
    * It is used only for fractions, so does not return an error on overflow,
    * it just stops accumulating precision.
    */
-  private static Object[] leadingFraction(String s, int w) {
+  private static Object[] leadingFraction(CharSequence s, int w) {
     long x = 0L;
-    double scale = 1D;
-    String rem;
+    double scale = 1.0D;
     int i;
     boolean overflow = false;
     for (i = w; i < s.length(); i++){
@@ -252,7 +252,7 @@ public final class DurationAdapter {
    * Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
    *
    * @param s duration string
-   * @return duration vaue
+   * @return duration value
    * @throws DateTimeParseException on parse error
    */
   public static Duration parseDuration(final String s) throws DateTimeParseException {
@@ -279,7 +279,7 @@ public final class DurationAdapter {
     }
     while (w < l) {
       long v, f = 0L; // integers before, after decimal point
-      double scale = 1D; // value = v + f/scale
+      double scale = 1.0D; // value = v + f/scale
 
       // The next character must be [0-9.]
       if (!(s.charAt(w) == '.' || '0' <= s.charAt(w) && s.charAt(w) <= '9')) {
@@ -337,7 +337,7 @@ public final class DurationAdapter {
         throw new DateTimeParseException("time: invalid duration " + s, s, w_v);
       }
       v *= unit;
-      if (f > 0L) {
+      if (f > 0.0D) {
         // float64 is needed to be nanosecond accurate for fractions of hours.
         // v >= 0 && (f*unit/scale) <= 3.6e+12 (ns/h, h is the largest unit)
         v += (long)((double)f * (((double)unit) / scale));
@@ -359,7 +359,7 @@ public final class DurationAdapter {
     return Duration.ofNanos(d);
   }
 
-  private final static Map<String, Long> unitMap = new HashMap<>();
+  private final static Map<String, Long> unitMap = new HashMap<>(8);
 
   static {
     unitMap.put("ns", NANOSECOND.toNanos());

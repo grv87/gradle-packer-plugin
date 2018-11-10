@@ -39,7 +39,7 @@ class ContextTestResolveUriFilePaths {
         "$FILE_PREFIX$PLATFORM_PREFIX${ tfPath.toString().replace('\\' as char, '/' as char) }",
       ],
     ]
-  	// Test some cases with and without a schema prefix
+    // Test some cases with and without a schema prefix
     ['', FILE_PREFIX + PLATFORM_PREFIX].each { String prefix ->
       // Nonexistent file
       result.add([
@@ -55,7 +55,7 @@ class ContextTestResolveUriFilePaths {
       ])
     }
     result.collect { (it + [it[2] ? "== \"${ it[2] }\"".toString() : 'doesn\'t throw exception']).toArray() }.toArray()
-	}
+  }
 
   @Test
   @Parameters

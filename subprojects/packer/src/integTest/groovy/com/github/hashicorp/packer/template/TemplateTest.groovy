@@ -52,6 +52,6 @@ class TemplateTest {
   }
 
   static Object[] parametersForTestParser() {
-    ClassPath.from(TemplateTest.classLoader).resources.findAll { it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [new File(it.url().toURI()), FilenameUtils.getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
+    ClassPath.from(TemplateTest.classLoader).resources.findAll { ClassPath.ResourceInfo it -> it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [/* TODO new File(*/it.url().toURI().toFile(), FilenameUtils.getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
   }
 }

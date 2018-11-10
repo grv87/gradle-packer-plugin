@@ -30,7 +30,7 @@ class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
       (Boolean)rawValue
     } else if (InterpolableString.isInstance(rawValue)) {
       ((InterpolableString)rawValue).interpolate context
-      ((InterpolableString)rawValue).interpolatedValue.asBoolean() // TOTEST
+      ((InterpolableString)rawValue).interpolatedValue // TOTEST
     } else {
       throw new InvalidRawValueClass(rawValue)
     }

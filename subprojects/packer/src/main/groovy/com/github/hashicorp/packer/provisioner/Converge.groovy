@@ -27,7 +27,6 @@ import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.file.ConfigurableFileTree
@@ -40,10 +39,6 @@ import org.gradle.api.tasks.Nested
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
-  Converge() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     @Default(value = 'true')
     @Input
@@ -78,7 +73,7 @@ class Converge extends Provisioner<Configuration> {
 
     static class ModuleDir extends InterpolableObject {
       @Internal
-      InterpolableFile source
+      InterpolableString/*File*/ source
 
       @Input
       InterpolableString destination

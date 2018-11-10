@@ -31,6 +31,7 @@ import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import org.gradle.api.provider.Provider
@@ -46,7 +47,7 @@ import org.gradle.api.tasks.Nested
 )
 @CompileStatic
 // REVIEWED
-abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
+abstract class PostProcessor extends InterpolableObject {
   protected PostProcessor() {
   }
 
@@ -81,6 +82,13 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
     }
   }
 
+  /*
+   * WORKAROUND:
+   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+   * Nested generics are not supported in static compile mode.
+   * <grv87 2018-11-10>
+   */
+  @CompileDynamic
   final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
     if (!interpolated) {
       throw new IllegalStateException('') // TODO
@@ -157,6 +165,13 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       }
     }
 
+    /*
+     * WORKAROUND:
+     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+     * Nested generics are not supported in static compile mode.
+     * <grv87 2018-11-10>
+     */
+    @CompileDynamic
     final Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO
@@ -237,6 +252,13 @@ abstract /* TOTEST */ class PostProcessor extends InterpolableObject {
       }
     }
 
+    /*
+     * WORKAROUND:
+     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+     * Nested generics are not supported in static compile mode.
+     * <grv87 2018-11-10>
+     */
+    @CompileDynamic
     final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO

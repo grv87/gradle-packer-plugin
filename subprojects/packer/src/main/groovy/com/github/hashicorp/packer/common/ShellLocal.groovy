@@ -19,9 +19,13 @@
  */
 package com.github.hashicorp.packer.common
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.types.InterpolableObject
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
+import groovy.transform.CompileStatic
 
+@AutoClone(style = AutoCloneStyle.SIMPLE)
+@CompileStatic
 class ShellLocal extends InterpolableObject {
   List<String> inline
 

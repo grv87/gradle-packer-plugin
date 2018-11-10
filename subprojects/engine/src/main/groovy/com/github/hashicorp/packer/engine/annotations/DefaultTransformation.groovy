@@ -38,7 +38,7 @@ import org.gradle.api.tasks.SkipWhenEmpty
 class DefaultTransformation implements ASTTransformation {
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-    try {
+    /*try {
       AnnotationNode annotation = (AnnotationNode) astNodes[0]
       FieldNode field = (FieldNode) astNodes[1]
 
@@ -85,6 +85,6 @@ class DefaultTransformation implements ASTTransformation {
       field.owner.addMethod(methodNode)
     } catch (RuntimeException e) {
       throw new IllegalArgumentException('Error', e)
-    }
+    }*/
   }
 }

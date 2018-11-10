@@ -30,6 +30,7 @@ import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -43,10 +44,6 @@ import java.util.regex.Pattern
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class File extends Provisioner<Configuration> {
-  File() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     @Internal
     InterpolableString source
@@ -56,7 +53,7 @@ class File extends Provisioner<Configuration> {
 
     @Internal
     // @Default('Direction.UPLOAD')
-    InterpolableEnum<Direction> direction
+    InterpolableDirection direction
 
     /* TODO: Default ?
     @JsonIgnore
@@ -76,18 +73,14 @@ class File extends Provisioner<Configuration> {
     @InputFile
     @Optional
     Path getInputFile() {
-      if (!isDirectory) {
-        this.inputFile
-      }
+      !isDirectory ? this.inputFile : null
     }
 
     @JsonIgnore
     @InputDirectory
     @Optional
     Path getSourceDirectory() {
-      if (isDirectory) {
-        this.inputFile
-      }
+      isDirectory ? this.inputFile : null
     }
 
     private Path outputFile
@@ -96,18 +89,14 @@ class File extends Provisioner<Configuration> {
     @OutputFile
     @Optional
     Path getOutputFile() {
-      if (!isDirectory) {
-        this.outputFile
-      }
+      !isDirectory ? this.outputFile : null
     }
 
     @JsonIgnore
     @OutputDirectory
     @Optional
     Path getOutputDirectory() {
-      if (isDirectory) {
-        this.outputFile
-      }
+      isDirectory ? this.outputFile : null
     }
 
     private static final Pattern DIR_PATTERN = ~/(\/\\)$/
@@ -166,7 +155,8 @@ class File extends Provisioner<Configuration> {
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
-  // @KnownImmutable // TODO: Groovy 2.5
-  static class InterpolableDirection extends  {
+  @InheritConstructors
+// @KnownImmutable // TODO: Groovy 2.5
+  static class InterpolableDirection extends InterpolableEnum<Direction>  {
   }
 }

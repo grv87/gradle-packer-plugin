@@ -19,7 +19,6 @@
  */
 package com.github.hashicorp.packer.builder.virtualbox
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.github.hashicorp.packer.builder.virtualbox.common.ExportConfig
 import com.github.hashicorp.packer.builder.virtualbox.common.ExportOpts
 import com.github.hashicorp.packer.builder.virtualbox.common.OutputConfig
@@ -35,12 +34,11 @@ import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -95,7 +93,7 @@ class VirtualBoxIso extends Builder {
   InterpolableUnsignedInteger diskSize
 
   // @Default(value = 'upload')
-  InterpolableEnum<VBoxGuestAdditionsMode> guestAdditionsMode
+  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
 
   InterpolableString guestAdditionsPath
 

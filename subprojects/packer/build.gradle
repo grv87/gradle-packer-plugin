@@ -6,10 +6,11 @@ plugins {
   id 'org.fidata.project.groovy'
 }
 dependencies {
-  annotationProcessor project(path: ':engine'/*, configuration: 'runtimeElements'*/)
+  // annotationProcessor project(path: ':engine'/*, configuration: 'runtimeElements'*/)
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
   api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
+  implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
   // api(group: 'org.apache.jclouds.labs', name: 'aliyun-ecs', version: '[2, 3[').status = 'integration'
   api group: 'org.apache.jclouds.provider', name: 'aws-ec2', version: '[2, 3['

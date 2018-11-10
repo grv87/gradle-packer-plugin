@@ -41,7 +41,7 @@ import org.gradle.api.tasks.Internal
 )
 @CompileStatic
 // REVIEWED
-abstract /* TOTEST */ class Builder extends InterpolableObject {
+abstract class Builder extends InterpolableObject {
   protected Builder() {
   }
 

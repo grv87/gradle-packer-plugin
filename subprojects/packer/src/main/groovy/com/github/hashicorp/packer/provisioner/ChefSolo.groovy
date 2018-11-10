@@ -37,10 +37,6 @@ import org.gradle.api.tasks.Optional
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ChefSolo extends Provisioner<Configuration> {
-  ChefSolo() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     @Input
     InterpolableString chefEnvironment

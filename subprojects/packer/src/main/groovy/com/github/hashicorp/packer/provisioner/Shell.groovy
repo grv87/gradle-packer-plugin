@@ -30,10 +30,6 @@ import java.time.Duration
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Shell extends Provisioner<Configuration> {
-  Shell() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     Boolean binary
 

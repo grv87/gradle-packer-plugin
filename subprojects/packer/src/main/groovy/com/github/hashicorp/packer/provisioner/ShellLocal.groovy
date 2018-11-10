@@ -28,10 +28,6 @@ import com.github.hashicorp.packer.template.Provisioner
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ShellLocal extends Provisioner<Configuration> {
-  ShellLocal() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     @Inline
     com.github.hashicorp.packer.common.ShellLocal config

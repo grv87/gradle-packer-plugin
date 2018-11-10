@@ -31,7 +31,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-
+import com.google.common.reflect.TypeToken
 import java.lang.reflect.Field
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
@@ -41,12 +41,10 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
+abstract class Provisioner<P extends Configuration> extends InterpolableObject {
+  final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
-class Provisioner<P extends Configuration> extends InterpolableObject {
-  final Class<P> configurationClass
-
-  protected Provisioner(Class<P> configurationClass) {
-    this.configurationClass = configurationClass
+  protected Provisioner() {
   }
 
   @JsonUnwrapped

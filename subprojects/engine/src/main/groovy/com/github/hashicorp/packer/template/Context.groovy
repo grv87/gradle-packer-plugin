@@ -12,7 +12,6 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.file.RegularFile
 import java.nio.file.Path
 import java.time.Instant
 
@@ -87,13 +86,23 @@ final class Context {
   }
 
   Context getForVariables() {
-    new Context(
+    Context result = new Context(
       null,
-      (Map<String, String>)env?.clone(),
+      /*
+       * WORKAROUND:
+       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
+       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
+       * Reason:
+       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
+       * Fixed in Groovy 2.5.0
+       * <grv87 2018-11-10>
+       */
+      (Map<String, String>)(((HashMap<String, String>)env)?.clone()),
       templateFile,
       cwd,
       project
     )
+    result
   }
 
   Context forTemplateBody(Map<String, InterpolableString> userVariables) {
@@ -115,8 +124,26 @@ final class Context {
    */
   Context withTemplateVariables(Map<String, ? extends Serializable> templateVariables) {
     new Context(
-      (Map<String, String>)userVariablesValues?.clone(),
-      (Map<String, String>)env?.clone(),
+      /*
+       * WORKAROUND:
+       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
+       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
+       * Reason:
+       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
+       * Fixed in Groovy 2.5.0
+       * <grv87 2018-11-10>
+       */
+      (Map<String, String>)(((HashMap<String, String>)userVariablesValues)?.clone()),
+      /*
+       * WORKAROUND:
+       * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7325. Compilation error:
+       * Caused by: java.lang.VerifyError: Bad access to protected data in invokevirtual
+       * Reason:
+       *   Type 'java/util/Map' (current frame, stack[...]) is not assignable to 'com/github/hashicorp/packer/template/Context'
+       * Fixed in Groovy 2.5.0
+       * <grv87 2018-11-10>
+       */
+      (Map<String, String>)(((HashMap<String, String>)env)?.clone()),
       (Map<String, ? extends Serializable>)(this.templateVariables + templateVariables),
       templateFile,
       cwd,
@@ -158,15 +185,15 @@ final class Context {
     cwd.resolve(path)
   }
 
-  Directory resolveDirectory(Path path) {
+  Directory resolveDirectory(String path) {
     project.layout.projectDirectory.dir(resolvePath(path).toString())
   }
 
-  FileCollection resolveFiles(Path... paths) {
-    project.files paths.collect { Path path -> resolvePath(path) }
+  FileCollection resolveFiles(String... paths) {
+    project.files paths.collect { String path -> resolvePath(path) }
   }
 
-  FileTree resolveFileTree(Path path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
+  FileTree resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
     project.fileTree resolvePath(path), closure
   }
 

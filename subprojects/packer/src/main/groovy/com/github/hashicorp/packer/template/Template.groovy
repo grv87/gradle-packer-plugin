@@ -19,12 +19,11 @@
  */
 package com.github.hashicorp.packer.template
 
+import static Context.BUILD_NAME_VARIABLE_NAME
+import groovy.transform.CompileDynamic
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
-import static Context.BUILD_NAME_VARIABLE_NAME
-import org.gradle.api.file.ProjectLayout
-import javax.inject.Inject
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -147,6 +146,13 @@ final class Template extends InterpolableObject {
     result
   }
 
+  /*
+   * WORKAROUND:
+   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+   * Nested generics are not supported in static compile mode.
+   * <grv87 2018-11-10>
+   */
+  @CompileDynamic
   private void run() {
     if (builders.size() != 1) {
       throw new IllegalStateException(sprintf('Expected 1 builder. Found: %d', builders.size()))
@@ -169,16 +175,9 @@ final class Template extends InterpolableObject {
     }
   }
 
-  @Inject
-  private final ProjectLayout projectLayout
-
   @JsonIgnore
   @Nested
   final List<Artifact> artifacts = []
-
-  /*ConfigurableFileCollection getArtifacts() {
-    projectLayout.configurableFiles(this.artifacts) // TODO
-  }*/
 
   @JsonIgnore
   @Internal

@@ -14,25 +14,24 @@ import javax.inject.Inject
  * to the user the result of a build.
  */
 @CompileStatic
-// @MapConstructor // TODO: Groovy 2.5.0
-interface Artifact {
+trait Artifact {
   /**
    * Returns the ID of the builder that was used to create this artifact.
    * This is the internal ID of the builder and should be unique to every
    * builder. This can be used to identify what the contents of the
    * artifact actually are.
    */
-  String builderId()
+  final String builderId
 
-  /*@Inject
-  private final ProjectLayout projectLayout*/
+  @Inject
+  private final ProjectLayout projectLayout
 
   /**
    * Returns the set of files that comprise this artifact. If an
    * artifact is not made up of files, then this will be empty.
    */
   @OutputFiles
-  FileCollection files() /*= projectLayout.configurableFiles()*/
+  final FileCollection files = projectLayout.files()
 
   /**
    * The ID for the artifact, if it has one. This is not guaranteed to
@@ -40,25 +39,27 @@ interface Artifact {
    * for the artifact that may be meaningful in some way. For example,
    * for Amazon EC2, this value might be the AMI ID.
    */
-  String id()
+  final String id
 
   /**
    * Returns human-readable output that describes the artifact created.
    * This is used for UI output. It can be multiple lines.
    */
   @Console
-  String string() // TODO: method ?
+  final String string
 
   /**
    * State allows the caller to ask for builder specific state information
    * relating to the artifact instance.
    */
-  Object getState(String name)
+  Object getState(String name) {
+    null
+  }
 
   /**
    * Destroy deletes the artifact. Packer calls this for various reasons,
    * such as if a post-processor has processed this artifact and it is
    * no longer needed.
    */
-  void destroy()
+  void destroy() { }
 }

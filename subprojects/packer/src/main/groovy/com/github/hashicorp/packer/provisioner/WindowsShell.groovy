@@ -31,10 +31,6 @@ import java.time.Duration
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class WindowsShell extends Provisioner<Configuration> {
-  WindowsShell() {
-    super(Configuration)
-  }
-
   static class Configuration extends Provisioner.Configuration {
     Boolean binary
 
