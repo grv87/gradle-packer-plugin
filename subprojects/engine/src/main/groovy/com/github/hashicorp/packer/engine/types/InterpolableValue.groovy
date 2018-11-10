@@ -36,6 +36,12 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   }
 
   @Override
+  /*
+   * CAVEAT:
+   * We use dynamic compiling to run
+   * overloaded version of doInterpolatePrimitive
+   * depending on rawValue actual type
+   */
   @CompileDynamic
   protected final void doInterpolate() {
     interpolatedValue = doInterpolatePrimitive(rawValue)

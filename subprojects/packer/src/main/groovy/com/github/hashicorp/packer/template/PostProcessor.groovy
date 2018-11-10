@@ -131,6 +131,12 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     @Override
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of interpolateRawValue
+     * depending on rawValue actual type
+     */
     @CompileDynamic
     protected void doInterpolate() {
       interpolateRawValue rawValue
@@ -150,6 +156,12 @@ abstract class PostProcessor extends InterpolableObject {
       throw new InvalidRawValueClass(rawValue)
     }
 
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of interpolateRawValueForBuilder
+     * depending on rawValue actual type
+     */
     @CompileDynamic
     final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
@@ -159,7 +171,7 @@ abstract class PostProcessor extends InterpolableObject {
       interpolateRawValueForBuilder buildCtx, rawValue
     }
 
-    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, ArrayClass rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, ArrayClass rawValue) {
       ArrayClass result = (ArrayClass)(rawValue*.interpolateForBuilder(buildCtx).findAll())
       if (result.empty == false) {
         new PostProcessorArrayDefinition(result)
@@ -168,7 +180,7 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessorDefinition rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessorDefinition rawValue) {
       PostProcessorDefinition result = rawValue.interpolateForBuilder(buildCtx)
       if (result) {
         new PostProcessorArrayDefinition(result)
@@ -177,10 +189,16 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static final PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
       throw new InvalidRawValueClass(rawValue)
     }
 
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of doPostProcess
+     * depending on rawValue actual type
+     */
     @CompileDynamic
     final Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
       if (!interpolated) {
@@ -241,6 +259,12 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     @Override
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of interpolateRawValue
+     * depending on rawValue actual type
+     */
     @CompileDynamic
     protected void doInterpolate() {
       interpolateRawValue rawValue
@@ -257,6 +281,13 @@ abstract class PostProcessor extends InterpolableObject {
       throw new InvalidRawValueClass(rawValue)
     }
 
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of interpolateForBuilder
+     * depending on rawValue actual type
+     */
+    @CompileDynamic
     final PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
         throw new ObjectAlreadyInterpolatedForBuilder()
@@ -265,7 +296,7 @@ abstract class PostProcessor extends InterpolableObject {
       interpolateRawValueForBuilder buildCtx, rawValue
     }
 
-    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessor rawValue) {
+    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessor rawValue) {
       PostProcessor result = rawValue.interpolateForBuilder(buildCtx)
       if (result) {
         new PostProcessorDefinition(result)
@@ -274,14 +305,20 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
+    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
       new PostProcessorDefinition(SUBTYPES[rawValue].newInstance())
     }
 
-    private static final PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
       throw new InvalidRawValueClass(rawValue)
     }
 
+    /*
+     * CAVEAT:
+     * We use dynamic compiling to run
+     * overloaded version of doPostProcess
+     * depending on rawValue actual type
+     */
     @CompileDynamic
     final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
       if (!interpolated) {

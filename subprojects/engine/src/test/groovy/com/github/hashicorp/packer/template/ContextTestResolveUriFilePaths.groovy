@@ -30,7 +30,7 @@ class ContextTestResolveUriFilePaths {
   // If we're running windows, then absolute URIs are `/`-prefixed.
   private static final String PLATFORM_PREFIX = IS_OS_WINDOWS ? '/' : ''
 
-  private static final Object[] parametersForTest() {
+  private static Object[] parametersForTest() {
     // Relative filepath
     List<List> result = [
       [

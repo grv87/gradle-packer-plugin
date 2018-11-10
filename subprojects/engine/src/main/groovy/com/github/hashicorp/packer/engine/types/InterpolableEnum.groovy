@@ -23,7 +23,7 @@ class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
     super(rawValue)
   }
 
-  private static final Object tryCastStringToEnum(String rawValue) {
+  private static Object tryCastStringToEnum(String rawValue) {
     String rawValueUpperCase = rawValue.toUpperCase()
     for (E enumConstant : enumClass.enumConstants) {
       if (enumConstant.name() == rawValueUpperCase) {
