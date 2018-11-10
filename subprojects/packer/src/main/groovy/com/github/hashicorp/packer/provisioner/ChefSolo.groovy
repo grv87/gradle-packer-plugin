@@ -20,8 +20,8 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
-import com.github.hashicorp.packer.engine.types.InterpolableInputRegularFile
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -30,6 +30,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
@@ -47,17 +48,21 @@ class ChefSolo extends Provisioner<Configuration> {
     @Nested
     List<InterpolableInputDirectory> cookbookPaths
 
-    @Nested
-    InterpolableInputDirectory rolesPath
+    @InputDirectory
+    @Optional
+    InterpolableFile rolesPath
 
-    @Nested
-    InterpolableInputDirectory dataBagsPath
+    @InputDirectory
+    @Optional
+    InterpolableFile dataBagsPath
 
     @Internal
-    InterpolableInputRegularFile encryptedDataBagSecretPath
+    @Optional
+    InterpolableFile encryptedDataBagSecretPath
 
-    @Nested
-    InterpolableInputDirectory environmentsPath
+    @InputDirectory
+    @Optional
+    InterpolableFile environmentsPath
 
     @Input
     InterpolableString executeCommand

@@ -20,44 +20,68 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.github.hashicorp.packer.engine.types.InterpolableDuration
+import com.github.hashicorp.packer.engine.types.InterpolableFile
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-
-import java.time.Duration
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Shell extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
+    @Internal
     Boolean binary
 
+    @Input
+    @Optional
     List<String> inline
 
+    @Input // TODO
     String inlineShebang
 
-    String script
+    @InputFile
+    @Optional
+    InterpolableFile script
 
-    List<String> scripts
+    @InputFiles
+    @Optional
+    List<InterpolableFile> scripts
 
-    List<String> environmentVars
+    @JsonProperty('environment_vars')
+    @Input
+    @Optional
+    List<String> vars
 
+    @Internal
+    String remoteEnvVarPath
+
+    @Internal
     String remoteFolder
 
+    @Internal
     String remoteFile
 
     // TODO: defaults to remote_folder/remote_file
+    @Internal
     String remotePath
 
+    @Input // TODO
     List<String> executeCommand
 
-    Duration startRetryTimeout // TODO: parse Raw
+    @Internal
+    InterpolableDuration startRetryTimeout // TODO: parse Raw
 
+    @Input
     Boolean skipClean
 
+    @Internal
     Boolean expectDisconnect
-
-    List<String> useLinuxPathing
   }
 }

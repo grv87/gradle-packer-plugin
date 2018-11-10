@@ -11,6 +11,7 @@ import java.nio.file.Path
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
+// This class is required to overcome the fact that Gradle doesn't have InputDirectories annotation
 class InterpolableInputDirectory extends InterpolableFile {
   @JsonIgnore
   @InputDirectory
