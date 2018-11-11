@@ -9,8 +9,14 @@ import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// DONE
 class LaunchBlockDevices extends InterpolableObject {
   @JsonProperty('launch_block_device_mappings')
   @Nested
   List<BlockDevice> launchMappings
+
+  @Override
+  protected void doInterpolate() {
+    launchMappings*.interpolate context
+  }
 }

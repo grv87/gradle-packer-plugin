@@ -94,7 +94,7 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     sourceSet.buildDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.BuildDescriptor buildDescriptor ->
       Project subproject = project.project(buildDescriptor.projectPath)
       TaskProvider<AbstractPackerBuild> buildProvider = subproject.tasks.register(PACKER_BUILD_TASK_NAME, PackerBuildAutoConfigurable,
-        buildDescriptor.template.clone(),
+        buildDescriptor.template.clone(), // TODO
         OnlyExcept.only([buildDescriptor.buildName]),
         configureClosure(project, subproject.layout.projectDirectory)
       )

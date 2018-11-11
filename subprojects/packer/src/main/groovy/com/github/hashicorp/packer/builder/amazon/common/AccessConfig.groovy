@@ -62,6 +62,6 @@ class AccessConfig extends InterpolableObject {
 
   @ComputedInput
   String getOwner() {
-
+    // TODO
   }
 }

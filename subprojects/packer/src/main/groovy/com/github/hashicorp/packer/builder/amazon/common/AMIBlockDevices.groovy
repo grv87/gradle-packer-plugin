@@ -9,8 +9,14 @@ import org.gradle.api.tasks.Nested
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// DONE
 class AMIBlockDevices extends InterpolableObject {
   @JsonProperty('ami_block_device_mappings')
   @Nested
   List<BlockDevice> amiMappings
+
+  @Override
+  protected void doInterpolate() {
+    amiMappings*.interpolate context
+  }
 }

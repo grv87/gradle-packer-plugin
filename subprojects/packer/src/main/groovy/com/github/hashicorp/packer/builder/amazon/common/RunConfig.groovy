@@ -90,4 +90,9 @@ class RunConfig extends InterpolableObject {
 
   @Inline
   Communicator comm
+
+  @Override
+  protected void doInterpolate() {
+
+  }
 }

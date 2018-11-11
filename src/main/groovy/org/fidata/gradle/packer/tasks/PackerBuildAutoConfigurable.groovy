@@ -19,7 +19,7 @@ class PackerBuildAutoConfigurable extends AbstractPackerBuild {
   PackerBuildAutoConfigurable(Template template, OnlyExcept onlyExcept, @DelegatesTo(PackerBuildAutoConfigurable) Closure configureClosure) {
     super(project.layout.projectDirectory.file(project.provider { template.path.toString() }), onlyExcept)
     group = BUILD_GROUP
-    this.template = template
+    this.template = template // TODO
     configure configureClosure
   }
 }

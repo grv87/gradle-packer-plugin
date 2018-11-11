@@ -49,7 +49,7 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // REVIEWED
-final class Template extends InterpolableObject {
+class Template extends InterpolableObject {
   // TODO
   Path path
 

@@ -8,10 +8,17 @@ import groovy.transform.CompileStatic
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
+// DONE
 class BlockDevices extends InterpolableObject {
   @Inline
   AMIBlockDevices amiBlockDevices
 
   @Inline
   LaunchBlockDevices launchBlockDevices
+
+  @Override
+  protected void doInterpolate() {
+    amiBlockDevices.interpolate context
+    launchBlockDevices.interpolate context
+  }
 }

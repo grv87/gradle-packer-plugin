@@ -59,4 +59,9 @@ class AMIConfig extends InterpolableObject {
   InterpolableStringArray snapshotUsers
 
   InterpolableStringArray snapshotGroups
+
+  @Override
+  protected void doInterpolate() {
+
+  }
 }

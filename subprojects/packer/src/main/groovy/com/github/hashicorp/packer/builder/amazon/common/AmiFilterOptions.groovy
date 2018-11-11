@@ -14,4 +14,9 @@ class AmiFilterOptions extends InterpolableObject {
   Map<InterpolableString, InterpolableString> filters
   InterpolableStringArray owners
   InterpolableBoolean mostRecent
+
+  @Override
+  protected void doInterpolate() {
+
+  }
 }

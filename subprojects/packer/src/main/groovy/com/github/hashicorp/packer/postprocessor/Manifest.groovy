@@ -53,7 +53,7 @@ class Manifest extends PostProcessor {
     new Tuple2(new Tuple2(new Artifact(priorArtifact), true), null)
   }
 
-  final class Artifact implements com.github.hashicorp.packer.packer.Artifact {
+  class Artifact implements com.github.hashicorp.packer.packer.Artifact {
     static final String BUILDER_ID = 'packer.post-processor.manifest'
     Artifact(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
       com_github_hashicorp_packer_packer_Artifact__builderId = BUILDER_ID

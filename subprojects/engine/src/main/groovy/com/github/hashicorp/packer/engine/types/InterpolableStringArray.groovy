@@ -27,9 +27,7 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
 
   // @SuppressWarnings('ImplementationAsType')
   protected final ArrayList<String> doInterpolatePrimitive(ArrayClass rawValue) {
-    new ArrayList<String>(rawValue.collect { InterpolableString it ->
-      it.interpolatedValue(context)
-    })
+    new ArrayList<String>(rawValue*.interpolatedValue(context))
   }
 
   protected final ArrayList<String> doInterpolatePrimitive(InterpolableString rawValue) {
