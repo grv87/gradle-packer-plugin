@@ -32,7 +32,7 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
    */
   private Target interpolatedValue
 
-  final Target getInterpolatedValue() throws IllegalStateException {
+  Target getInterpolatedValue() throws IllegalStateException {
     if (!interpolated) {
       throw new IllegalStateException('Value is not interpolated yet')
     }

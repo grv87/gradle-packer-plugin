@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -57,5 +58,11 @@ class AccessConfig extends InterpolableObject {
     skipValidation?.interpolate context
     skipMetadataApiCheck?.interpolate context
     token?.interpolate context
+  }
+
+  @JsonIgnore
+  @Input
+  String getOwner() {
+
   }
 }
