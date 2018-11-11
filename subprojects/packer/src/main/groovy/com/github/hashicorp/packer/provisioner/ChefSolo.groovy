@@ -19,7 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.annotations.ComputedInput
 import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
 import groovy.transform.AutoClone
@@ -94,8 +94,7 @@ class ChefSolo extends Provisioner<Configuration> {
     @Internal
     InterpolableString version
 
-    @JsonIgnore
-    @Input
+    @ComputedInput
     @Optional
     String getInterpolatedVersion() {
       skipInstall?.interpolatedValue ? null : version.interpolatedValue

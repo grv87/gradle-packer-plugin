@@ -77,7 +77,8 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     sourceSet.templateDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor templateDescriptor ->
       Project subproject = project.project(templateDescriptor.projectPath)
       TaskProvider<PackerValidate> validateProvider = subproject.tasks.register(PackerBasePlugin.PACKER_VALIDATE_TASK_NAME, PackerValidate) { PackerValidate validate ->
-        validate.templateFile = templateDescriptor.template.path.toFile() // TODO
+        validate.templateFile.set templateDescriptor.template.path.toFile()
+        validate.syntaxOnly.set true
         validate.configure configureClosure(project, subproject.layout.projectDirectory/*.dir(templateDescriptor.template.path.parent.toAbsolutePath().toString())*/)
       }
       subproject.plugins.withType(LifecycleBasePlugin) {
@@ -93,7 +94,6 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     sourceSet.buildDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.BuildDescriptor buildDescriptor ->
       Project subproject = project.project(buildDescriptor.projectPath)
       TaskProvider<AbstractPackerBuild> buildProvider = subproject.tasks.register(PACKER_BUILD_TASK_NAME, PackerBuildAutoConfigurable,
-        buildDescriptor.template.path.toFile(),
         buildDescriptor.template.clone(),
         OnlyExcept.only([buildDescriptor.buildName]),
         configureClosure(project, subproject.layout.projectDirectory)
@@ -151,14 +151,14 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
       projectDescriptor.buildFileName = "${ templateName }.gradle"
 
       Template template = Template.readFromFile(templateFile)
-      template.interpolate new Context(null, null, templateFile, settings.settingsDir.toPath(), null)
+      template.interpolate new Context(null, null, templateFile, settings.settingsDir.toPath())
 
       sourceSetDescriptor.templateDescriptors.add new PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor(projectPath, template)
 
       // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
 
       template.builders.each { Builder builder ->
-        String buildName = builder.header.buildName // TODO: replace : in buildName
+        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFilename
         String subprojectPath = "$projectPath:$buildName"
 
         settings.include subprojectPath

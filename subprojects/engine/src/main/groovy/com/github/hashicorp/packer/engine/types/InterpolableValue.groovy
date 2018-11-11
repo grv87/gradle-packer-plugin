@@ -88,7 +88,7 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
 
   // This is used to create instances with default values
   protected static final <V extends InterpolableValue<Source, Target>> V withDefault(Class<V> clazz, Target interpolatedValue) {
-    V result = clazz.newInstance()
+    V result =  (V)clazz.newInstance() /* TODO */
     // TODO
     result.@interpolatedValue = interpolatedValue
     result.@isDefault = true

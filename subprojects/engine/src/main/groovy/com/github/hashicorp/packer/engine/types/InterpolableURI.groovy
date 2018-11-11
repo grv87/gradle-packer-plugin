@@ -1,24 +1,21 @@
 package com.github.hashicorp.packer.engine.types
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
-import org.gradle.api.tasks.Internal
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
 class InterpolableURI extends InterpolableValue<InterpolableString, URI> {
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   URI getFileURI() {
     interpolatedValue?.scheme == 'file' ? interpolatedValue : null
   }
 
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   URI getNonFileURI() {
     interpolatedValue?.scheme != 'file' ? interpolatedValue : null
   }

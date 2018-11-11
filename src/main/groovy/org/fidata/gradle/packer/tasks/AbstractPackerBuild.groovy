@@ -19,7 +19,14 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import com.github.hashicorp.packer.template.OnlyExcept
+import org.gradle.api.file.RegularFile
+
 import static org.fidata.gradle.utils.StringUtils.stringize
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
+import javax.inject.Inject
 import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptReadOnlyArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
 import org.gradle.api.provider.Provider
@@ -41,15 +48,15 @@ import org.gradle.api.tasks.Console
 abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
   @Console
   @Optional
-  Boolean color = true
+  final Property<Boolean> color = project.objects.property(Boolean)
 
   @Internal
   @Optional
-  Boolean parallel = true
+  final Property<Boolean> parallel = project.objects.property(Boolean)
 
   @Internal
   @Optional
-  OnError onError = OnError.CLEANUP
+  final Property<OnError> onError = project.objects.property(OnError)
 
   @Internal
   @Override
@@ -57,10 +64,10 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = PackerTemplateReadOnlyArgument.super.getCmdArgs()
     // Template should be the last, so we insert in the start
-    if (!color) {
+    if (!color.getOrElse(true)) {
       cmdArgs.add 0, '-color=false'
     }
-    if (!parallel) {
+    if (!parallel.getOrElse(true)) {
       cmdArgs.add 0, '-parallel=false'
     }
     if (onError) {
@@ -82,9 +89,9 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   abstract Template getTemplate()
 
   @Nested
-  final Provider<List<Template>> interpolatedTemplates = project.providers.provider {
+  final Provider<List<Template>> interpolatedTemplates = project.provider {
     if (!template.interpolated) { // TODO
-      template.interpolate new Context(stringize(variables), stringize(environment), templateFile, workingDir.get().asFile.toPath())
+      template.interpolate new Context(stringize(variables), stringize(environment), templateFile.get().asFile, workingDir.get().asFile.toPath())
     }
 
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
@@ -97,7 +104,28 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
     result
   }
 
-  AbstractPackerBuild() {
+  // @Inject
+  protected AbstractPackerBuild(/*TODO ProviderFactory providerFactory*/ Provider<RegularFile> templateFile, OnlyExcept onlyExcept = null) {
+    PackerTemplateReadOnlyArgument.super.templateFile = templateFile
+    PackerOnlyExceptReadOnlyArgument.super.onlyExcept = onlyExcept
+    color.set project.provider {
+      switch (project.gradle.startParameter.consoleOutput) {
+        case ConsoleOutput.Plain:
+          false
+          break
+        case ConsoleOutput.Rich:
+        case ConsoleOutput.Verbose:
+          true
+          break
+        default:
+          null
+      }
+    }
+
+    parallel.set true
+
+    onError.set OnError.CLEANUP
+
     outputs.upToDateWhen {
       interpolatedTemplates.get().every() { Template interpolatedTemplate ->
         !interpolatedTemplate.upToDateWhen || interpolatedTemplate.upToDateWhen.every { Provider<Boolean> upToDateWhenProvider ->

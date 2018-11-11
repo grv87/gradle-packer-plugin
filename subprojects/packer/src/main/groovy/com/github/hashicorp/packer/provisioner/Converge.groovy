@@ -19,7 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.github.hashicorp.packer.engine.annotations.ComputedInputFiles
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -31,7 +31,6 @@ import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
@@ -81,8 +80,7 @@ class Converge extends Provisioner<Configuration> {
 
       // TODO
 
-      @JsonIgnore
-      @InputFiles
+      @ComputedInputFiles
       FileTree inputFileTree
 
       @Override

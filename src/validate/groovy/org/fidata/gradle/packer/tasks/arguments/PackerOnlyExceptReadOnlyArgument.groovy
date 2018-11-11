@@ -8,9 +8,9 @@ import org.gradle.api.tasks.Optional
 
 @CompileStatic
 trait PackerOnlyExceptReadOnlyArgument extends PackerArgument {
-  protected OnlyExcept onlyExcept
+  protected /* TOTEST */ OnlyExcept onlyExcept
 
-  @Input
+  @Internal
   @Optional
   OnlyExcept getOnlyExcept() {
     this.onlyExcept

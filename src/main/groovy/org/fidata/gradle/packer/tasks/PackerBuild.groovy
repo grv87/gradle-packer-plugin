@@ -9,14 +9,16 @@ import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 class PackerBuild extends AbstractPackerBuild implements PackerOnlyExceptArgument, PackerTemplateArgument {
   private Template template
 
+  // returns null if templateFile is empty
   @Override
   Template getTemplate() {
-    this.template
+    if (template?.path != templateFile.orNull?.asFile?.toPath()) {
+      template = Template.readFromFile(templateFile.get().asFile)
+    }
+    template
   }
 
-  @Override
-  void setTemplateFile(File templateFile) {
-    super(templateFile)
-    this.template = Template.readFromFile(templateFile)
+  PackerBuild() {
+    super(newInputFile()) // TOTEST: it should be still internal
   }
 }

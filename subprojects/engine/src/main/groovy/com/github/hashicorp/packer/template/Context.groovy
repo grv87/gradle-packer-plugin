@@ -1,8 +1,13 @@
 package com.github.hashicorp.packer.template
 
+import com.google.common.collect.ImmutableCollection
+import com.google.common.collect.ImmutableSet
+import groovy.transform.CompileDynamic
+
+import java.util.function.BiConsumer
+
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.google.common.collect.ImmutableMap
-import org.checkerframework.checker.nullness.qual.Nullable
 import javax.annotation.concurrent.Immutable
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -219,9 +224,22 @@ final class Context {
 
   static private final Mustache.Compiler mustacheCompiler = Mustache.compiler()
 
+  /*
+   * WORKAROUND:
+   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
+   * Nested generics are not supported in static compile mode.
+   * Fixed in Groovy 2.5.0-rc-3
+   * <grv87 2018-11-10>
+   */
+  @CompileDynamic
   class InterpolationContext extends ImmutableMap<String, String> /* TODO implements Mustache.CustomContext */ {
     @Override
-    final String get(@Nullable Object key) {
+    int size() {
+      parameterizedFunctions*.value*.size().sum() + parameterlessFunctions.size()
+    }
+
+    @Override
+    final String get(/* TODO: not allowed on PARAMETER ?? @Nullable */ Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
         Matcher matcher = stringKey =~ pattern
@@ -232,10 +250,15 @@ final class Context {
       return parameterlessFunctions[stringKey]
     }
 
-    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = copyOf((Map<Pattern, Map<String, ? extends Serializable>>)[
-      ~/^env\s+`(\S+)`$/: env,
-      ~/^user\s+`(\S+)`$/: userVariablesValues,
-      ~/^\.(\S+)$/: templateVariables,
+    /*@Override
+    void forEach(BiConsumer<? super String, ? super String> action) {
+      throw new UnsupportedOperationException()
+    }*/
+
+    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = copyOf(/*(Map<Pattern, Map<String, ? extends Serializable>>)*/[
+      (~/^env\s+`(\S+)`$/): env,
+      (~/^user\s+`(\S+)`$/): userVariablesValues,
+      (~/^\.(\S+)$/): templateVariables,
     ])
 
     // TODO: mark string as mutable if timestamp or uuid is used
@@ -245,6 +268,23 @@ final class Context {
       'timestamp': Instant.now().epochSecond,
       'uuid': UUID_GENERATOR.generate()/*.toString()*/,
     ])
+
+    protected ImmutableSet<Entry<String, String>> createEntrySet() {
+      throw new UnsupportedOperationException() // TODO
+    }
+
+    protected ImmutableSet<String> createKeySet() {
+      // parameterizedFunctions*.value*.keySet().flatten().toSet() + parameterlessFunctions.keySet()
+      throw new UnsupportedOperationException() // TODO ?
+    }
+
+    protected ImmutableCollection<String> createValues() {
+      throw new UnsupportedOperationException() // TODO
+    }
+
+    boolean isPartialView() {
+      false
+    }
   }
 
   @Lazy

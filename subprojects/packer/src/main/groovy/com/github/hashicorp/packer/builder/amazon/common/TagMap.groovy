@@ -19,7 +19,7 @@ class TagMap extends InterpolableValue<Map<InterpolableString, InterpolableStrin
   }
 
   protected static /* TOTEST */ HashMap<String, String> doInterpolatePrimitive(MapClass rawValue) {
-    new HashMap((Map<String, String>)rawValue.collectEntries { HashMap.Entry<InterpolableString, InterpolableString> entry ->
+    new HashMap((Map<String, String>)rawValue.collectEntries { Map.Entry<InterpolableString, InterpolableString> entry ->
       [entry.key.interpolatedValue(context), entry.value.interpolatedValue(context)]
     })
   }

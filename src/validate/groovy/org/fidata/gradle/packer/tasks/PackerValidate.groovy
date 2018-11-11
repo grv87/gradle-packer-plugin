@@ -24,6 +24,8 @@ import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -33,14 +35,14 @@ import org.gradle.api.tasks.Optional
 class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
   @Input
   @Optional
-  Boolean syntaxOnly = true
+  Property<Boolean> syntaxOnly = project.objects.property(Boolean)
 
   @Internal
   @Override
   @SuppressWarnings('UnnecessaryGetter') // TODO
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
-    if (syntaxOnly) {
+    if (syntaxOnly.getOrElse(false)) {
       cmdArgs.add 0, '-syntax-only' // Template should be the last, so we insert in the start
     }
     cmdArgs
@@ -48,13 +50,14 @@ class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgume
 
   @InputFile
   @Override
-  File getTemplateFile() {
-    this.org_fidata_gradle_packer_tasks_arguments_PackerTemplateArgument__templateFile
+  RegularFileProperty getTemplateFile() {
+    PackerTemplateArgument.super.templateFile
   }
 
   PackerValidate() {
-    super()
-    outputs.upToDateWhen { true }
+    syntaxOnly.set false
+    this.@org_fidata_gradle_packer_tasks_arguments_PackerTemplateReadOnlyArgument__templateFile = newInputFile() // TOTEST: it should be still internal
+    outputs.upToDateWhen { true } // TODO ? Is it standard for code quality tasks ?
   }
 
   @Override

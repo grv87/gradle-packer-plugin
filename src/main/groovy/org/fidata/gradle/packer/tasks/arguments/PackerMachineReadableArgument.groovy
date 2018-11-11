@@ -1,14 +1,18 @@
 package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
 @CompileStatic
 trait PackerMachineReadableArgument extends PackerArgument {
-  private Boolean machineReadable = false
+  @Console
+  @Optional
+  final Property<Boolean> machineReadable = project.objects.property(Boolean)
 
+  /*TOTEST
   @Console
   @Optional
   Boolean getMachineReadable() {
@@ -17,7 +21,7 @@ trait PackerMachineReadableArgument extends PackerArgument {
 
   void setMachineReadable(Boolean machineReadable) {
     this.machineReadable = machineReadable
-  }
+  }*/
 
   /*
    * WORKAROUND:
@@ -31,9 +35,14 @@ trait PackerMachineReadableArgument extends PackerArgument {
   @Override
   List<Object> getCmdArgs() {
     List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
-    if (machineReadable) {
+    if (machineReadable.getOrElse(false)) {
       cmdArgs.add '-machine-readable'
     }
     cmdArgs
+  }
+
+  // TODO (make custom chained method and call from instance constructor ?)
+  PackerMachineReadableArgument() {
+    machineReadable.set false
   }
 }

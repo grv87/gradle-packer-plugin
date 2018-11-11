@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.annotations.ComputedInternal
+import com.github.hashicorp.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
 
 import java.nio.file.Path
@@ -31,7 +33,6 @@ import org.gradle.api.provider.Provider
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -89,8 +90,7 @@ final class Template extends InterpolableObject {
    * Have {@code env} function
    * @return Context used to interpolate variables
    */
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   Context getenvCtx() {
     this.envCtx
   }
@@ -102,8 +102,7 @@ final class Template extends InterpolableObject {
    * Doesn't have {@code env} function, but have variables
    * @return Context used to interpolate template itself
    */
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   Context getvariablesCtx() {
     this.variablesCtx
   }
@@ -181,12 +180,10 @@ final class Template extends InterpolableObject {
     }
   }
 
-  @JsonIgnore
-  @Nested
+  @ComputedNested
   final List<Artifact> artifacts = []
 
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   final List<Provider<Boolean>> upToDateWhen = []
 
   // @Inject // TOTEST
@@ -203,8 +200,10 @@ final class Template extends InterpolableObject {
   }
 
   static Template readFromFile(File file) {
-    (Template)file.withInputStream { InputStream inputStream ->
+    Template template = (Template)file.withInputStream { InputStream inputStream ->
       MAPPER.readValue(inputStream, Template)
     }
+    template.path = file.toPath()
+    template
   }
 }

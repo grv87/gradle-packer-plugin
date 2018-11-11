@@ -1,15 +1,14 @@
 package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
 trait PackerTemplateReadOnlyArgument extends PackerArgument {
-  private File templateFile
   @Internal
-  File getTemplateFile() {
-    this.templateFile
-  }
+  final Provider<RegularFile> templateFile
 
   /*
    * WORKAROUND:

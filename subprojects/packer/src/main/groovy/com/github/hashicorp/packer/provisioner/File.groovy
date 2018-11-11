@@ -19,6 +19,10 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
+import com.github.hashicorp.packer.engine.annotations.ComputedInputFile
+import com.github.hashicorp.packer.engine.annotations.ComputedOutputDirectory
+import com.github.hashicorp.packer.engine.annotations.ComputedOutputFile
 import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.AutoClone
@@ -27,14 +31,9 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.InheritConstructors
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.regex.Pattern
@@ -59,15 +58,13 @@ class File extends Provisioner<Configuration> {
 
     private Path inputFile
 
-    @JsonIgnore
-    @InputFile
+    @ComputedInputFile
     @Optional
     Path getInputFile() {
       !isDirectory ? this.inputFile : null
     }
 
-    @JsonIgnore
-    @InputDirectory
+    @ComputedInputDirectory
     @Optional
     Path getSourceDirectory() {
       isDirectory ? this.inputFile : null
@@ -75,15 +72,13 @@ class File extends Provisioner<Configuration> {
 
     private Path outputFile
 
-    @JsonIgnore
-    @OutputFile
+    @ComputedOutputFile
     @Optional
     Path getOutputFile() {
       !isDirectory ? this.outputFile : null
     }
 
-    @JsonIgnore
-    @OutputDirectory
+    @ComputedOutputDirectory
     @Optional
     Path getOutputDirectory() {
       isDirectory ? this.outputFile : null

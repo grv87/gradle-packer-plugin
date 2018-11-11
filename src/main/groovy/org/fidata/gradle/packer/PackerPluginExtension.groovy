@@ -31,6 +31,7 @@ import org.gradle.api.Project
 class PackerPluginExtension /*extends PackerToolExtension*/ {
   private final Project project
 
+  /* TODO: use map of Provider<String> ? */
   Map<String, Object> environment = [:]
   Map<String, Object> variables = [:]
 

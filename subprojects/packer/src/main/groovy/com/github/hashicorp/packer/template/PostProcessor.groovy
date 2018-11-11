@@ -107,7 +107,6 @@ abstract class PostProcessor extends InterpolableObject {
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
-  @CompileStatic
   static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
     }
@@ -254,7 +253,6 @@ abstract class PostProcessor extends InterpolableObject {
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
-  @CompileStatic
   static final class PostProcessorDefinition extends InterpolableObject {
     @JsonValue
     @Nested

@@ -42,7 +42,7 @@ import java.lang.reflect.Field
 )
 @CompileStatic
 abstract class Provisioner<P extends Configuration> extends InterpolableObject {
-  final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
+  final static Class<P> CONFIGURATION_CLASS = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   protected Provisioner() {
   }
@@ -83,7 +83,7 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
       overrideConfiguration.interpolate(context)
-      Class<? extends Configuration> clazz = configurationClass
+      Class<? extends Configuration> clazz = CONFIGURATION_CLASS
       while (true) {
         clazz.fields.each { Field field ->
           Object value = field.get(overrideConfiguration)

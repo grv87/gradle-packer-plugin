@@ -1,11 +1,10 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.PackageScope
-import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.template.Context
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
@@ -15,14 +14,12 @@ abstract class InterpolableObject {
   /*private*/ @PackageScope boolean interpolated = false
   private Context context
 
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   Context getContext() {
     this.context
   }
 
-  @JsonIgnore
-  @Internal
+  @ComputedInternal
   boolean isInterpolated() {
     this.interpolated
   }
