@@ -10,4 +10,8 @@ import groovy.transform.InheritConstructors
 @InheritConstructors
 @CompileStatic
 class InterpolableChecksumType extends InterpolableEnum<ChecksumType> {
+  // This is used to create instances with default values
+  static final InterpolableChecksumType withDefault(ChecksumType interpolatedValue) {
+    withDefault(InterpolableChecksumType, interpolatedValue)
+  }
 }

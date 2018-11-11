@@ -20,7 +20,6 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.github.hashicorp.packer.engine.types.InterpolableEnum
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
@@ -51,18 +50,10 @@ class File extends Provisioner<Configuration> {
     InterpolableString destination
 
     @Internal
-    // @Default('Direction.UPLOAD')
-    InterpolableDirection direction
-
-    /* TODO: Default ?
-    @JsonIgnore
-    @Input
-    Direction getDirectionValue() {
-      direction.interpolatedValue ?: Direction.UPLOAD
-    }*/
+    InterpolableDirection direction = InterpolableDirection.withDefault(Direction.UPLOAD)
 
     @Internal
-    InterpolableBoolean generated
+    InterpolableBoolean generated = InterpolableBoolean.withDefault(false)
 
     private Boolean isDirectory
 
@@ -105,14 +96,8 @@ class File extends Provisioner<Configuration> {
       super.doInterpolate()
       source?.interpolate context
       destination?.interpolate context
-      direction?.interpolate context
-      if (!direction?.interpolatedValue) {
-        direction = (InterpolableDirection)InterpolableDirection.forInterpolatedValue(Direction.UPLOAD)
-      }
-      generated?.interpolate context
-      if (!generated?.interpolatedValue) {
-        generated = (InterpolableBoolean)InterpolableBoolean.forInterpolatedValue(false)
-      }
+      direction?.interpolate context // TODO: null ?
+      generated.interpolate context // TODO: null ?
 
       Path sourcePath = null
       if (source) {
@@ -156,5 +141,9 @@ class File extends Provisioner<Configuration> {
   @AutoClone(style = AutoCloneStyle.SIMPLE)
   @InheritConstructors
   static class InterpolableDirection extends InterpolableEnum<Direction>  {
+    // This is used to create instances with default values
+    static final InterpolableDirection withDefault(Direction interpolatedValue) {
+      withDefault(InterpolableDirection, interpolatedValue)
+    }
   }
 }

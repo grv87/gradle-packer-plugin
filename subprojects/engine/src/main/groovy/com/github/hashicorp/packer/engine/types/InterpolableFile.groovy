@@ -13,12 +13,13 @@ import java.util.concurrent.Callable
 // Callable is required for InputFile etc. annotations
 class InterpolableFile extends InterpolableValue<InterpolableString, File> implements Callable<File> {
   protected final File doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    context.interpolatePath(rawValue.interpolatedValue).toFile()
+    context.interpolatePath(rawValue.interpolatedValue(context)).toFile()
   }
 
   @Override
   File call() {
     interpolatedValue
   }
+
+  // TODO: default ?
 }

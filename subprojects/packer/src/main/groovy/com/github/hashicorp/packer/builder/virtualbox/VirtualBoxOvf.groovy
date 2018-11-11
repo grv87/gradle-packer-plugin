@@ -32,6 +32,7 @@ import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
 import com.github.hashicorp.packer.engine.types.InterpolableString
@@ -89,8 +90,7 @@ class VirtualBoxOvf extends Builder {
   @Input
   InterpolableChecksumType checksumType
 
-  // @Default(value = 'upload')
-  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
+  InterpolableVBoxGuestAdditionsMode guestAdditionsMode = InterpolableVBoxGuestAdditionsMode.withDefault(VBoxGuestAdditionsMode.UPLOAD)
 
   InterpolableString guestAdditionsPath
 
@@ -113,10 +113,8 @@ class VirtualBoxOvf extends Builder {
   InterpolableString vmName
 
   @Input
-  // @Default(value = 'false')
-  InterpolableBoolean keepRegistered
+  InterpolableBoolean keepRegistered = InterpolableBoolean.withDefault(false)
 
   @Input
-  // @Default(value = 'false')
-  InterpolableBoolean skipExport // TODO: handle
+  InterpolableBoolean skipExport = InterpolableBoolean.withDefault(false) // TODO: handle
 }

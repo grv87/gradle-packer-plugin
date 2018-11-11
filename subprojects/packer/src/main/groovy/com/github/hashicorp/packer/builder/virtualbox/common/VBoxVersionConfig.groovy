@@ -13,6 +13,5 @@ import org.gradle.api.tasks.Input
 class VBoxVersionConfig extends InterpolableObject {
   @JsonProperty('virtualbox_version_file')
   @Input
-  // @Default(value = '.vbox_version') // in home dir !
-  InterpolableString vboxVersionFile
+  InterpolableString vboxVersionFile = InterpolableString.withDefault('.vbox_version') // TODO: in home dir !
 }

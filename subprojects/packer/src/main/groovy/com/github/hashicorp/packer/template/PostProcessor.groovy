@@ -59,8 +59,7 @@ abstract class PostProcessor extends InterpolableObject {
   String type
 
   @Internal
-  // @Default(value = 'false') // TODO
-  InterpolableBoolean keepInputArtifacts
+  InterpolableBoolean keepInputArtifacts = InterpolableBoolean.withDefault(false)
 
   @Override
   protected void doInterpolate() {

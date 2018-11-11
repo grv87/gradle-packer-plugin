@@ -28,13 +28,11 @@ class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String
   // @SuppressWarnings('ImplementationAsType')
   protected final ArrayList<String> doInterpolatePrimitive(ArrayClass rawValue) {
     new ArrayList<String>(rawValue.collect { InterpolableString it ->
-      it.interpolate context
-      it.interpolatedValue
+      it.interpolatedValue(context)
     })
   }
 
   protected final ArrayList<String> doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    new ArrayList<String>(rawValue.interpolatedValue.split(',').toList())
+    new ArrayList<String>(rawValue.interpolatedValue(context).split(',').toList())
   }
 }

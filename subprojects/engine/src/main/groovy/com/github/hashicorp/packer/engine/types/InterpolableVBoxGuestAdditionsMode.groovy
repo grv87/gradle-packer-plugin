@@ -10,4 +10,8 @@ import groovy.transform.InheritConstructors
 @InheritConstructors
 @CompileStatic
 class InterpolableVBoxGuestAdditionsMode extends InterpolableEnum<VBoxGuestAdditionsMode> {
+  // This is used to create instances with default values
+  static final InterpolableVBoxGuestAdditionsMode withDefault(VBoxGuestAdditionsMode interpolatedValue) {
+    withDefault(InterpolableVBoxGuestAdditionsMode, interpolatedValue)
+  }
 }

@@ -27,7 +27,11 @@ class InterpolableLong extends InterpolableValue<Object, Long> {
   }
 
   protected final Long doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    rawValue.interpolatedValue.toLong()
+    rawValue.interpolatedValue(context).toLong()
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableLong withDefault(Long interpolatedValue) {
+    withDefault(InterpolableLong, interpolatedValue)
   }
 }

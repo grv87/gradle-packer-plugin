@@ -27,7 +27,11 @@ class InterpolableInteger extends InterpolableValue<Object, Integer> {
   }
 
   protected final Integer doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    rawValue.interpolatedValue.toInteger()
+    rawValue.interpolatedValue(context).toInteger()
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableInteger withDefault(Integer interpolatedValue) {
+    withDefault(InterpolableInteger, interpolatedValue)
   }
 }

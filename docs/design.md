@@ -37,15 +37,44 @@ before its run.
 
 ## Inputs
 
-Not considered as inputs:
-*   timing settings
-*   passwords
-*   connection settings
-*   staging/temp paths on images
+Plugin tries to to its best to determine what affects produced artifacts
+and what not.
 
-Considered:
-*   paths on images (except staging/temp)
-*   users under which provisioning is happening, sudo settings
+What plugin is able to do:
+*   Parse Packer template, interpolate template functions and
+    and hand over to Gradle only these properties that are important
+    for the outcome.
+
+    Not considered as inputs:
+    *   timing settings
+    *   passwords
+    *   connection settings
+    *   staging/temp paths on images
+
+    Considered:
+    *   persistent paths on images
+    *   users under which provisioning is happening,
+        sudo/elevated settings
+
+What plugin is not able to do:
+*   Parse shell scripts to detect whether script will actually
+    do something:
+
+    *   [Making provisioner steps conditional on the variable value
+        with shell `if` command
+        ](https://www.packer.io/docs/templates/user-variables.html#making-a-provisioner-step-conditional-on-the-value-of-a-variable)
+        is not supported.
+
+        Plugin assumes provisioner is run each time
+        regardless of the actual value of the variable.
+
+    *   Testing for `PACKER_BUILDER_TYPE` environment variable
+        inside script like [this](
+        https://github.com/chef/bento/blob/master/_common/virtualbox.sh)
+        is not supported too.
+
+        To limit the run of the script on specific builds
+        `only` and `except` configurations should be used.
 
 ## Paths
 
@@ -54,6 +83,9 @@ and after that `Project#file` and `Project#dir` methods
 are not necessary.
 Other methods (`Project#files` and `Project#fileTree`) get paths
 resolved to `cwd`, so that project dir doesn't mess with them.
+
+##
+
 
 
 ------------------------------------------------------------------------

@@ -71,11 +71,6 @@ saves results in Gradle's cache.
 		*	`script`
 		*	`scripts`
 		
-		To limit the run of the script on specific builds it is
-recommended to use `only` and `except` configurations instead of
-testing for `PACKER_BUILDER_TYPE` environment variable inside the
-script, so that up-to-date detection provided by this plugin would work.
-
 	*	`chef-solo`.
 
 		The following fields are considered as inputs:

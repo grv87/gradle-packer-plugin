@@ -12,7 +12,11 @@ import java.time.Duration
 @CompileStatic
 class InterpolableDuration extends InterpolableValue<InterpolableString, Duration> {
   protected final Duration doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    parseDuration(rawValue.interpolatedValue)
+    parseDuration(rawValue.interpolatedValue(context))
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableDuration withDefault(Duration interpolatedValue) {
+    withDefault(InterpolableDuration, interpolatedValue)
   }
 }

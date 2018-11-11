@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
@@ -27,7 +28,11 @@ class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
   }
 
   protected final Boolean doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    rawValue.interpolatedValue // TOTEST
+    rawValue.interpolatedValue(context) // TOTEST
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableBoolean withDefault(Boolean interpolatedValue) {
+    withDefault(InterpolableBoolean, interpolatedValue)
   }
 }

@@ -33,6 +33,7 @@ import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import com.github.hashicorp.packer.engine.annotations.Inline
+import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
 import com.github.hashicorp.packer.engine.types.InterpolableString
@@ -44,6 +45,7 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import com.google.common.primitives.UnsignedInteger
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
@@ -88,11 +90,9 @@ class VirtualBoxIso extends Builder {
   VBoxVersionConfig vboxVersionConfig
 
   @Input
-  // @Default(value = '40000')
-  InterpolableUnsignedInteger diskSize
+  InterpolableUnsignedInteger diskSize = InterpolableUnsignedInteger.withDefault(UnsignedInteger.valueOf(40000L))
 
-  // @Default(value = 'upload')
-  InterpolableVBoxGuestAdditionsMode guestAdditionsMode
+  InterpolableVBoxGuestAdditionsMode guestAdditionsMode = InterpolableVBoxGuestAdditionsMode.withDefault(VBoxGuestAdditionsMode.UPLOAD)
 
   InterpolableString guestAdditionsPath
 
@@ -101,33 +101,28 @@ class VirtualBoxIso extends Builder {
   InterpolableString guestAdditionsURL
 
   @Input
-  // @Default(value = 'other')
-  InterpolableString guestOSType // TODO: Enum ? (VBoxManage list ostypes)
+  InterpolableString guestOSType = InterpolableString.withDefault('other') // TODO: Enum ? (VBoxManage list ostypes)
 
   @Input
   InterpolableBoolean hardDriveDiscard
 
   @Input
-  // @Default(value = 'ide')
-  InterpolableString hardDriveInterface // TODO: Enum
+  InterpolableString hardDriveInterface = InterpolableString.withDefault('ide') // TODO: Enum
 
   @Input
-  // @Default(value = '1')
-  InterpolableInteger sataPortCount
+  InterpolableInteger sataPortCount = InterpolableInteger.withDefault(1)
 
   @Input
   InterpolableBoolean hardDriveNonrotational
 
-  // @Default(value = 'ide')
-  InterpolableString isoInterface // TODO: Enum
+  @Input
+  InterpolableString isoInterface = InterpolableString.withDefault('ide') // TODO: Enum
 
   @Input
-  // @Default(value = 'false')
-  InterpolableBoolean keepRegistered
+  InterpolableBoolean keepRegistered = InterpolableBoolean.withDefault(false)
 
   @Input
-  // @Default(value = 'false')
-  InterpolableBoolean skipExport // TODO: handle
+  InterpolableBoolean skipExport = InterpolableBoolean.withDefault(false) // TODO: handle
 
   @Internal // name of the OVF file for the new virtual machine, without the file extension
   // @Default(value = 'packer-BUILDNAME') // TODO

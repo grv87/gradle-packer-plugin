@@ -12,4 +12,9 @@ class InterpolableString extends InterpolableValue<String, String> {
   protected final String doInterpolatePrimitive(String rawValue) {
     context.interpolateString rawValue
   }
+
+  // This is used to create instances with default values
+  static final InterpolableString withDefault(String interpolatedValue) {
+    withDefault(InterpolableString, interpolatedValue)
+  }
 }

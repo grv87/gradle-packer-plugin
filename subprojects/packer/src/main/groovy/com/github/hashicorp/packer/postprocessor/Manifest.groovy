@@ -19,29 +19,23 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
-
-import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.template.Context
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import java.nio.file.Paths
 
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Manifest extends PostProcessor {
   @JsonProperty('output')
   @Internal
-  // TODO: @Default('packer-manifest.json')
-  InterpolableString/*File*/ outputPath
+  InterpolableString/*File*/ outputPath = InterpolableString.withDefault('packer-manifest.json')
 
   @Input
   InterpolableBoolean stripPath

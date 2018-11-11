@@ -28,7 +28,11 @@ class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInte
   }
 
   protected final UnsignedInteger doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    UnsignedInteger.valueOf(rawValue.interpolatedValue)
+    UnsignedInteger.valueOf(rawValue.interpolatedValue(context))
+  }
+
+  // This is used to create instances with default values
+  static final InterpolableUnsignedInteger withDefault(UnsignedInteger interpolatedValue) {
+    withDefault(InterpolableUnsignedInteger, interpolatedValue)
   }
 }

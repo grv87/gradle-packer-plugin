@@ -55,6 +55,15 @@ class AmazonEbs extends Builder {
   TagMap volumeRunTags
 
   @Override
+  protected void doInterpolate() {
+    accessConfig?.interpolate context
+    amiConfig?.interpolate context
+    blockDevices?.interpolate context
+    runConfig?.interpolate context
+    volumeRunTags?.interpolate context
+  }
+
+  @Override
   protected Tuple2<Artifact, List<Provider<Boolean>>> doRun() {
     // TODO
   }

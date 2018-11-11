@@ -41,7 +41,6 @@ class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
   }
 
   protected final E doInterpolatePrimitive(InterpolableString rawValue) {
-    rawValue.interpolate context
-    Enum.valueOf enumClass, rawValue.interpolatedValue.toUpperCase()
+    Enum.valueOf enumClass, rawValue.interpolatedValue(context).toUpperCase()
   }
 }

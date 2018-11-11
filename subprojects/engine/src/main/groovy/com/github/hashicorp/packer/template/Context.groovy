@@ -58,7 +58,7 @@ final class Context {
   @SuppressWarnings('UnnecessaryCast') // TODO
   private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
     this.userVariablesValues = userVariablesValues ? ImmutableMap.copyOf(userVariablesValues) : null
-    this.env = env ? ImmutableMap.copyOf(env) : null
+    this.env = env ? ImmutableMap.copyOf(env).withDefault { '' } : null // ADDTEST
     this.templateVariables = templateVariables ? ImmutableMap.copyOf(templateVariables) : (Map<String, ? extends Serializable>)[:]
     this.templateFile = templateFile
     this.cwd = cwd
@@ -96,7 +96,7 @@ final class Context {
    * Gets context for stage 2
    * @return
    */
-  Context forTemplateBody(Map<String, InterpolableString> userVariables) {
+  Context forTemplateBody(Map<String, InterpolableString> userVariables) { // TODO: we could interpolate variables right here
     new Context(
       (Map<String, String>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
         [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.interpolatedValue)]

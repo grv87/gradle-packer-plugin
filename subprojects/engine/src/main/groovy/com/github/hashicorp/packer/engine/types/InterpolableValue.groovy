@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -16,7 +17,7 @@ import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 // Serializable and Externalizable are required for Gradle up-to-date checking
 abstract class InterpolableValue<Source, Target extends Serializable> extends InterpolableObject implements Externalizable {
   @JsonValue
-  Source rawValue
+  Source rawValue = null
 
   // This constructor is required for Externalizable and AutoClone
   protected InterpolableValue() {
@@ -31,10 +32,15 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
    */
   private Target interpolatedValue
 
-  Target getInterpolatedValue() throws IllegalStateException {
+  final Target getInterpolatedValue() throws IllegalStateException {
     if (!interpolated) {
       throw new IllegalStateException('Value is not interpolated yet')
     }
+    this.interpolatedValue
+  }
+
+  final Target interpolatedValue(Context context) {
+    interpolate(context)
     this.interpolatedValue
   }
 
@@ -47,10 +53,13 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
    */
   @CompileDynamic
   protected final void doInterpolate() {
-    interpolatedValue = doInterpolatePrimitive(rawValue)
+    if (!isDefault || rawValue != null /* Means that somebody reassigned value to custom */) {
+      interpolatedValue = doInterpolatePrimitive(rawValue)
+      isDefault = false
+    }
   }
 
-  protected Target doInterpolatePrimitive(Object rawValue) {
+  protected static /* TOTEST */ Target doInterpolatePrimitive(Object rawValue) {
     throw new InvalidRawValueClass(rawValue)
   }
 
@@ -64,21 +73,25 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   /**
    * @serialData interpolatedValue
    */
+  @Override
   void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(interpolatedValue)
   }
 
+  @Override
   void readExternal(ObjectInput oin) throws IOException, ClassNotFoundException {
     interpolatedValue = (Target)oin.readObject()
-    interpolated = true
+    interpolated = true // TODO: use isDefault/isInterpolatedWithoutContext ?
   }
 
+  private boolean isDefault = false
+
   // This is used to create instances with default values
-  static final InterpolableValue<Source, Target> forInterpolatedValue(Target interpolatedValue) {
-    InterpolableValue<Source, Target> result = InterpolableValue.newInstance()
+  protected static final <V extends InterpolableValue<Source, Target>> V withDefault(Class<V> clazz, Target interpolatedValue) {
+    V result = clazz.newInstance()
     // TODO
     result.@interpolatedValue = interpolatedValue
-    result.@interpolated = true
+    result.@isDefault = true
     result
   }
 }
