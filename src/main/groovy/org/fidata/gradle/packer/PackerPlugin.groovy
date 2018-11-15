@@ -20,6 +20,7 @@
  */
 package org.fidata.gradle.packer
 
+import static org.gradle.internal.FileUtils.toSafeFileName
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils.removeExtension
@@ -158,7 +159,7 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
       // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
 
       template.builders.each { Builder builder ->
-        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFilename
+        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFileName
         String subprojectPath = "$projectPath:$buildName"
 
         settings.include subprojectPath

@@ -1,12 +1,9 @@
 package com.github.hashicorp.packer.template
 
+import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableSet
 import groovy.transform.CompileDynamic
-
-import java.util.function.BiConsumer
-
-import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.google.common.collect.ImmutableMap
 import javax.annotation.concurrent.Immutable
 import java.util.regex.Matcher
@@ -17,7 +14,6 @@ import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
@@ -25,10 +21,14 @@ import org.gradle.api.file.FileTree
 import java.nio.file.Path
 import java.time.Instant
 
-// equals is used in InterpolableObject to check whether
+/**
+ * Interpolation context.
+ * This class is immutable except interpolationContext private field which is lazily initialized and thread-safe
+ */
+// equals is used in InterpolableObject to check whether an object is already interpolated
 // TODO: maybe this is not required at all, if we just throw exception whenever object is already interpolated.
 // This would be cheaper + give us a possibility to catch some errors
-@EqualsAndHashCode(excludes = ['buildName'])
+@EqualsAndHashCode(includes = ['userVariablesValues', 'env', 'templateVariables', 'templateFile', 'cwd'])
 /* NOT NEEDED
 //
 // @ImmutableBase // TODO: Groovy 2.5.0 ?
@@ -41,19 +41,17 @@ final class Context {
 
   private final Map<String, String> env
 
-  static final String BUILD_NAME_VARIABLE_NAME = 'BuildName'
-
-  String getBuildName() {
-    templateVariables.get(BUILD_NAME_VARIABLE_NAME)
-  }
-
   private final Map<String, ? extends Serializable> templateVariables
 
   private final File templateFile
 
   private final Path cwd
 
-  private final Project project
+  static final String BUILD_NAME_VARIABLE_NAME = 'BuildName'
+
+  String getBuildName() {
+    templateVariables[BUILD_NAME_VARIABLE_NAME]
+  }
 
   String getTemplateName() {
     userVariablesValues['name'] ?: templateFile.toPath().fileName.toString()
@@ -61,13 +59,12 @@ final class Context {
 
   // cwd should be already resolved relatively to project dir
   @SuppressWarnings('UnnecessaryCast') // TODO
-  private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd, Project project) {
+  private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd) {
     this.userVariablesValues = userVariablesValues ? ImmutableMap.copyOf(userVariablesValues) : null
     this.env = env ? ImmutableMap.copyOf(env).withDefault { '' } : null // ADDTEST
     this.templateVariables = templateVariables ? ImmutableMap.copyOf(templateVariables) : (Map<String, ? extends Serializable>)[:]
     this.templateFile = templateFile
     this.cwd = cwd
-    this.project = project
   }
 
   /**
@@ -79,8 +76,7 @@ final class Context {
       env,
       null,
       templateFile,
-      cwd,
-      null
+      cwd
     )
   }
 
@@ -104,29 +100,13 @@ final class Context {
   Context forTemplateBody(Map<String, InterpolableString> userVariables) { // TODO: we could interpolate variables right here
     new Context(
       (Map<String, String>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
-        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.interpolatedValue)]
+        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.get())]
       },
       null,
       templateFile,
       cwd
     )
   }
-
-  /**
-   * Gets context for stage 3
-   * @return
-   */
-  Context forProject(Project project) {
-    new Context(
-      userVariablesValues,
-      env,
-      templateVariables,
-      templateFile,
-      cwd,
-      project
-    )
-  }
-
 
   /**
    * Clones this instance adding specified template variables.
@@ -140,8 +120,7 @@ final class Context {
       env,
       (Map<String, ? extends Serializable>)(this.templateVariables + templateVariables),
       templateFile,
-      cwd,
-      project
+      cwd
     )
   }
 

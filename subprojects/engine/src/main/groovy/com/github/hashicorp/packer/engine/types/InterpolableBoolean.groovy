@@ -6,6 +6,9 @@ import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 
+import java.util.concurrent.Callable
+import java.util.function.Supplier
+
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
@@ -32,7 +35,23 @@ class InterpolableBoolean extends InterpolableValue<Object, Boolean> {
   }
 
   // This is used to create instances with default values
-  static final InterpolableBoolean withDefault(Boolean interpolatedValue) {
-    withDefault(InterpolableBoolean, interpolatedValue)
+  @SuppressWarnings("GroovyAssignmentToMethodParameter")
+  static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Supplier<Boolean> defaultValue, Callable<Boolean> nullIf = null) {
+    if (interpolableValue == null) {
+      interpolableValue = new InterpolableBoolean()
+    }
+    interpolableValue.withDefault(InterpolableBoolean, defaultValue, nullIf)
+    interpolableValue.initialized = true
+    interpolableValue
+  }
+
+  @SuppressWarnings("GroovyAssignmentToMethodParameter")
+  static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Boolean defaultValue, Callable<Boolean> nullIf = null) {
+    if (interpolableValue == null) {
+      interpolableValue = new InterpolableBoolean()
+    }
+    interpolableValue.withDefault(InterpolableBoolean, defaultValue, nullIf)
+    interpolableValue.initialized = true
+    interpolableValue
   }
 }

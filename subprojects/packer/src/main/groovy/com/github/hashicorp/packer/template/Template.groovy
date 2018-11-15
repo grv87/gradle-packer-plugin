@@ -195,6 +195,8 @@ class Template extends InterpolableObject {
   static final ObjectMapper MAPPER = new ObjectMapper()
   static {
     MAPPER.registerModule(new AfterburnerModule())
+    MAPPER.registerModule(new GuavaModule())
+    MAPPER.registerModule(new Jdk8Module())
     MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
     MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
   }

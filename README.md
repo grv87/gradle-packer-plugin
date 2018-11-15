@@ -110,6 +110,20 @@ https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.P
 	However, it is usually safe to assume that ISOs in the web
 are not changed.
 
+## Security Notes
+Plugin uses Jackson to deserialize Packer templates from JSON
+to nice Groovy objects.
+Although this plugin is secure by itself, it allows other (custom)
+plugins to register its own builders, provisioners and post-processors.
+This could open a security vulnerability if used carelessly.
+See [this whitepaper produced by NCC Group](
+https://www.nccgroup.trust/us/our-research/jackson-deserialization/)
+for examples of exploits.
+
+To mitigate this risk:
+*   Use only trusted Gradle plugins
+*   Only work with Packer templates come from trusted sources
+
 
 ------------------------------------------------------------------------
 Copyright © 2016-2018  Basil Peace

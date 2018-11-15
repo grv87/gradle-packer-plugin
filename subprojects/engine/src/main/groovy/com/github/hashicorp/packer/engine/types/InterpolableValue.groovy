@@ -26,7 +26,7 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   // static final Class<Target> TARGET_CLASS = (Class<Target>)new TypeToken<Target>(this.class) { }.rawType
 
   @JsonValue
-  Source rawValue = null
+  volatile Source rawValue = null
 
   // This constructor is required for Externalizable and AutoClone
   protected InterpolableValue() {
@@ -59,7 +59,6 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   }
 
   private final Semaphore interpolation = new Semaphore(1)
-  private volatile long lockedBy
 
   /*
    * CAVEAT:
@@ -75,18 +74,24 @@ abstract class InterpolableValue<Source, Target extends Serializable> extends In
   @Override
   final Target get() throws IllegalStateException {
     if (interpolation.tryAcquire()) {
-
-    }
-    if (nullIf?.call()) {
-      null
-    }
-    if (rawValue != null) {
-      Target result = doInterpolatePrimitive(rawValue)
-      if (result != null) {
-        return result
+      lockedBy = Thread.currentThread().id
+      if (nullIf?.call()) {
+        null
       }
+      if (rawValue != null) {
+        Target result = doInterpolatePrimitive(rawValue)
+        if (result != null) { // TODO: Handle empty string
+          return result
+        }
+      }
+      return defaultSupplier?.get()
+    } else {
+      throw new ConcurrentModificationException('''\
+        Trying to interpolate the same object in cycle.
+        Either you have cyclic dependencies in nullIf parameters
+        or interpolation was called from several threads
+      '''.stripIndent())
     }
-    defaultSupplier?.get()
   }
 
   final Target get(Context context) {
