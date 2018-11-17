@@ -9,10 +9,16 @@ import javax.inject.Inject
 @CompileStatic
 class PackerBuildAutoConfigurable extends AbstractPackerBuild {
   private final Template template
+  private Template templateForInterpolation
 
   @Override
-  Template getTemplate() {
-    this.template
+  protected final Template getTemplateForInterpolation() {
+    this.templateForInterpolation
+  }
+
+  @Override
+  final Template getTemplate() {
+    this.@template.clone()
   }
 
   @Inject

@@ -1,6 +1,14 @@
 Design
 ======
 
+## Thread Safety
+There is configuration stage and template
+
+Interpolation is NOT thread safe.
+
+All template objects are thread-safe for configuration stage
+and
+
 ## Interpolation
 
 Run is made in several stages:

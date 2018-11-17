@@ -86,6 +86,9 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   }
 
   @Internal
+  protected abstract Template getTemplateForInterpolation()
+
+  @Internal
   abstract Template getTemplate()
 
   @Nested
