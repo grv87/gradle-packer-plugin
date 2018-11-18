@@ -33,18 +33,11 @@ class OnlyExcept {
   final ImmutableList<String> except
 
   boolean skip(String n) {
-    if (only.empty == false) {
-      return !only.contains(n)
-    }
-    // TOTEST: if
-    if (except.empty == false) {
-      return except.contains(n)
-    }
-    false
+    !only.empty ? !only.contains(n) : except.contains(n)
   }
 
   int sizeAfterSkip(int originalSize) {
-    only?.empty == false ? only.size() : originalSize - except?.size() ?: 0
+    !only.empty ? only.size() : originalSize - except.size()
   }
 
   OnlyExcept(ImmutableList<String> only, ImmutableList<String> except) {

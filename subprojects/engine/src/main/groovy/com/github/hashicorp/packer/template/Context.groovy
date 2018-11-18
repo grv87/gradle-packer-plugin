@@ -1,10 +1,13 @@
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.annotations.ComputedInput
+
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableSet
 import groovy.transform.CompileDynamic
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableList
 import javax.annotation.concurrent.Immutable
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -20,6 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import java.nio.file.Path
 import java.time.Instant
+import com.samskivert.mustache.Template as MustacheTemplate
 
 /**
  * Interpolation context.
@@ -28,12 +32,12 @@ import java.time.Instant
 // equals is used in InterpolableObject to check whether an object is already interpolated
 // TODO: maybe this is not required at all, if we just throw exception whenever object is already interpolated.
 // This would be cheaper + give us a possibility to catch some errors
-@EqualsAndHashCode(includes = ['userVariablesValues', 'env', 'templateVariables', 'templateFile', 'cwd'])
+@EqualsAndHashCode(includes = ['userVariablesValues', 'env', 'templateVariables', 'templateFile', 'cwd'], cache = true)
 /* NOT NEEDED
 //
 // @ImmutableBase // TODO: Groovy 2.5.0 ?
 */
-@Immutable // TODO: Project is mutable !
+@Immutable // TODO: Project is mutable
 @CompileStatic
 // REVIEWED
 final class Context {
@@ -124,7 +128,13 @@ final class Context {
     )
   }
 
-  String interpolateString(String value) {
+  static private final Mustache.Compiler MUSCTACHE_COMPILER = Mustache.compiler()
+
+  static Object compileTemplate(String template) {
+    MUSCTACHE_COMPILER.compile template
+  }
+
+  String interpolateString(Object compiledTemplate) {
     /*
      * WORKAROUND:
      * Packer uses Go text/template library. There is no port of it to Java/Groovy
@@ -133,11 +143,10 @@ final class Context {
      * However, that most probably won't happen in simple templates.
      * <grv87 2018-08-19>
      */
-    // TODO: Make sure contextTemplateData is immutable / thread-safe
-    mustacheCompiler.compile(value).execute(interpolationContext)
+    ((MustacheTemplate)compiledTemplate).execute interpolationContext
   }
 
-  Path /* TODO: RegularFile ? */ interpolatePath(String value) {
+  Path interpolatePath(String value) {
     resolvePath(interpolateString(value))
     // Paths.get()
   }
@@ -147,24 +156,31 @@ final class Context {
    * Also, if we wouldn't operate with Path at all, we could use instance of Directory as cwd
    */
   // Result of this is always absolute
-  Path resolvePath(Path path) {
+  private Path resolvePath(Path path) {
     cwd.resolve(path)
   }
 
   // Result of this is always absolute
-  /* TOTHINK private*/ Path resolvePath(String path) {
+  /* TOTHINK private*/ /*Path resolvePath(String path) {
     cwd.resolve(path)
+  }*/
+
+  resolveFile(Path path) {
+    resolvePath(path).toFile()
   }
 
-  Directory resolveDirectory(String path) {
+   resolveDirectory(String path) {
+
     project.layout.projectDirectory.dir(resolvePath(path).toString())
   }
 
-  FileCollection resolveFiles(String... paths) {
+  Iterator<File> resolveFiles(String... paths) {
+
     project.files paths.collect { String path -> resolvePath(path) }
   }
 
-  FileTree resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
+  Iterator<File> resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
+
     project.fileTree resolvePath(path), closure
   }
 
@@ -199,10 +215,6 @@ final class Context {
     return resolvePath(result).toUri()
   }
 
-  static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
-
-  static private final Mustache.Compiler mustacheCompiler = Mustache.compiler()
-
   /*
    * WORKAROUND:
    * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
@@ -211,14 +223,43 @@ final class Context {
    * <grv87 2018-11-10>
    */
   @CompileDynamic
-  class InterpolationContext extends ImmutableMap<String, String> /* TODO implements Mustache.CustomContext */ {
+  private final class InterpolationContext implements Map<String, Serializable> /* TODO: implements Mustache.CustomContext */ {
     @Override
+    @CompileStatic
     int size() {
       parameterizedFunctions*.value*.size().sum() + parameterlessFunctions.size()
     }
 
     @Override
-    final String get(/* TODO: not allowed on PARAMETER ?? @Nullable */ Object key) {
+    @CompileStatic
+    boolean isEmpty() {
+      return false
+    }
+
+    @Override
+    @CompileStatic
+    boolean containsKey(Object key) {
+      String stringKey = (String)key
+      parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
+        Matcher matcher = stringKey =~ pattern
+        if (matcher.matches()) {
+          return values.containsKey(stringKey)
+        }
+      }
+      return parameterlessFunctions.containsKey(stringKey)
+    }
+
+    @Override
+    @CompileStatic
+    boolean containsValue(Object value) {
+      parameterizedFunctions.any { Entry<Pattern, Map<String, ? extends Serializable>> entry ->
+        entry.value.containsValue(value)
+      } || parameterlessFunctions.containsValue(value)
+    }
+
+    @Override
+    @CompileStatic
+    final Serializable get(Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
         Matcher matcher = stringKey =~ pattern
@@ -229,43 +270,65 @@ final class Context {
       return parameterlessFunctions[stringKey]
     }
 
-    /*@Override
-    void forEach(BiConsumer<? super String, ? super String> action) {
+    @Override
+    @CompileStatic
+    Serializable put(String key, Serializable value) {
       throw new UnsupportedOperationException()
-    }*/
+    }
 
-    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = copyOf(/*(Map<Pattern, Map<String, ? extends Serializable>>)*/[
+    @Override
+    @CompileStatic
+    Serializable remove(Object key) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    @CompileStatic
+    void putAll(Map<? extends String, ? extends Serializable> m) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    @CompileStatic
+    void clear() {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    @CompileStatic
+    Set<String> keySet() {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    @CompileStatic
+    Collection<Serializable> values() {
+      ImmutableList<Serializable>.copyOf((Collection<Serializable>)(parameterizedFunctions*.value*.values().flatten() + parameterlessFunctions.values()))
+    }
+
+    @Override
+    @CompileStatic
+    Set<Entry<String, Serializable>> entrySet() {
+      throw new UnsupportedOperationException()
+    }
+
+    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = ImmutableMap.copyOf(/*(Map<Pattern, Map<String, ? extends Serializable>>)*/[
       (~/^env\s+`(\S+)`$/): env,
       (~/^user\s+`(\S+)`$/): userVariablesValues,
       (~/^\.(\S+)$/): templateVariables,
     ])
 
     // TODO: mark string as mutable if timestamp or uuid is used
-    private final Map<String, Serializable> parameterlessFunctions = copyOf((Map<String, Serializable>)[
+    private final Map<String, ? extends Serializable> parameterlessFunctions = ImmutableMap.copyOf((Map<String, Serializable>)[
       'pwd': new File('.').canonicalPath, // TODO ???
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': Instant.now().epochSecond,
       'uuid': UUID_GENERATOR.generate()/*.toString()*/,
     ])
 
-    protected ImmutableSet<Entry<String, String>> createEntrySet() {
-      throw new UnsupportedOperationException() // TODO
-    }
-
-    protected ImmutableSet<String> createKeySet() {
-      // parameterizedFunctions*.value*.keySet().flatten().toSet() + parameterlessFunctions.keySet()
-      throw new UnsupportedOperationException() // TODO ?
-    }
-
-    protected ImmutableCollection<String> createValues() {
-      throw new UnsupportedOperationException() // TODO
-    }
-
-    boolean isPartialView() {
-      false
-    }
+    static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
   }
 
   @Lazy
-  private volatile InterpolationContext interpolationContext = { new InterpolationContext() }()
+  private volatile InterpolationContext interpolationContext
 }

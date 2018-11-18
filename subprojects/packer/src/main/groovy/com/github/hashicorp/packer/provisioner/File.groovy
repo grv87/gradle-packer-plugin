@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import java.io.File as JavaFile
 import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
 import com.github.hashicorp.packer.engine.annotations.ComputedInputFile
 import com.github.hashicorp.packer.engine.annotations.ComputedOutputDirectory
@@ -56,31 +57,31 @@ class File extends Provisioner<Configuration> {
 
     private Boolean isDirectory
 
-    private Path inputFile
+    private JavaFile inputFile
 
     @ComputedInputFile
     @Optional
-    Path getInputFile() {
+    JavaFile getInputFile() {
       !isDirectory ? this.inputFile : null
     }
 
     @ComputedInputDirectory
     @Optional
-    Path getSourceDirectory() {
+    JavaFile getSourceDirectory() {
       isDirectory ? this.inputFile : null
     }
 
-    private Path outputFile
+    private JavaFile outputFile
 
     @ComputedOutputFile
     @Optional
-    Path getOutputFile() {
+    JavaFile getOutputFile() {
       !isDirectory ? this.outputFile : null
     }
 
     @ComputedOutputDirectory
     @Optional
-    Path getOutputDirectory() {
+    JavaFile getOutputDirectory() {
       isDirectory ? this.outputFile : null
     }
 
@@ -96,28 +97,29 @@ class File extends Provisioner<Configuration> {
 
       Path sourcePath = null
       if (source) {
-        sourcePath = Paths.get(source.interpolatedValue)
-        isDirectory = source.interpolatedValue ==~ DIR_PATTERN
+        String sourcePathString = source.get()
+        sourcePath = Paths.get(sourcePathString)
+        isDirectory = sourcePathString ==~ DIR_PATTERN
       }
 
-      switch (direction.interpolatedValue /*directionValue*/) {
+      switch (direction.get() /*directionValue*/) {
         case Direction.UPLOAD:
-          if (source && !generated.interpolatedValue) {
-            inputFile = context.resolvePath(sourcePath)
+          if (source && !generated.get()) {
+            inputFile = context.resolveFile(sourcePath)
           }
           break
         case Direction.DOWNLOAD:
           if (source && destination) {
-            Path outputPath = Paths.get(destination.interpolatedValue)
-            Boolean destinationIsDirectory = destination.interpolatedValue ==~ DIR_PATTERN
+            Path outputPath = Paths.get(destination.get())
+            Boolean destinationIsDirectory = destination.get() ==~ DIR_PATTERN
             if (destinationIsDirectory) {
               outputPath = outputPath.resolve(sourcePath.getName(sourcePath.nameCount - 1))
             }
-            outputFile = context.resolvePath(outputPath)
+            outputFile = context.resolveFile(outputPath)
           }
           break
         default:
-          throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.interpolatedValue]))
+          throw new IllegalArgumentException(sprintf('Direction must be one of: download, upload. Got: %s', [direction.get()]))
       }
     }
   }

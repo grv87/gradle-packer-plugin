@@ -11,6 +11,9 @@
       <entry name="!?*.groovy" />
       <entry name="!?*.java" />
     </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+    </annotationProcessing>
     <bytecodeTargetLevel target="1.8" />
   </component>
   <component name="CopyrightManager" default="" />
@@ -998,6 +1001,7 @@
         <w>gradle</w>
         <w>interpolable</w>
         <w>mozilla</w>
+        <w>parameterless</w>
         <w>passphrase</w>
         <w>pathing</w>
         <w>preseed</w>

@@ -4,7 +4,12 @@ import com.github.hashicorp.packer.template.Template
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class PackerPluginsSharedData {
+/*
+TODO:
+1) Make immutable/read-only after configuration is complete
+2) Maybe not required at all
+*/
+class SharedData {
   Map<String, SourceSetDescriptor> sourceSets = []
 
   static final class SourceSetDescriptor {

@@ -88,9 +88,9 @@ class Converge extends Provisioner<Configuration> {
         source.interpolate context
         destination.interpolate context
         exclude.interpolate context
-        if (exclude?.interpolatedValue?.empty == false) {
-          inputFileTree = context.resolveFileTree(source.interpolatedValue) { ConfigurableFileTree configurableFileTree ->
-            configurableFileTree.exclude exclude.interpolatedValue
+        if (exclude?.get()?.empty == false) {
+          inputFileTree = context.resolveFileTree(source.get()) { ConfigurableFileTree configurableFileTree ->
+            configurableFileTree.exclude exclude.get()
           }
         } else {
           /*
@@ -98,7 +98,7 @@ class Converge extends Provisioner<Configuration> {
            * We make shortcut and save input directory as file tree, to save some code.
            * There could be some troubles with this approach
            */
-          inputFileTree = context.resolveDirectory(source.interpolatedValue).asFileTree
+          inputFileTree = context.resolveDirectory(source.get()).asFileTree
         }
       }
     }

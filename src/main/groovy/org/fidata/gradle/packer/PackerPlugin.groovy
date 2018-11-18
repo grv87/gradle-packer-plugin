@@ -20,7 +20,8 @@
  */
 package org.fidata.gradle.packer
 
-import static org.gradle.internal.FileUtils.toSafeFileName
+import org.fidata.gradle.packer.exceptions.SharedDataNotFound
+
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils.removeExtension
@@ -30,7 +31,7 @@ import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.template.OnlyExcept
 import com.github.hashicorp.packer.template.Template
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.internal.PackerPluginsSharedData
+import org.fidata.gradle.packer.internal.SharedData
 import org.fidata.gradle.packer.tasks.AbstractPackerBuild
 import org.fidata.gradle.packer.tasks.PackerBuildAutoConfigurable
 import org.fidata.gradle.packer.tasks.PackerValidate
@@ -51,6 +52,56 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
  */
 @CompileStatic
 class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
+  // internal
+  private static final String PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME = 'packer'
+
+  void apply(Settings settings) {
+    SharedData.SourceSetDescriptor sourceSetDescriptor = new SharedData.SourceSetDescriptor()
+
+    // TOTHINK: use `FileVisitor` to get pure `Path`s
+    iterateFiles(settings.rootDir, ['json'].toArray(new String[1]), true) { File templateFile ->
+      // TODO: Settings don't have logger ?
+      // settings.logger.debug(sprintf('org.fidata.packer: Processing %s template', [templateFile]))
+      File templateDir = templateFile.parentFile
+      String templateName = removeExtension(templateFile.toPath().fileName.toString())
+      String projectPath = /* TOTEST settings.rootDir.toPath().relativize( or Project.relativePath*/templateDir.toPath().resolve(templateName)/*)*/.toString().replace(File.separatorChar, ':' as char)
+
+      settings.include projectPath
+      ProjectDescriptor projectDescriptor = settings.project(projectPath)
+      projectDescriptor.projectDir = templateDir
+      projectDescriptor.buildFileName = "${ templateName }.gradle"
+
+      Template template = Template.readFromFile(templateFile)
+      template.interpolate new Context(null, null, templateFile, settings.settingsDir.toPath())
+
+      sourceSetDescriptor.templateDescriptors.add new SharedData.SourceSetDescriptor.TemplateDescriptor(projectPath, template)
+
+      // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
+
+      template.builders.each { Builder builder ->
+        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFileName
+        String subprojectPath = "$projectPath:$buildName"
+
+        settings.include subprojectPath
+        ProjectDescriptor subpprojectDescriptor = settings.project(subprojectPath)
+        subpprojectDescriptor.projectDir = templateDir
+        subpprojectDescriptor.buildFileName = "$templateName-${ buildName }.gradle"
+
+        sourceSetDescriptor.buildDescriptors.add new SharedData.SourceSetDescriptor.BuildDescriptor(projectPath, template, buildName)
+      }
+      // projectDescriptor.path
+
+      // TODO: https://github.com/gradle/gradle/issues/5546 ?
+      ExtensionContainer extensions = ((ExtensionAware)settings.gradle).extensions
+      SharedData sharedData = extensions.findByType(SharedData)
+      if (!sharedData) {
+        sharedData = new SharedData()
+        extensions.add PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME, sharedData
+      }
+      sharedData.sourceSets[settings.rootProject.path] = sourceSetDescriptor // TOTEST
+    }
+  }
+
   static final String PACKER_EXTENSION_NAME = 'packer'
 
   static final String PACKER_BUILD_TASK_NAME = 'packerBuild'
@@ -65,17 +116,17 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
     }
 
     // TODO: https://github.com/gradle/gradle/issues/5546 ?
-    PackerPluginsSharedData sharedData = ((ExtensionAware) (project.gradle)).extensions.findByType(PackerPluginsSharedData)
+    SharedData sharedData = ((ExtensionAware)(project.gradle)).extensions.findByType(SharedData)
     if (!sharedData) {
-      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.')
+      throw new SharedDataNotFound()
     }
 
-    PackerPluginsSharedData.SourceSetDescriptor sourceSet = sharedData.sourceSets[project.path]
+    SharedData.SourceSetDescriptor sourceSet = sharedData.sourceSets[project.path]
     if (!sourceSet) {
-      throw new IllegalStateException('Packer plugins shared data is not found. You should apply org.fidata.packer plugin to Settings too.')
+      throw new SharedDataNotFound()
     }
 
-    sourceSet.templateDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor templateDescriptor ->
+    sourceSet.templateDescriptors.each { SharedData.SourceSetDescriptor.TemplateDescriptor templateDescriptor ->
       Project subproject = project.project(templateDescriptor.projectPath)
       TaskProvider<PackerValidate> validateProvider = subproject.tasks.register(PackerBasePlugin.PACKER_VALIDATE_TASK_NAME, PackerValidate) { PackerValidate validate ->
         validate.templateFile.set templateDescriptor.template.path.toFile()
@@ -92,7 +143,7 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
       }
     }
 
-    sourceSet.buildDescriptors.each { PackerPluginsSharedData.SourceSetDescriptor.BuildDescriptor buildDescriptor ->
+    sourceSet.buildDescriptors.each { SharedData.SourceSetDescriptor.BuildDescriptor buildDescriptor ->
       Project subproject = project.project(buildDescriptor.projectPath)
       TaskProvider<AbstractPackerBuild> buildProvider = subproject.tasks.register(PACKER_BUILD_TASK_NAME, PackerBuildAutoConfigurable,
         buildDescriptor.template,
@@ -129,56 +180,6 @@ class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
         }
         packerWrapperTask.variables = extension.variables
       }
-    }
-  }
-
-  // internal
-  private static final String PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME = 'packer'
-
-  void apply(Settings settings) {
-    PackerPluginsSharedData.SourceSetDescriptor sourceSetDescriptor = new PackerPluginsSharedData.SourceSetDescriptor()
-
-    // TOTHINK: use `FileVisitor` to get pure `Path`s
-    iterateFiles(settings.rootDir, ['json'].toArray(new String[1]), true) { File templateFile ->
-      // TODO: Settings don't have logger ?
-      // settings.logger.debug(sprintf('org.fidata.packer: Processing %s template', [templateFile]))
-      File templateDir = templateFile.parentFile
-      String templateName = removeExtension(templateFile.toPath().fileName.toString())
-      String projectPath = /* TOTEST settings.rootDir.toPath().relativize( or Project.relativePath*/templateDir.toPath().resolve(templateName)/*)*/.toString().replace(File.separatorChar, ':' as char)
-
-      settings.include projectPath
-      ProjectDescriptor projectDescriptor = settings.project(projectPath)
-      projectDescriptor.projectDir = templateDir
-      projectDescriptor.buildFileName = "${ templateName }.gradle"
-
-      Template template = Template.readFromFile(templateFile)
-      template.interpolate new Context(null, null, templateFile, settings.settingsDir.toPath())
-
-      sourceSetDescriptor.templateDescriptors.add new PackerPluginsSharedData.SourceSetDescriptor.TemplateDescriptor(projectPath, template)
-
-      // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
-
-      template.builders.each { Builder builder ->
-        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFileName
-        String subprojectPath = "$projectPath:$buildName"
-
-        settings.include subprojectPath
-        ProjectDescriptor subpprojectDescriptor = settings.project(subprojectPath)
-        subpprojectDescriptor.projectDir = templateDir
-        subpprojectDescriptor.buildFileName = "$templateName-${ buildName }.gradle"
-
-        sourceSetDescriptor.buildDescriptors.add new PackerPluginsSharedData.SourceSetDescriptor.BuildDescriptor(projectPath, template, buildName)
-      }
-      // projectDescriptor.path
-
-      // TODO: https://github.com/gradle/gradle/issues/5546 ?
-      ExtensionContainer extensions = ((ExtensionAware)settings.gradle).extensions
-      PackerPluginsSharedData sharedData = extensions.findByType(PackerPluginsSharedData)
-      if (!sharedData) {
-        sharedData = new PackerPluginsSharedData()
-        extensions.add PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME, sharedData
-      }
-      sharedData.sourceSets[settings.rootProject.path] = sourceSetDescriptor // TOTEST
     }
   }
 }

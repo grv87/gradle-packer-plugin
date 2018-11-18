@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 @AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
-  @SuppressWarnings("UnstableApiUsage")
+  @SuppressWarnings('UnstableApiUsage')
   static final Class<E> ENUM_CLASS = (Class<E>)new TypeToken<E>(this.class) { }.rawType
 
   // This constructor is required for Externalizable and AutoClone
