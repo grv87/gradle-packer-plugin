@@ -1,24 +1,23 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
+import com.fasterxml.jackson.annotation.JsonSetter
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
+import com.github.hashicorp.packer.engine.types.AbstractInterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.template.Context
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.Synchronized
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // @Builder(builderStrategy = ExternalStrategy, forClass = BlockDevice)
 // @JsonDeserialize(builder = BlockDeviceBuilder) // TOTEST
-final class BlockDevice implements InterpolableObject<BlockDevice> {
+final class BlockDevice extends AbstractInterpolableObject<BlockDevice> {
   @Internal // TOTEST
   private InterpolableBoolean deleteOnTermination
 
@@ -29,6 +28,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
       deleteOnTermination = InterpolableBoolean.Utils.initWithDefault(deleteOnTermination, Boolean.FALSE, { noDevice.get() || virtualName.get() } )
     }
     deleteOnTermination
+  }
+
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
   }
 
   @Internal
@@ -43,6 +50,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
     deviceName
   }
 
+  @Synchronized
+  void setDeviceName(final InterpolableString deviceName) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deviceName', this.class.canonicalName)
+    }
+    this.@deviceName = deviceName
+  }
+
   @Internal
   private InterpolableBoolean encrypted
 
@@ -55,16 +70,33 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
     encrypted
   }
 
+  @Synchronized
+  void setEncrypted(final InterpolableBoolean encrypted) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('encrypted', this.class.canonicalName)
+    }
+    this.@encrypted = encrypted
+  }
+
   @Internal
   private InterpolableLong iops
 
   @ComputedInput
   @Synchronized
+  @Default(default = { volumeType.get() != 'io1' /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */ })
   InterpolableLong getIops() {
     if (InterpolableLong.Utils.requiresInitialization(iops)) {
       iops = InterpolableLong.Utils.initWithDefault(iops, (Long)null, { volumeType.get() != 'io1' /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */ } )
     }
     iops
+  }
+
+  @Synchronized
+  void setIops(final InterpolableLong iops) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('iops', this.class.canonicalName)
+    }
+    this.@iops = iops
   }
 
   @Internal
@@ -79,6 +111,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
     noDevice
   }
 
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
+  }
+
   @Internal
   private InterpolableString snapshotId
 
@@ -89,6 +129,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
       snapshotId = InterpolableString.Utils.initWithDefault(snapshotId, (String)null, { noDevice.get() || virtualName.get() }, { String interpolatedValue -> interpolatedValue.empty ? null : interpolatedValue } )
     }
     snapshotId
+  }
+
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
   }
 
   @Internal
@@ -103,6 +151,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
     virtualName
   }
 
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
+  }
+
   @Internal
   private InterpolableString volumeType
 
@@ -113,6 +169,14 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
       volumeType = InterpolableString.Utils.initWithDefault(volumeType, 'standard', { noDevice.get() || virtualName.get() } )
     }
     volumeType
+  }
+
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
   }
 
   @Internal
@@ -127,12 +191,47 @@ final class BlockDevice implements InterpolableObject<BlockDevice> {
     volumeSize
   }
 
+  @Synchronized
+  void setDeleteOnTermination(final InterpolableBoolean deleteOnTermination) {
+    if (readOnly) {
+      throw new ReadOnlyPropertyException('deleteOnTermination', this.class.canonicalName)
+    }
+    this.@deleteOnTermination = deleteOnTermination
+  }
+
   @Optional
   private InterpolableString kmsKeyId
 
+  // TODO: get, set
+
+  BlockDevice() {
+    this(false)
+  }
+
+  private BlockDevice(boolean readOnly) {
+    super(readOnly)
+  }
+
+  @Override
+  protected BlockDevice getAsReadOnly() {
+    BlockDevice result = new BlockDevice(true)
+    result.@deleteOnTermination = this.@deleteOnTermination
+    result.@deviceName = this.@deviceName
+    result.@encrypted = this.@encrypted
+    result.@iops = this.@iops
+    result.@noDevice = this.@noDevice
+    result.@snapshotId = this.@snapshotId
+    result.@virtualName = this.@virtualName
+    result.@volumeType = this.@volumeType
+    result.@volumeSize = this.@volumeSize
+    result.@kmsKeyId = this.@kmsKeyId
+    result
+  }
+
+  @Synchronized
   @Override
   BlockDevice interpolate(Context context) {
-    BlockDevice result = new BlockDevice()
+    BlockDevice result = new BlockDevice(true)
     result.@deleteOnTermination = deleteOnTermination.interpolateValue(context, result)
     result.@deviceName = deviceName.interpolateValue(context, result)
     result.@encrypted = encrypted.interpolateValue(context, result)

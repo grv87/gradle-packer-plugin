@@ -2,17 +2,14 @@ package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.google.common.reflect.TypeToken
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E> {
   @SuppressWarnings('UnstableApiUsage')
   static final Class<E> ENUM_CLASS = (Class<E>)new TypeToken<E>(this.class) { }.rawType
 
-  // This constructor is required for Externalizable and AutoClone
+  // This constructor is required for Externalizable
   protected InterpolableEnum() {
   }
 

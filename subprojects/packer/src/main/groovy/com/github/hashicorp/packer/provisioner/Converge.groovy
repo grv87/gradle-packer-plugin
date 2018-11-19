@@ -20,8 +20,6 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.github.hashicorp.packer.engine.annotations.ComputedInputFiles
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -34,7 +32,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {

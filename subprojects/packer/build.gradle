@@ -8,7 +8,7 @@ plugins {
 dependencies {
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
   api gradleApi()
-  api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
+  // api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '[2.9, 3['

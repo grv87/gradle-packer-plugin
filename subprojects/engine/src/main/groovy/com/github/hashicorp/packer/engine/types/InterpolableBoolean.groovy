@@ -2,14 +2,15 @@ package com.github.hashicorp.packer.engine.types
 
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
+@JsonDeserialize(as = Interpolable)
 @CompileStatic
 interface InterpolableBoolean extends InterpolableValue<Object, Boolean, InterpolableBoolean> {
+  @InheritConstructors
   class Interpolable extends InterpolableValue.Interpolable<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean {
     @JsonCreator
     Interpolable(Boolean rawValue) {
@@ -17,15 +18,23 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
     }
 
     @JsonCreator
-    Interpolable(InterpolableString rawValue) {
+    Interpolable(SimpleInterpolableString rawValue) {
       super(rawValue)
+    }
+
+    void setRawValue(Boolean rawValue) {
+      super.rawValue = rawValue
+    }
+
+    void setRawValue(SimpleInterpolableString rawValue) {
+      super.rawValue = rawValue
     }
 
     protected static final Boolean doInterpolatePrimitive(Context context, Boolean rawValue) {
       rawValue
     }
 
-    protected static final Boolean doInterpolatePrimitive(Context context, InterpolableString rawValue) {
+    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
       rawValue.interpolate context // TOTEST
     }
   }
@@ -34,7 +43,6 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
   class Initialized extends InterpolableValue.Initialized<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean { }
 
   @InheritConstructors
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
   class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean { }
 
   static final class Utils extends InterpolableValue.Utils {

@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
 import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import org.gradle.api.tasks.Input
@@ -33,7 +31,6 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Powershell extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {

@@ -1,8 +1,6 @@
 package com.github.hashicorp.packer.helper
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import org.gradle.api.tasks.Internal
@@ -11,7 +9,6 @@ import com.github.hashicorp.packer.engine.types.InterpolableInteger
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // TODO: communicator/config ?
 class Communicator extends InterpolableObject {

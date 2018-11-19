@@ -38,14 +38,11 @@ import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class VirtualBoxOvf extends Builder {
   @Inline

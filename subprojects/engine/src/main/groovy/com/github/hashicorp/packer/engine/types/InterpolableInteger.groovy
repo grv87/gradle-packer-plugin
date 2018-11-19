@@ -1,14 +1,11 @@
 package com.github.hashicorp.packer.engine.types
 
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class InterpolableInteger extends InterpolableValue<Object, Integer> {
-  // This constructor is required for Externalizable and AutoClone
+  // This constructor is required for Externalizable
   protected InterpolableInteger() {
   }
 

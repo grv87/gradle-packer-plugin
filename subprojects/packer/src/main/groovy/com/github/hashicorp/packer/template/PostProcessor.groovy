@@ -24,11 +24,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
+import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -38,7 +36,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.PROPERTY,
@@ -68,11 +65,11 @@ abstract class PostProcessor extends InterpolableObject {
 
   final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (context.buildName) {
-      throw new ObjectAlreadyInterpolatedForBuilder()
+      throw new ObjectAlreadyInterpolatedForBuilderException()
     }
     // Stage 3
     if (/*onlyExcept == null ||*/ !onlyExcept?.skip(buildCtx.buildName)) {
-      PostProcessor result = this.clone()
+      PostProcessor result = this.clone() // TODO
       result.interpolate buildCtx
       result
     } else {
@@ -106,8 +103,7 @@ abstract class PostProcessor extends InterpolableObject {
     Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
   }
 
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
-  static final class PostProcessorArrayDefinition extends InterpolableObject {
+    static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
     }
 
@@ -151,7 +147,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private void interpolateRawValue(Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
 
     /*
@@ -163,7 +159,7 @@ abstract class PostProcessor extends InterpolableObject {
     @CompileDynamic
     final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
-        throw new ObjectAlreadyInterpolatedForBuilder()
+        throw new ObjectAlreadyInterpolatedForBuilderException()
       }
       // Stage 3
       interpolateRawValueForBuilder buildCtx, rawValue
@@ -188,7 +184,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
 
     /*
@@ -248,12 +244,11 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
   }
 
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
-  static final class PostProcessorDefinition extends InterpolableObject {
+    static final class PostProcessorDefinition extends InterpolableObject {
     @JsonValue
     @Nested
     Object rawValue
@@ -291,7 +286,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private void interpolateRawValue(Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
 
     /*
@@ -303,7 +298,7 @@ abstract class PostProcessor extends InterpolableObject {
     @CompileDynamic
     final PostProcessorDefinition interpolateForBuilder(Context buildCtx) {
       if (context.buildName) {
-        throw new ObjectAlreadyInterpolatedForBuilder()
+        throw new ObjectAlreadyInterpolatedForBuilderException()
       }
       // Stage 3
       interpolateRawValueForBuilder buildCtx, rawValue
@@ -319,11 +314,11 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(SUBTYPES[rawValue].newInstance())
+      new PostProcessorDefinition(SUBTYPES[rawValue].getConstructor().newInstance())
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
 
     /*
@@ -354,7 +349,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
-      throw new InvalidRawValueClass(rawValue)
+      throw new InvalidRawValueClassException(rawValue)
     }
   }
 }

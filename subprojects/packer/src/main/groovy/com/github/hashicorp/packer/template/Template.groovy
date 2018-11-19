@@ -27,11 +27,9 @@ import java.nio.file.Path
 
 import static Context.BUILD_NAME_VARIABLE_NAME
 import groovy.transform.CompileDynamic
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -46,7 +44,6 @@ import org.gradle.api.tasks.Optional
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 // REVIEWED
 class Template extends InterpolableObject {
@@ -125,7 +122,7 @@ class Template extends InterpolableObject {
   final Template interpolateForBuilder(String buildName, Project project) {
     if (context.buildName) {
       // This will never be true
-      throw new ObjectAlreadyInterpolatedForBuilder()
+      throw new ObjectAlreadyInterpolatedForBuilderException()
     }
     interpolate context
     Template result = new Template()

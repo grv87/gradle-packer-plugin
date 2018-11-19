@@ -2,14 +2,11 @@ package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.google.common.primitives.UnsignedInteger
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger> {
-  // This constructor is required for Externalizable and AutoClone
+  // This constructor is required for Externalizable
   protected InterpolableUnsignedInteger() {
   }
 

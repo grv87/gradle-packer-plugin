@@ -22,8 +22,6 @@ package com.github.hashicorp.packer.provisioner
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
 import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
@@ -35,7 +33,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ChefSolo extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {

@@ -27,7 +27,6 @@ import com.google.common.primitives.UnsignedLong;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -62,6 +61,8 @@ public final class DurationAdapter {
   private final static UnsignedLong NUMERAL_SYSTEM_BASE_ULONG = UnsignedLong.valueOf(NUMERAL_SYSTEM_BASE);
   private final static long OVERFLOW_BOUNDARY = Long.MAX_VALUE / NUMERAL_SYSTEM_BASE;
 
+  private static final String TIME_INVALID_DURATION = "time: invalid duration ";
+
   /**
    * Returns a string representing the duration in the form "72h3m0.5s".
    * Leading zero units are omitted. As a special case, durations less than one
@@ -70,28 +71,23 @@ public final class DurationAdapter {
    * @param d duration
    * @return string representing the duration
    */
-  public static String string(Duration d) {
+  public static String string(final Duration d) {
     // Largest time is 2540400h10m10.000000000s
-    StringBuilder buf = new StringBuilder();
+    final StringBuilder buf = new StringBuilder();
 
     /*
      * Don't use Duration.toNanos() since it causes overflow
      * on values near the end of the range
      */
-    long s = d.getSeconds();
-    UnsignedLong n = UnsignedLong.valueOf(d.getNano());
-    UnsignedLong u;
-    boolean neg = s < 0L;
-    if (neg) {
-      u = UnsignedLong.valueOf(-s).times(NANOSECONDS_PER_SECOND_ULONG).minus(n);
-    } else {
-      u = UnsignedLong.valueOf(s).times(NANOSECONDS_PER_SECOND_ULONG).plus(n);
-    }
+    final long s = d.getSeconds();
+    final UnsignedLong n = UnsignedLong.valueOf(d.getNano());
+    final boolean neg = s < 0L;
+    UnsignedLong u = neg ? UnsignedLong.valueOf(-s).times(NANOSECONDS_PER_SECOND_ULONG).minus(n) : UnsignedLong.valueOf(s).times(NANOSECONDS_PER_SECOND_ULONG).plus(n);
 
     if (u.compareTo(NANOSECONDS_PER_SECOND_ULONG) < 0) {
       // Special case: if duration is smaller than a second,
       // use smaller units, like 1.2ms
-      int prec;
+      final int prec;
       buf.append('s');
       if (u.equals(UnsignedLong.ZERO)) {
         return "0s";
@@ -149,14 +145,14 @@ public final class DurationAdapter {
    * point too when the fraction is 0.  It returns the index where the
    * output bytes begin and the value v/10**prec.
    */
-  private static UnsignedLong fmtFrac(StringBuilder buf, UnsignedLong v, int prec) {
+  private static UnsignedLong fmtFrac(final StringBuilder buf, UnsignedLong v, final int prec) {
     // Omit trailing zeros up to and including decimal point.
     boolean print = false;
     for (int i = 0; i < prec; i++) {
-      int digit = v.mod(NUMERAL_SYSTEM_BASE_ULONG).intValue();
+      final int digit = v.mod(NUMERAL_SYSTEM_BASE_ULONG).intValue();
       print = print || digit != 0;
       if (print) {
-        char c = (char)(digit + '0');
+        final char c = (char)(digit + '0');
         buf.append(c);
       }
       v = v.dividedBy(NUMERAL_SYSTEM_BASE_ULONG);
@@ -171,12 +167,12 @@ public final class DurationAdapter {
    * Formats v into the tail of buf.
    * It returns the index where the output begins.
    */
-  private static void fmtInt(StringBuilder buf, UnsignedLong v) {
+  private static void fmtInt(final StringBuilder buf, UnsignedLong v) {
     if (v.equals(UnsignedLong.ZERO)) {
       buf.append('0');
     } else {
       while (v.compareTo(UnsignedLong.ZERO) > 0) {
-        char c = (char)(v.mod(NUMERAL_SYSTEM_BASE_ULONG).intValue() + '0');
+        final char c = (char)(v.mod(NUMERAL_SYSTEM_BASE_ULONG).intValue() + '0');
         buf.append(c);
         v = v.dividedBy(NUMERAL_SYSTEM_BASE_ULONG);
       }
@@ -189,12 +185,13 @@ public final class DurationAdapter {
 
   /**
    * Consumes the leading [0-9]* from s.
+   * @throws DateTimeParseException on parse error
    */
-  private static Object[] leadingInt(CharSequence s, int w) throws DateTimeParseException {
+  private static Object[] leadingInt(final CharSequence s, final int w) {
     long x = 0L;
     int i;
     for (i = w; i < s.length(); i++){
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
       if (c < '0' || c > '9') {
         break;
       }
@@ -216,13 +213,13 @@ public final class DurationAdapter {
    * It is used only for fractions, so does not return an error on overflow,
    * it just stops accumulating precision.
    */
-  private static Object[] leadingFraction(CharSequence s, int w) {
+  private static Object[] leadingFraction(final CharSequence s, final int w) {
     long x = 0L;
     double scale = 1.0D;
     int i;
     boolean overflow = false;
     for (i = w; i < s.length(); i++){
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
       if (c < '0' || c > '9') {
         break;
       }
@@ -234,7 +231,7 @@ public final class DurationAdapter {
         overflow = true;
         continue;
       }
-      long y = x * NUMERAL_SYSTEM_BASE + c - '0';
+      final long y = x * NUMERAL_SYSTEM_BASE + (c - '0');
       if (y < 0L) {
         overflow = true;
         continue;
@@ -256,54 +253,55 @@ public final class DurationAdapter {
    * @return duration value
    * @throws DateTimeParseException on parse error
    */
-  public static Duration parseDuration(final String s) throws DateTimeParseException {
+  public static Duration parseDuration(final String s) {
     // [-+]?([0-9]*(\.[0-9]*)?[a-z]+)+
     long d = 0L;
     boolean neg = false;
     int w = 0;
-    int l = s.length();
+    final int l = s.length();
 
     // Consume [-+]?
     if (!s.isEmpty()) {
-      char c = s.charAt(w);
+      final char c = s.charAt(w);
       if (c == '-' || c == '+') {
         neg = c == '-';
         w++;
       }
     }
     // Special case: if all that is left is "0", this is zero.
-    if (s.substring(w).equals("0")) {
+    if ("0".equals(s.substring(w))) {
       return Duration.ZERO;
     }
     if (w == l) {
-      throw new DateTimeParseException("time: invalid duration " + s, s, w);
+      throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w);
     }
+    Object[] res;
     while (w < l) {
       long v, f = 0L; // integers before, after decimal point
       double scale = 1.0D; // value = v + f/scale
 
       // The next character must be [0-9.]
       if (!(s.charAt(w) == '.' || '0' <= s.charAt(w) && s.charAt(w) <= '9')) {
-        throw new DateTimeParseException("time: invalid duration " + s, s, w);
+        throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w);
       }
       // Consume [0-9]*
       int pl = w;
-      int w_v = w;
+      final int w_v = w;
       try {
-        Object[] res = leadingInt(s, w);
+        res = leadingInt(s, w);
         v = (long) res[0];
         w = (int) res[1];
       } catch (DateTimeParseException e) {
-        throw new DateTimeParseException("time: invalid duration " + s, s, w_v, e);
+        throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w_v, e);
       }
-      boolean pre = pl != w; // whether we consumed anything before a period
+      final boolean pre = pl != w; // whether we consumed anything before a period
 
       // Consume (\.[0-9]*)?
       boolean post = false;
       if (w < l && s.charAt(w) == '.') {
         w++;
         pl = w;
-        Object[] res = leadingFraction(s, w);
+        res = leadingFraction(s, w);
         f = (long)res[0];
         scale = (double)res[1];
         w = (int)res[2];
@@ -311,13 +309,13 @@ public final class DurationAdapter {
       }
       if (!pre && !post) {
         // no digits (e.g. ".s" or "-.s")
-        throw new DateTimeParseException("time: invalid duration " + s, s, w_v);
+        throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w_v);
       }
 
       // Consume unit.
       int i;
       for (i = w; i < l; i++){
-        char c = s.charAt(i);
+        final char c = s.charAt(i);
         if (c == '.' || '0' <= c && c <= '9') {
           break;
         }
@@ -325,32 +323,30 @@ public final class DurationAdapter {
       if (i == w) {
         throw new DateTimeParseException("time: missing unit in duration " + s, s, w);
       }
-      String u = s.substring(w, i);
-      long unit;
-      try {
-        unit = unitMap.get(u);
-      } catch (NullPointerException e) {
-        throw new DateTimeParseException("time: unknown unit " + u + " in duration " + s, s, w, e);
+      final String u = s.substring(w, i);
+      final long unit = unitMap.getOrDefault(u, 0L);
+      if (unit == 0L) {
+        throw new DateTimeParseException("time: unknown unit " + u + " in duration " + s, s, w);
       }
       w = i;
       if (v > Long.MAX_VALUE / unit) {
         // overflow
-        throw new DateTimeParseException("time: invalid duration " + s, s, w_v);
+        throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w_v);
       }
       v *= unit;
-      if (f > 0.0D) {
+      if (f > 0L) {
         // float64 is needed to be nanosecond accurate for fractions of hours.
         // v >= 0 && (f*unit/scale) <= 3.6e+12 (ns/h, h is the largest unit)
         v += (long)((double)f * (((double)unit) / scale));
         if (v < 0L) {
           // overflow
-          throw new DateTimeParseException("time: invalid duration " + s, s, w_v);
+          throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, w_v);
         }
       }
       d += v;
       if (d < 0L) {
         // overflow
-        throw new DateTimeParseException("time: invalid duration " + s, s, 0);
+        throw new DateTimeParseException(TIME_INVALID_DURATION + s, s, 0);
       }
     }
 

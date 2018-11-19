@@ -26,8 +26,6 @@ import com.github.hashicorp.packer.engine.annotations.ComputedOutputDirectory
 import com.github.hashicorp.packer.engine.annotations.ComputedOutputFile
 import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonValue
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
@@ -39,7 +37,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class File extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
@@ -135,8 +132,7 @@ class File extends Provisioner<Configuration> {
     }
   }
 
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
-  @InheritConstructors
+    @InheritConstructors
   static class InterpolableDirection extends InterpolableEnum<Direction>  {
     // This is used to create instances with default values
     static final InterpolableDirection withDefault(Direction interpolatedValue) {

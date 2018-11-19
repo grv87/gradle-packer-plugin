@@ -20,12 +20,9 @@
 package com.github.hashicorp.packer.postprocessor
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Vagrant extends PostProcessor {
   Integer compressionLevel

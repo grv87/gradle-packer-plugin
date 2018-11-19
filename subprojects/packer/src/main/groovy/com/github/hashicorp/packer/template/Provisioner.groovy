@@ -22,9 +22,7 @@ package com.github.hashicorp.packer.template
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilder
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
+import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -34,7 +32,6 @@ import org.gradle.api.tasks.Internal
 import com.google.common.reflect.TypeToken
 import java.lang.reflect.Field
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.PROPERTY,
@@ -101,11 +98,11 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
 
   final Provisioner interpolateForBuilder(Context buildCtx) {
     if (context.buildName) {
-      throw new ObjectAlreadyInterpolatedForBuilder()
+      throw new ObjectAlreadyInterpolatedForBuilderException()
     }
     // Stage 3
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
-      Provisioner result = this.clone()
+      Provisioner result = this.clone() // TODO
       result.interpolate buildCtx
       result
     } else {

@@ -6,13 +6,10 @@ import com.github.hashicorp.packer.engine.types.InterpolableInputURI
 import com.github.hashicorp.packer.engine.types.InterpolableFile
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ISOConfig extends InterpolableObject {
   InterpolableString isoChecksum

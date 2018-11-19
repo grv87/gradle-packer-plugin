@@ -19,8 +19,6 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
@@ -29,7 +27,6 @@ import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is somewhere wrong
   static class Configuration extends Provisioner.Configuration {

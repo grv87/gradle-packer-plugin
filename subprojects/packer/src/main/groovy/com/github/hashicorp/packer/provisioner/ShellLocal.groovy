@@ -20,12 +20,9 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.github.hashicorp.packer.engine.annotations.Inline
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @CompileStatic
 class ShellLocal extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {

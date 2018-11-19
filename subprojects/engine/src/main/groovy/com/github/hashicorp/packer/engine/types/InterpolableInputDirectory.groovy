@@ -1,13 +1,10 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import java.nio.file.Path
 
-@AutoClone(style = AutoCloneStyle.SIMPLE)
 @InheritConstructors
 @CompileStatic
 // This class is required to overcome the fact that Gradle doesn't have InputDirectories annotation

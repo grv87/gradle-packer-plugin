@@ -209,9 +209,12 @@ final class Context {
       if (!resultUri.scheme.empty && !resultUri.host.empty) {
         return resultUri
       }
-    } catch (URISyntaxException ignored) { }
+    } catch (URISyntaxException ignored) {
+      // This means that it is not an URI
+      // Then we assume it is a regular path
+    }
 
-    // Otherwise we rely on built-in Java algorithms
+    // Then we rely on built-in Java algorithms
     return resolvePath(result).toUri()
   }
 

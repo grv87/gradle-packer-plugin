@@ -21,7 +21,7 @@ class PackerBuild extends AbstractPackerBuild implements PackerOnlyExceptArgumen
   // returns null if templateFile is empty
   @Override
   Template getTemplate() {
-    templateForInterpolation.clone()
+    templateForInterpolation.clone() // TODO
   }
 
   PackerBuild() {

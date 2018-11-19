@@ -1,47 +1,27 @@
 package com.github.hashicorp.packer.engine.types
 
-import com.fasterxml.jackson.annotation.JsonCreator
+
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
-import groovy.transform.AutoClone
-import groovy.transform.AutoCloneStyle
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
-import groovy.transform.Synchronized
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
+@JsonDeserialize(as = Interpolable)
 @CompileStatic
-interface InterpolableString extends InterpolableValue<String, String, InterpolableString> {
-  class Interpolable extends InterpolableValue.Interpolable<String, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString {
-    private volatile Object compiledTemplate = null
-
-    @JsonCreator
-    Interpolable(String rawValue) {
-      super(rawValue)
-      compileTemplate()
-    }
-
-    @Synchronized
-    @Override
-    void setRawValue(String rawValue) {
-      super.setRawValue rawValue
-      compileTemplate()
-    }
-
-    private void compileTemplate() {
-      compiledTemplate = Context.compileTemplate(rawValue)
-    }
-
-    protected final String doInterpolatePrimitive(Context context, String rawValue) {
-      context.interpolateString compiledTemplate
+interface InterpolableString extends InterpolableValue<SimpleInterpolableString, String, InterpolableString> {
+  @InheritConstructors
+  class Interpolable extends InterpolableValue.Interpolable<SimpleInterpolableString, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString {
+    protected final String doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
+      rawValue.interpolate context
     }
   }
 
   @InheritConstructors
-  class Initialized extends InterpolableValue.Initialized<String, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString { }
+  class Initialized extends InterpolableValue.Initialized<SimpleInterpolableString, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString { }
 
   @InheritConstructors
-  @AutoClone(style = AutoCloneStyle.SIMPLE)
-  class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<String, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString { }
+    class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<SimpleInterpolableString, String, InterpolableString, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableString { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values
