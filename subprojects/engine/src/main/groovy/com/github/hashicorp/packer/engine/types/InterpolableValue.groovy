@@ -66,6 +66,7 @@ interface InterpolableValue<
 
     private volatile /* TODO */ Source rawValue
 
+    // This is required for initWithDefault
     protected Interpolable() {
       this.@rawValue = null
     }

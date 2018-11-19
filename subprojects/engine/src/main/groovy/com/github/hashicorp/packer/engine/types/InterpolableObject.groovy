@@ -7,5 +7,5 @@ import java.util.function.Function
 
 @CompileStatic
 interface InterpolableObject<ThisClass extends InterpolableObject> /*extends Cloneable*/ {
-  ThisClass interpolate(Context context)
+  ThisClass interpolate(Context context) throws UnsupportedOperationException
 }
