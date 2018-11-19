@@ -6,6 +6,6 @@ import com.github.hashicorp.packer.template.Context
 import java.util.function.Function
 
 @CompileStatic
-interface InterpolableObject<ThisClass extends InterpolableObject> extends Cloneable {
+interface InterpolableObject<ThisClass extends InterpolableObject> /*extends Cloneable*/ {
   ThisClass interpolate(Context context)
 }

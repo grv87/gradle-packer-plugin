@@ -3,6 +3,7 @@ package com.github.hashicorp.packer.engine.types
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClass
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContext
+import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYet
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
 import com.google.common.base.Suppliers
@@ -14,6 +15,7 @@ import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.PackageScope
+import groovy.transform.Synchronized
 import sun.plugin.dom.exception.InvalidStateException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
@@ -33,6 +35,7 @@ interface InterpolableValue<
 
   void setRawValue(Source rawValue)
 
+  @AutoClone(style = AutoCloneStyle.SIMPLE) // TODO
   private abstract static class AbstractInterpolableValue<
     Source,
     Target extends Serializable,
@@ -49,6 +52,7 @@ interface InterpolableValue<
 
   ThisClass interpolateValue(Context context, InterpolableObject delegate)
 
+  @AutoClone(style = AutoCloneStyle.SIMPLE) // TODO
   abstract static class Interpolable<
     Source,
     Target extends Serializable,
@@ -103,7 +107,7 @@ interface InterpolableValue<
 
     @Override
     final Target get() {
-      throw new InvalidStateException('Value is not interpolated yet')
+      throw new ValueNotInterpolatedYet()
     }
 
     private final InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
@@ -111,6 +115,7 @@ interface InterpolableValue<
     }
   }
 
+  @AutoClone(style = AutoCloneStyle.SIMPLE) // TODO
   abstract static class Initialized<
     Source,
     Target extends Serializable,
@@ -123,8 +128,6 @@ interface InterpolableValue<
     static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
 
     private final InterpolableClass interpolable
-
-    private final ConcurrentHashMap<Context, AlreadyInterpolatedClass> interpolatedValues = [:]
 
     private final Supplier<Target> defaultValueSupplier
 
@@ -148,58 +151,46 @@ interface InterpolableValue<
     }
 
     @Override
+    @Synchronized
     void setRawValue(Source rawValue) {
       this.interpolable.rawValue = rawValue
     }
 
     @Override
+    @Synchronized
     ThisClass interpolateValue(Context context, InterpolableObject delegate) {
-      interpolatedValues.computeIfAbsent(context, new Function<Context, AlreadyInterpolatedClass>() {
+      AlreadyInterpolatedClass result = ALREADY_INTERPOLATED_CLASS.newInstance()
+      result.interpolatedValue = Suppliers.memoize(new Supplier<Target>() {
+        final InterpolableClass interpolable = (InterpolableClass)Initialized.this.interpolable.clone() // TODO: read-only objects
+
         @Override
-        AlreadyInterpolatedClass apply(Context aContext) {
-          Boolean ignore
+        @Synchronized
+        Target get() {
           if (ignoreIf != null) {
-            Closure<Boolean> ignoreIf = (Closure<Boolean>)ignoreIf.clone()
+            Closure<Boolean> ignoreIf = (Closure<Boolean>) ignoreIf.clone()
             ignoreIf.delegate = delegate
-            ignore = ignoreIf.call()
-          } else {
-            ignore = null
-          }
-          Supplier<Target> interpolatedValueSupplier = null
-          if (ignore != Boolean.TRUE) {
-            if (rawValue != null) {
-              interpolatedValueSupplier = Suppliers.memoize(new Supplier<Target>() {
-                @Override
-                Target get() {
-                  Target interpolatedValue = interpolable.doInterpolatePrimitive(context)
-                  if (interpolatedValue != null) {
-                    if (postProcess) {
-                      interpolatedValue = postProcess.call(interpolatedValue)
-                    }
-                  } else {
-                    interpolatedValue = defaultValueSupplier?.get()
-                  }
-                  interpolatedValue
-                }
-              })
-            } else {
-              interpolatedValueSupplier = defaultValueSupplier
+            if (ignoreIf.call() == Boolean.TRUE) {
+              return null
             }
           }
-          AlreadyInterpolatedClass result = ALREADY_INTERPOLATED_CLASS.newInstance()
-          result.interpolatedValue = interpolatedValueSupplier
-          result
+          if (rawValue != null) {
+            Target interpolatedValue = interpolable.doInterpolatePrimitive(context)
+            if (interpolatedValue != null) {
+              if (postProcess) {
+                interpolatedValue = postProcess.call(interpolatedValue)
+              }
+              return interpolatedValue
+            }
+          }
+          return defaultValueSupplier.get()
         }
       })
-
-      // postProcess.delegate =
-      // postProcess.memoize()
-      // postProcess.resolveStrategy = Closure.DELEGATE_ONLY
+      result
     }
 
     @Override
     final Target get() {
-      throw new InvalidStateException('Value is not interpolated yet')
+      throw new ValueNotInterpolatedYet()
     }
   }
 
@@ -253,7 +244,7 @@ interface InterpolableValue<
      */
     @Override
     final Target get() {
-      Supplier.isInstance(interpolatedValue) ? ((Supplier<Target>)interpolatedValue).get() : (Target)interpolatedValue
+      Supplier<Target>.isInstance(interpolatedValue) ? ((Supplier<Target>)interpolatedValue).get() : (Target)interpolatedValue
     }
   }
 

@@ -18,7 +18,7 @@ class PackerBuildAutoConfigurable extends AbstractPackerBuild {
 
   @Override
   final Template getTemplate() {
-    this.@template.clone()
+    this.@template // TODO .clone()
   }
 
   @Inject
