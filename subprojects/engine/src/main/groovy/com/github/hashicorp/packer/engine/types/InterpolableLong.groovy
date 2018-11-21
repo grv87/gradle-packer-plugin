@@ -7,23 +7,23 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-@JsonDeserialize(as = Interpolable)
+@JsonDeserialize(as = ReadWriteRawValue)
 @CompileStatic
 interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableLong> {
   @InheritConstructors
-  class Interpolable extends InterpolableValue.Interpolable<Object, Long, InterpolableLong, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableLong {
+  class ReadWriteRawValue extends InterpolableValue.ReadWriteRawValue<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong {
     // This is required for initWithDefault
-    Interpolable() {
+    ReadWriteRawValue() {
       super()
     }
 
     @JsonCreator
-    Interpolable(Long rawValue) {
+    ReadWriteRawValue(Long rawValue) {
       super(rawValue)
     }
 
     @JsonCreator
-    Interpolable(SimpleInterpolableString rawValue) {
+    ReadWriteRawValue(SimpleInterpolableString rawValue) {
       super(rawValue)
     }
 
@@ -45,20 +45,20 @@ interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableL
   }
 
   @InheritConstructors
-  class Initialized extends InterpolableValue.Initialized<Object, Long, InterpolableLong, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableLong { }
+  class ReadWriteInitialized extends InterpolableValue.ReadWriteInitialized<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong { }
 
   @InheritConstructors
-    class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableLong { }
+    class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values
     static final InterpolableLong initWithDefault(InterpolableLong interpolableValue, Supplier<Long> defaultValueSupplier, Closure<Boolean> ignoreIf = null, Closure<Long> postProcess = null) {
-      initWithDefault Interpolable, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
+      initWithDefault ReadWriteRawValue, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
     }
 
     // This is used to create instances with default values
     static final InterpolableLong initWithDefault(InterpolableLong interpolableValue, Long defaultValue, Closure<Boolean> ignoreIf = null, Closure<Long> postProcess = null) {
-      initWithDefault Interpolable, interpolableValue, defaultValue, ignoreIf, postProcess
+      initWithDefault ReadWriteRawValue, interpolableValue, defaultValue, ignoreIf, postProcess
     }
   }
 }

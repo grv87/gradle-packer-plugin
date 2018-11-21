@@ -3,6 +3,7 @@ package com.github.hashicorp.packer.engine.types
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
+import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationException
 import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
@@ -15,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.InheritConstructors
 import groovy.transform.PackageScope
 import groovy.transform.Synchronized
-import sun.plugin.dom.exception.InvalidStateException
+import java.util.concurrent.Semaphore
 
 // equals is required for Gradle up-to-date checking
 // @AutoExternalize(excludes = ['rawValue']) // TODO: Groovy 2.5.0
@@ -24,76 +25,49 @@ import sun.plugin.dom.exception.InvalidStateException
 interface InterpolableValue<
   Source,
   Target extends Serializable,
-  ThisClass extends InterpolableValue<Source, Target, ThisClass>
-> extends InterpolableObject<ThisClass>, Supplier<Target> {
+  ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
+> extends InterpolableObject<ThisInterface, ThisInterface>, Supplier<Target> {
   @JsonValue
   Source getRawValue()
 
   void setRawValue(Source rawValue)
 
-  @InheritConstructors
-  private abstract static class AbstractInterpolableValue<
-    Source,
-    Target extends Serializable,
-    ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-    InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-  > extends AbstractInterpolableObject<AbstractInterpolableObject> implements InterpolableValue<Source, Target, ThisClass> {
-    @Override
-    final AbstractInterpolableObject interpolate(Context context) {
-      throw new UnsupportedOperationException('Value objects should be interpolated with deledate object')
+  private static class CommonExceptions {
+    private static RuntimeException interpolateWithDelegateObject() {
+      new UnsupportedOperationException('Value objects should be interpolated with deledate object')
+    }
+
+    private static RuntimeException objectNotInitialized() {
+      new IllegalStateException('Object is not initialized yet')
     }
   }
 
-  ThisClass interpolateValue(Context context, InterpolableObject delegate)
+  ThisInterface interpolateValue(Context context, AbstractInterpolableReadOnlyObject delegate)
 
-  abstract static class Interpolable<
+  private abstract static class AbstractRawValue<
     Source,
     Target extends Serializable,
-    ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-    InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-    > extends AbstractInterpolableValue<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> {
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    SourceRawValueClass extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, SourceRawValueClass, TargetInitializedClass> & ThisInterface,
+    TargetInitializedClass extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, SourceRawValueClass, TargetInitializedClass> & ThisInterface
+    > extends AbstractInterpolableObject<ReadOnlyRawValueClass, ReadWriteRawValueClass> implements InterpolableValue<Source, Target, ThisInterface> {
     @SuppressWarnings('UnstableApiUsage')
-    static final Class<Source> SOURCE_CLASS = (Class<Source>)new TypeToken<Source>(this.class) { }.rawType
+    private static final Class<Source> SOURCE_CLASS = (Class<Source>)new TypeToken<Source>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
-    static final Class<InterpolableClass> INTERPOLABLE_CLASS = (Class<InterpolableClass>)new TypeToken<InterpolableClass>(this.class) { }.rawType
+    private static final Class<ReadOnlyRawValueClass> READ_ONLY_INTERPOLABLE_CLASS = (Class<ReadOnlyRawValueClass>)new TypeToken<ReadOnlyRawValueClass>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
-    static final Class<InitializedClass> INITIALIZED_CLASS = (Class<InitializedClass>)new TypeToken<InitializedClass>(this.class) { }.rawType
-
-    private volatile /* TODO */ Source rawValue
-
-    // This is required for initWithDefault
-    protected Interpolable() {
-      super()
-      this.@rawValue = null
-    }
-
-    protected Interpolable(Source rawValue, boolean readOnly) {
-      super(readOnly)
-      this.@rawValue = rawValue
-    }
-
-    // This is public so that it can be simply inherited by implementors // TOTHINK
-    @JsonCreator
-    Interpolable(Source rawValue) {
-      this(rawValue, false)
-    }
-
-    @Override
-    final Source getRawValue() {
-      this.@rawValue
-    }
-
-    @Override
-    final void setRawValue(Source rawValue) {
-      if (readOnly) {
-        throw new ReadOnlyPropertyException('rawValue', this.class.canonicalName) // TOTHINK
-      }
-      this.@rawValue = rawValue
-    }
+    private static final Class<ReadWriteRawValueClass> INTERPOLABLE_CLASS = (Class<ReadWriteRawValueClass>)new TypeToken<ReadWriteRawValueClass>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<Closure<Target>> TARGET_CLOSURE_CLASS = (Class<Closure<Target>>)new TypeToken<Closure<Target>>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<Closure<Boolean>> BOOLEAN_CLOSURE_CLASS = (Class<Closure<Boolean>>)new TypeToken<Closure<Boolean>>(this.class) { }.rawType
 
     /*
      * CAVEAT:
@@ -103,7 +77,7 @@ interface InterpolableValue<
      */
     @CompileDynamic
     protected Target doInterpolatePrimitive(Context context) {
-      doInterpolatePrimitive context, this.@rawValue
+      doInterpolatePrimitive context, rawValue
     }
 
     protected static /* TOTEST */ Target doInterpolatePrimitive(Context context, Object rawValue) {
@@ -111,8 +85,13 @@ interface InterpolableValue<
     }
 
     @Override
-    final ThisClass interpolateValue(Context context, InterpolableObject delegate) {
-      throw new InvalidStateException('Object is not initialized yet')
+    final ReadOnlyRawValueClass interpolate(Context context) {
+      throw CommonExceptions.interpolateWithDelegateObject()
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, AbstractInterpolableReadOnlyObject delegate) {
+      throw CommonExceptions.objectNotInitialized()
     }
 
     @Override
@@ -120,32 +99,133 @@ interface InterpolableValue<
       throw new ValueNotInterpolatedYetException()
     }
 
-    private final InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INITIALIZED_CLASS.getConstructor(INTERPOLABLE_CLASS, Supplier<Target>, Closure<Boolean>, Closure<Target>, boolean).newInstance(this, defaultValueSupplier, ignoreIf, postProcess, readOnly)
+    protected abstract TargetInitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
+  }
+
+  abstract static class ReadOnlyRawValue<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ReadOnlyRawValueClass, ReadOnlyInitializedClass> {
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<ReadOnlyInitializedClass> READ_ONLY_INITIALIZED_CLASS = (Class<ReadOnlyInitializedClass>)new TypeToken<ReadOnlyInitializedClass>(this.class) { }.rawType
+
+    private /*final*/ /* TODO */ Source rawValue
+
+    // This is required for initWithDefault
+    protected ReadOnlyRawValue() {
+      this.@rawValue = null
+    }
+    // This is public so that it can be simply inherited by implementors // TOTHINK
+    @JsonCreator
+    ReadOnlyRawValue(Source rawValue) {
+      this.@rawValue = rawValue
     }
 
     @Override
-    protected final InterpolableClass getAsReadOnly() {
-      INTERPOLABLE_CLASS.getConstructor(SOURCE_CLASS, boolean).newInstance(this.@rawValue, true)
+    final Source getRawValue() {
+      this.@rawValue
+    }
+
+    @Override
+    final void setRawValue(Source rawValue) {
+      throw new ReadOnlyPropertyException('rawValue', this.class.canonicalName) // TOTHINK
+    }
+
+    @Override
+    protected final ReadOnlyInitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      READ_ONLY_INITIALIZED_CLASS.getConstructor(READ_ONLY_INTERPOLABLE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
+    }
+
+    @Override
+    final ReadOnlyRawValueClass asReadOnly() {
+      (ReadOnlyRawValueClass)this
+    }
+
+    @Override
+    final ReadWriteRawValueClass asReadWrite() {
+      INTERPOLABLE_CLASS.getConstructor(SOURCE_CLASS).newInstance(this.@rawValue)
     }
   }
 
-  abstract static class Initialized<
+  abstract static class ReadWriteRawValue<
     Source,
     Target extends Serializable,
-    ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-    InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-    > extends AbstractInterpolableValue<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> {
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ReadWriteRawValueClass, ReadWriteInitializedClass> {
     @SuppressWarnings('UnstableApiUsage')
-    static final Class<InterpolableClass> INTERPOLABLE_CLASS = (Class<InterpolableClass>)new TypeToken<InterpolableClass>(this.class) { }.rawType
-    @SuppressWarnings('UnstableApiUsage')
-    static final Class<InitializedClass> INITIALIZED_CLASS = (Class<InitializedClass>)new TypeToken<InitializedClass>(this.class) { }.rawType
-    @SuppressWarnings('UnstableApiUsage')
-    static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
+    private static final Class<ReadWriteInitializedClass> INITIALIZED_CLASS = (Class<ReadWriteInitializedClass>)new TypeToken<ReadWriteInitializedClass>(this.class) { }.rawType
 
-    private final InterpolableClass interpolable
+    private volatile /* TODO */ Source rawValue
+
+    // This is required for initWithDefault
+    protected ReadWriteRawValue() {
+      this.@rawValue = null
+    }
+    // This is public so that it can be simply inherited by implementors // TOTHINK
+    @JsonCreator
+    ReadWriteRawValue(Source rawValue) {
+      this.@rawValue = rawValue
+    }
+
+    @Override
+    final Source getRawValue() {
+      this.@rawValue
+    }
+
+    @Override
+    final void setRawValue(Source rawValue) {
+      this.@rawValue = rawValue
+    }
+
+    @Override
+    protected final ReadWriteInitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      INITIALIZED_CLASS.getConstructor(INTERPOLABLE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
+    }
+
+    @Override
+    final ReadOnlyRawValueClass asReadOnly() {
+      READ_ONLY_INTERPOLABLE_CLASS.getConstructor(SOURCE_CLASS).newInstance(this.@rawValue)
+    }
+
+    @Override
+    final ReadWriteRawValueClass asReadWrite() {
+      (ReadWriteRawValueClass)this
+    }
+  }
+
+  abstract private static class AbstractInitialized<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    SourceRawValueClass extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, SourceRawValueClass, TargetInitializedClass> & ThisInterface,
+    TargetInitializedClass extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, SourceRawValueClass, TargetInitializedClass> & ThisInterface
+    > extends AbstractInterpolableObject<ReadOnlyInitializedClass, ReadWriteInitializedClass> implements InterpolableValue<Source, Target, ThisInterface> {
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<Closure<Target>> TARGET_CLOSURE_CLASS = (Class<Closure<Target>>)new TypeToken<Closure<Target>>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<Closure<Boolean>> BOOLEAN_CLOSURE_CLASS = (Class<Closure<Boolean>>)new TypeToken<Closure<Boolean>>(this.class) { }.rawType
+
+    private final SourceRawValueClass interpolable
 
     private final Supplier<Target> defaultValueSupplier
 
@@ -153,8 +233,7 @@ interface InterpolableValue<
 
     private final Closure<Target> postProcess
 
-    protected Initialized(InterpolableClass interpolable, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess, boolean readOnly) {
-      super(readOnly)
+    protected AbstractInitialized(SourceRawValueClass interpolable, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
       this.@interpolable = interpolable
       this.@defaultValueSupplier = defaultValueSupplier
       this.@ignoreIf = (Closure<Boolean>)ignoreIf.clone()
@@ -169,47 +248,48 @@ interface InterpolableValue<
       this.@interpolable.rawValue
     }
 
-    @Override
-    @Synchronized
-    final void setRawValue(Source rawValue) {
-      if (readOnly) {
-        throw new ReadOnlyPropertyException('rawValue', this.class.canonicalName)
-      }
-      this.@interpolable.rawValue = rawValue
-    }
+    protected abstract ReadOnlyRawValueClass getInterpolableAsReadOnly()
 
-    @Synchronized
-    private final InterpolableClass getRawValueAsReadOnly() {
-      (InterpolableClass)this.@interpolable.asReadOnly()
+    @Override
+    final ReadOnlyInitializedClass interpolate(Context context) {
+      throw CommonExceptions.interpolateWithDelegateObject()
     }
 
     @Override
     @Synchronized
-    ThisClass interpolateValue(Context context, InterpolableObject delegate) {
+    ThisInterface interpolateValue(Context context, AbstractInterpolableReadOnlyObject delegate) {
       ALREADY_INTERPOLATED_CLASS.getConstructor(Object).newInstance(
         Suppliers.memoize(new Supplier<Target>() {
-          private final InterpolableClass interpolable = rawValueAsReadOnly
+          private final ReadOnlyRawValueClass interpolable = interpolableAsReadOnly
+          private final Semaphore semaphore = new Semaphore(1)
 
           @Override
           @Synchronized
           Target get() {
-            if (Initialized.this.@ignoreIf != null) {
-              Closure<Boolean> ignoreIf = (Closure<Boolean>)Initialized.this.@ignoreIf.clone()
-              ignoreIf.delegate = delegate
-              if (ignoreIf.call() == Boolean.TRUE) {
-                return null
-              }
+            if (!semaphore.tryAcquire()) {
+              throw new RecursiveInterpolationException()
             }
-            if (interpolable.rawValue != null) {
-              Target interpolatedValue = interpolable.doInterpolatePrimitive(context)
-              if (interpolatedValue != null) {
-                if (Initialized.this.@postProcess) {
-                  interpolatedValue = Initialized.this.@postProcess.call(interpolatedValue)
+            try {
+              if (AbstractInitialized.this.@ignoreIf != null) {
+                Closure<Boolean> ignoreIf = (Closure<Boolean>) AbstractInitialized.this.@ignoreIf.clone()
+                ignoreIf.delegate = delegate
+                if (ignoreIf.call() == Boolean.TRUE) {
+                  return null
                 }
-                return interpolatedValue
               }
+              if (interpolable.rawValue != null) {
+                Target interpolatedValue = interpolable.doInterpolatePrimitive(context)
+                if (interpolatedValue != null) {
+                  if (AbstractInitialized.this.@postProcess) {
+                    interpolatedValue = AbstractInitialized.this.@postProcess.call(interpolatedValue)
+                  }
+                  return interpolatedValue
+                }
+              }
+              return AbstractInitialized.this.@defaultValueSupplier.get()
+            } finally {
+              semaphore.release()
             }
-            return Initialized.this.@defaultValueSupplier.get()
           }
         })
       )
@@ -219,22 +299,95 @@ interface InterpolableValue<
     final Target get() {
       throw new ValueNotInterpolatedYetException()
     }
+  }
+
+  @InheritConstructors
+  abstract static class ReadOnlyInitialized<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ReadOnlyRawValueClass, ReadOnlyInitializedClass> {
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<ReadWriteRawValueClass> INTERPOLABLE_CLASS = (Class<ReadWriteRawValueClass>)new TypeToken<ReadWriteRawValueClass>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<ReadWriteInitializedClass> INITIALIZED_CLASS = (Class<ReadWriteInitializedClass>)new TypeToken<ReadWriteInitializedClass>(this.class) { }.rawType
+    @Override
+    final void setRawValue(Source rawValue) {
+      throw new ReadOnlyPropertyException('rawValue', this.class.canonicalName) // TOTHINK
+    }
+
+    protected final ReadOnlyRawValueClass getInterpolableAsReadOnly() {
+      this.@interpolable
+    }
 
     @Override
-    protected final InitializedClass getAsReadOnly() {
-      INITIALIZED_CLASS.getConstructor(INTERPOLABLE_CLASS, Supplier<Target>, Closure<Boolean>, Closure<Target>, boolean).newInstance(this, defaultValueSupplier, ignoreIf, postProcess, readOnly)
+    final ReadOnlyInitializedClass asReadOnly() {
+      (ReadOnlyInitializedClass)this
+    }
+
+    @Override
+    final ReadWriteInitializedClass asReadWrite() {
+      INITIALIZED_CLASS.getConstructor(INTERPOLABLE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(this.@interpolable.asReadWrite(), defaultValueSupplier, ignoreIf, postProcess)
     }
   }
 
-  @EqualsAndHashCode(includes = ['interpolatedValue'])
+  @InheritConstructors
+  abstract static class ReadWriteInitialized<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ReadWriteRawValueClass, ReadWriteInitializedClass> {
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<ReadOnlyRawValueClass> READ_ONLY_INTERPOLABLE_CLASS = (Class<ReadOnlyRawValueClass>)new TypeToken<ReadOnlyRawValueClass>(this.class) { }.rawType
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<ReadOnlyInitializedClass> READ_ONLY_INITIALIZED_CLASS = (Class<ReadOnlyInitializedClass>)new TypeToken<ReadOnlyInitializedClass>(this.class) { }.rawType
+
+    @Override
+    @Synchronized
+    final void setRawValue(Source rawValue) {
+      this.@interpolable.rawValue = rawValue
+    }
+
+    @Synchronized
+    protected final ReadOnlyRawValueClass getInterpolableAsReadOnly() {
+      (ReadOnlyRawValueClass)this.@interpolable.asReadOnly()
+    }
+
+    @Override
+    final ReadOnlyInitializedClass asReadOnly() {
+      READ_ONLY_INITIALIZED_CLASS.getConstructor(READ_ONLY_INTERPOLABLE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(interpolableAsReadOnly, defaultValueSupplier, ignoreIf, postProcess)
+    }
+
+    @Override
+    final ReadWriteInitializedClass asReadWrite() {
+      (ReadWriteInitializedClass)this
+    }
+  }
+
+  @EqualsAndHashCode(includes = ['get'])
   abstract static class AlreadyInterpolated<
     Source,
     Target extends Serializable,
-    ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-    InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-  > extends AbstractInterpolableValue<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> implements Externalizable {
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+  > extends AbstractInterpolableReadOnlyObject<AlreadyInterpolatedClass, AlreadyInterpolatedClass> implements InterpolableValue<Source, Target, ThisInterface>, Externalizable {
+    @SuppressWarnings('UnstableApiUsage')
+    static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
+
     @JsonValue
     @Override
     final Source getRawValue() {
@@ -247,13 +400,10 @@ interface InterpolableValue<
     }
 
     private Object interpolatedValue
-    // ThisClass constructor is required for Externalizable and AutoClone
-    protected AlreadyInterpolated() {
-      super(true)
-    }
+    // ThisInterface constructor is required for Externalizable and AutoClone
+    protected AlreadyInterpolated() { }
 
     AlreadyInterpolated(Object interpolatedValue) {
-      this()
       this.@interpolatedValue = interpolatedValue
     }
 
@@ -274,7 +424,12 @@ interface InterpolableValue<
     }
 
     @Override
-    final ThisClass interpolateValue(Context context, InterpolableObject delegate) {
+    final AlreadyInterpolatedClass interpolate(Context context) {
+      throw CommonExceptions.interpolateWithDelegateObject()
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, AbstractInterpolableReadOnlyObject delegate) {
       throw new ObjectAlreadyInterpolatedWithFixedContextException()
     }
     /**
@@ -282,47 +437,52 @@ interface InterpolableValue<
      */
     @Override
     final Target get() {
-      Supplier<Target>.isInstance(this.@interpolatedValue) ? ((Supplier<Target>)this.@interpolatedValue).get() : (Target)this.@interpolatedValue
+      TARGET_SUPPLIER_CLASS.isInstance(this.@interpolatedValue) ? ((Supplier<Target>)this.@interpolatedValue).get() : (Target)this.@interpolatedValue
     }
 
     @Override
-    protected final AlreadyInterpolatedClass getAsReadOnly() {
-      // This will never be called, so it makes no difference what we return here
-      null // (AlreadyInterpolatedClass)this
+    final AlreadyInterpolatedClass asReadWrite() {
+      throw new ObjectAlreadyInterpolatedWithFixedContextException()
     }
   }
 
   @PackageScope
   static class Utils {
     static boolean requiresInitialization(InterpolableValue interpolableValue) {
-      interpolableValue == null || Interpolable.isInstance(interpolableValue)
+      interpolableValue == null || AbstractRawValue.isInstance(interpolableValue)
     }
 
-    // ThisClass is used to create instances with default values
+    // ThisInterface is used to create instances with default values
     protected static final <
       Source,
       Target extends Serializable,
-      ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-      InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-      InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-    > ThisClass initWithDefault(Class<InterpolableClass> interpolableClass, ThisClass interpolableValue, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      InterpolableClass interpolable = (InterpolableClass)interpolableValue ?: interpolableClass.getConstructor().newInstance()
+      ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+      AbstractRawValueClass extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ? extends AbstractRawValueClass, ? extends AbstractInitializedClass> & ThisInterface,
+      ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractRawValueClass,
+      ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractRawValueClass,
+      AbstractInitializedClass extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ? extends AbstractRawValueClass, ? extends AbstractInitializedClass> & ThisInterface,
+      ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractInitializedClass,
+      ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractInitializedClass,
+      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > ThisInterface initWithDefault(boolean readOnly, Class<ReadOnlyRawValueClass> readOnlyRawValueClass, Class<ReadWriteRawValueClass> readWriteRawValueClass, ThisInterface interpolableValue, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      AbstractRawValueClass interpolable = (AbstractRawValueClass)interpolableValue ?: (readOnly ? readOnlyRawValueClass : readWriteRawValueClass).getConstructor().newInstance()
       interpolable.init(defaultValueSupplier, ignoreIf, postProcess)
     }
 
-
-
-    // ThisClass is used to create instances with default values
+    // ThisInterface is used to create instances with default values
     protected static final <
       Source,
       Target extends Serializable,
-      ThisClass extends InterpolableValue<Source, Target, ThisClass>,
-      InterpolableClass extends Interpolable<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-      InitializedClass extends Initialized<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass,
-      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisClass, InterpolableClass, InitializedClass, AlreadyInterpolatedClass> & ThisClass
-    > ThisClass initWithDefault(Class<InterpolableClass> interpolableClass, ThisClass interpolableValue, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      InterpolableClass interpolable = (InterpolableClass)interpolableValue ?: interpolableClass.getConstructor().newInstance()
+      ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+      AbstractRawValueClass extends AbstractRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ? extends AbstractRawValueClass, ? extends AbstractInitializedClass> & ThisInterface,
+      ReadOnlyRawValueClass extends ReadOnlyRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractRawValueClass,
+      ReadWriteRawValueClass extends ReadWriteRawValue<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractRawValueClass,
+      AbstractInitializedClass extends AbstractInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass, ? extends AbstractRawValueClass, ? extends AbstractInitializedClass> & ThisInterface,
+      ReadOnlyInitializedClass extends ReadOnlyInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractInitializedClass,
+      ReadWriteInitializedClass extends ReadWriteInitialized<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface & AbstractInitializedClass,
+      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface, ReadOnlyRawValueClass, ReadWriteRawValueClass, ReadOnlyInitializedClass, ReadWriteInitializedClass, AlreadyInterpolatedClass> & ThisInterface
+    > ThisInterface initWithDefault(boolean readOnly, Class<ReadOnlyRawValueClass> readOnlyRawValueClass, Class<ReadWriteRawValueClass> readWriteRawValueClass, ThisInterface interpolableValue, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      AbstractRawValueClass interpolable = (AbstractRawValueClass)interpolableValue ?: (readOnly ? readOnlyRawValueClass : readWriteRawValueClass).getConstructor().newInstance()
       interpolable.init(
         new Supplier<Target>() {
           @Override

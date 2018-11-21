@@ -1,6 +1,6 @@
-package com.github.hashicorp.packer.builder.amazon.common
+package com.github.hashicorp.packer.engine.ast
 
-import com.fasterxml.jackson.annotation.JsonSetter
+
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
 import com.github.hashicorp.packer.engine.types.AbstractInterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
@@ -9,14 +9,13 @@ import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.Synchronized
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
 @CompileStatic
 // @Builder(builderStrategy = ExternalStrategy, forClass = BlockDevice)
 // @JsonDeserialize(builder = BlockDeviceBuilder) // TOTEST
-final class BlockDevice extends AbstractInterpolableObject<BlockDevice> {
+final class BlockDeviceExample extends AbstractInterpolableObject<BlockDeviceExample> {
   @Internal // TOTEST
   private InterpolableBoolean deleteOnTermination
 
@@ -203,11 +202,11 @@ final class BlockDevice extends AbstractInterpolableObject<BlockDevice> {
 
   // TODO: get, set
 
-  BlockDevice() {
+  BlockDeviceExample() {
     this(false)
   }
 
-  private BlockDevice(boolean readOnly) {
+  private BlockDeviceExample(boolean readOnly) {
     super(readOnly)
   }
 

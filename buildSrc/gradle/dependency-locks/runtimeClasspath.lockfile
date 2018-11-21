@@ -73,4 +73,4 @@ org.checkerframework:checker-qual:2.5.2
 org.codehaus.mojo:animal-sniffer-annotations:1.14
 org.sonatype.sisu.inject:cglib:2.2.1-v20090111
 org.tukaani:xz:1.6
-org.ysb33r.gradle:grolifant:0.9
+org.ysb33r.gradle:grolifant:0.10

@@ -4,16 +4,18 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Context
 
 @CompileStatic
-interface InterpolableObject<ThisClass extends InterpolableObject> {
+interface InterpolableObject<ReadOnlyClass extends InterpolableObject, ReadWriteClass  extends InterpolableObject> {
   /**
    *
    * @param context
    * @throws UnsupportedOperationException
    * @return
    */
-  ThisClass interpolate(Context context)
+  ReadOnlyClass interpolate(Context context)
 
   boolean isReadOnly()
 
-  ThisClass asReadOnly()
+  ReadOnlyClass asReadOnly()
+
+  ReadWriteClass asReadWrite()
 }

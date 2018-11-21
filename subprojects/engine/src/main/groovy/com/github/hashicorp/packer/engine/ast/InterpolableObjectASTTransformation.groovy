@@ -11,7 +11,7 @@ import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
-import org.gradle.internal.impldep.com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
 @CompileStatic
 @GroovyASTTransformation(phase= CompilePhase.SEMANTIC_ANALYSIS)
@@ -27,7 +27,7 @@ class InterpolableObjectASTTransformation implements ASTTransformation {
       String implClassName = "${ interfaseNameWithoutPackage }Impl"
       ClassNode readOnlyClass = (ClassNode)new AstBuilder().buildFromSpec {
         innerClass(readOnlyClassName, ClassNode.ACC_PUBLIC) {
-          classNode(interfaseNameWithoutPackage, ClassNode.ACC_PUBLIC) {
+          classNode(interfaseNameWithoutPackage, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL) {
             /*interfaces {
               classNode InterpolableObject
             }*/
@@ -41,7 +41,7 @@ class InterpolableObjectASTTransformation implements ASTTransformation {
       interfase.module.addClass readOnlyClass
       ClassNode implClass = (ClassNode)new AstBuilder().buildFromSpec {
         innerClass(implClassName, ClassNode.ACC_PUBLIC) {
-          classNode(interfaseNameWithoutPackage, ClassNode.ACC_PUBLIC) {
+          classNode(interfaseNameWithoutPackage, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL) {
             /*interfaces {
               classNode InterpolableObject
             }*/

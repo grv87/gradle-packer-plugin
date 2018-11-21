@@ -165,23 +165,23 @@ final class Context {
     cwd.resolve(path)
   }*/
 
-  resolveFile(Path path) {
+  File resolveFile(Path path) {
     resolvePath(path).toFile()
   }
 
-   resolveDirectory(String path) {
+  File /* TODO */ resolveDirectory(String path) {
 
-    project.layout.projectDirectory.dir(resolvePath(path).toString())
+   // TODO project.layout.projectDirectory.dir(resolvePath(path).toString())
   }
 
   Iterator<File> resolveFiles(String... paths) {
 
-    project.files paths.collect { String path -> resolvePath(path) }
+    // TODO project.files paths.collect { String path -> resolvePath(path) }
   }
 
   Iterator<File> resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
 
-    project.fileTree resolvePath(path), closure
+    // TODO project.fileTree resolvePath(path), closure
   }
 
   // DownloadableURL processes a URL that may also be a file path and returns
@@ -306,7 +306,7 @@ final class Context {
     @Override
     @CompileStatic
     Collection<Serializable> values() {
-      ImmutableList<Serializable>.copyOf((Collection<Serializable>)(parameterizedFunctions*.value*.values().flatten() + parameterlessFunctions.values()))
+      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions*.value*.values().flatten() + parameterlessFunctions.values()))
     }
 
     @Override

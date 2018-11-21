@@ -7,18 +7,39 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-@JsonDeserialize(as = Interpolable)
+@JsonDeserialize(as = ReadOnlyRawValue)
 @CompileStatic
 interface InterpolableBoolean extends InterpolableValue<Object, Boolean, InterpolableBoolean> {
   @InheritConstructors
-  class Interpolable extends InterpolableValue.Interpolable<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean {
+  class ReadOnlyRawValue extends InterpolableValue.ReadOnlyRawValue<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue, ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableBoolean {
     @JsonCreator
-    Interpolable(Boolean rawValue) {
+    ReadOnlyRawValue(Boolean rawValue) {
       super(rawValue)
     }
 
     @JsonCreator
-    Interpolable(SimpleInterpolableString rawValue) {
+    ReadOnlyRawValue(SimpleInterpolableString rawValue) {
+      super(rawValue)
+    }
+
+    protected static final Boolean doInterpolatePrimitive(Context context, Boolean rawValue) {
+      rawValue
+    }
+
+    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
+      rawValue.interpolate context // TOTEST
+    }
+  }
+
+  @InheritConstructors
+  class ReadWriteRawValue extends InterpolableValue.ReadWriteRawValue<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue, ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableBoolean {
+    @JsonCreator
+    ReadWriteRawValue(Boolean rawValue) {
+      super(rawValue)
+    }
+
+    @JsonCreator
+    ReadWriteRawValue(SimpleInterpolableString rawValue) {
       super(rawValue)
     }
 
@@ -40,20 +61,23 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
   }
 
   @InheritConstructors
-  class Initialized extends InterpolableValue.Initialized<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean { }
+  class ReadOnlyInitialized extends InterpolableValue.ReadOnlyInitialized<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue,ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableBoolean { }
 
   @InheritConstructors
-  class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Boolean, InterpolableBoolean, Interpolable, Initialized, AlreadyInterpolated> implements InterpolableBoolean { }
+  class ReadWriteInitialized extends InterpolableValue.ReadWriteInitialized<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue,ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableBoolean { }
+
+  @InheritConstructors
+  class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue,ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableBoolean { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values
-    static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Supplier<Boolean> defaultValueSupplier, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
-      initWithDefault Interpolable, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
+    static final InterpolableBoolean initWithDefault(boolean readOnly, InterpolableBoolean interpolableValue, Supplier<Boolean> defaultValueSupplier, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
+      initWithDefault readOnly, /*TODO: InterpolableValue.AbstractRawValue<Object, Boolean, InterpolableBoolean, ReadOnlyRawValue, ReadWriteRawValue, ReadOnlyInitialized, ReadWriteInitialized, AlreadyInterpolated>.class,*/ ReadOnlyRawValue, ReadWriteRawValue, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
     }
 
     // This is used to create instances with default values
-    static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Boolean defaultValue, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
-      initWithDefault Interpolable, interpolableValue, defaultValue, ignoreIf, postProcess
+    static final InterpolableBoolean initWithDefault(boolean readOnly, InterpolableBoolean interpolableValue, Boolean defaultValue, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
+      initWithDefault readOnly, ReadOnlyRawValue, ReadWriteRawValue, interpolableValue, defaultValue, ignoreIf, postProcess
     }
   }
 }
