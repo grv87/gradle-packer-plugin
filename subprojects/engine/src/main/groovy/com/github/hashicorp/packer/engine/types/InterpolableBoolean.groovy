@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 @CompileStatic
 interface InterpolableBoolean extends InterpolableValue<Object, Boolean, InterpolableBoolean> {
   @InheritConstructors
-  class RawValue extends InterpolableValue.RawValue<Object, Boolean, InterpolableBoolean, AlreadyInterpolated, Initialized, RawValue> implements InterpolableBoolean {
+  class RawValue extends InterpolableValue.RawValue<Object, Boolean, InterpolableBoolean, AlreadyInterpolated, Initialized> implements InterpolableBoolean {
     @JsonCreator
     RawValue(Boolean rawValue) {
       super(rawValue)

@@ -203,44 +203,21 @@ final class BlockDevice extends AbstractInterpolableObject<BlockDevice> {
 
   // TODO: get, set
 
-  BlockDevice() {
-    this(false)
-  }
-
-  private BlockDevice(boolean readOnly) {
-    super(readOnly)
-  }
-
-  @Override
-  protected BlockDevice getAsReadOnly() {
-    BlockDevice result = new BlockDevice(true)
-    result.@deleteOnTermination = this.@deleteOnTermination.asReadOnly()
-    result.@deviceName = this.@deviceName.asReadOnly()
-    result.@encrypted = this.@encrypted.asReadOnly()
-    result.@iops = this.@iops.asReadOnly()
-    result.@noDevice = this.@noDevice.asReadOnly()
-    result.@snapshotId = this.@snapshotId.asReadOnly()
-    result.@virtualName = this.@virtualName.asReadOnly()
-    result.@volumeType = this.@volumeType.asReadOnly()
-    result.@volumeSize = this.@volumeSize.asReadOnly()
-    result.@kmsKeyId = this.@kmsKeyId.asReadOnly()
-    result
-  }
-
   @Synchronized
   @Override
   BlockDevice interpolate(Context context) {
-    BlockDevice result = new BlockDevice(true)
-    result.@deleteOnTermination = deleteOnTermination.interpolateValue(context, result)
-    result.@deviceName = deviceName.interpolateValue(context, result)
-    result.@encrypted = encrypted.interpolateValue(context, result)
-    result.@iops = iops.interpolateValue(context, result)
-    result.@noDevice = noDevice.interpolateValue(context, result)
-    result.@snapshotId = snapshotId.interpolateValue(context, result)
-    result.@virtualName = virtualName.interpolateValue(context, result)
-    result.@volumeType = volumeType.interpolateValue(context, result)
-    result.@volumeSize = volumeSize.interpolateValue(context, result)
-    result.@kmsKeyId = kmsKeyId.interpolateValue(context, result)
+    BlockDevice result = new BlockDevice(
+      deleteOnTermination.interpolateValue(context, result)
+      deviceName.interpolateValue(context, result)
+      encrypted.interpolateValue(context, result)
+      iops.interpolateValue(context, result)
+      noDevice.interpolateValue(context, result)
+      snapshotId.interpolateValue(context, result)
+      virtualName.interpolateValue(context, result)
+      volumeType.interpolateValue(context, result)
+      volumeSize.interpolateValue(context, result)
+      kmsKeyId.interpolateValue(context, result)
+    )
     result
   }
 }

@@ -15,6 +15,8 @@ import groovy.transform.EqualsAndHashCode
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.InheritConstructors
 import groovy.transform.PackageScope
+
+import java.lang.reflect.Constructor
 import java.util.concurrent.Semaphore
 
 // equals is required for Gradle up-to-date checking
@@ -47,15 +49,12 @@ interface InterpolableValue<
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
     AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface> & ThisInterface,
-    InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface,
-    RawValueClass extends RawValue<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass, RawValueClass> & ThisInterface
+    InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface
     > implements InterpolableValue<Source, Target, ThisInterface> {
-    @SuppressWarnings('UnstableApiUsage')
-    private static final Class<RawValueClass> RAW_VALUE_CLASS = (Class<RawValueClass>)new TypeToken<RawValueClass>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<InitializedClass> INITIALIZED_CLASS = (Class<InitializedClass>)new TypeToken<InitializedClass>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
-    static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
+    private static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<Closure<Target>> TARGET_CLOSURE_CLASS = (Class<Closure<Target>>)new TypeToken<Closure<Target>>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
@@ -77,7 +76,7 @@ interface InterpolableValue<
     }
 
     @Override
-    final RawValueClass interpolate(Context context) {
+    final ThisInterface interpolate(Context context) {
       throw CommonExceptions.interpolateWithDelegateObject()
     }
 
@@ -93,10 +92,6 @@ interface InterpolableValue<
 
     private /*final*/ /* TODO */ Source rawValue
 
-    // This is required for initWithDefault
-    protected RawValue() {
-      this.@rawValue = null
-    }
     // This is public so that it can be simply inherited by implementors // TOTHINK
     @JsonCreator
     RawValue(Source rawValue) {
@@ -108,12 +103,14 @@ interface InterpolableValue<
       this.@rawValue
     }
 
-    protected final InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INITIALIZED_CLASS.getConstructor(RAW_VALUE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
+    private static final Constructor<InitializedClass> INITIALIZED_CLASS_CONSTRUCTOR = INITIALIZED_CLASS.getConstructor(/*RAW_VALUE_CLASS*/ RawValue, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS)
+
+    private InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      INITIALIZED_CLASS_CONSTRUCTOR.newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
     }
 
-    protected final InitializedClass init(Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INITIALIZED_CLASS.getConstructor(RAW_VALUE_CLASS, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS).newInstance(this, new Supplier<Target>() {
+    private InitializedClass init(Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      INITIALIZED_CLASS_CONSTRUCTOR.newInstance(this, new Supplier<Target>() {
         @Override
         Target get() {
           defaultValue
@@ -132,6 +129,13 @@ interface InterpolableValue<
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
 
+    /*
+     * WORKAROUND:
+     * We can't have RawValueClass here and later in this class since Groovy doesn't support cyclic generics
+     * (at least 2.4.12)
+     * TODO: test on 2.5/3.0 and report an issue
+     * <grv87 2018-11-22>
+     */
     private final /*RawValueClass*/RawValue interpolable
 
     private final Supplier<Target> defaultValueSupplier
@@ -156,7 +160,7 @@ interface InterpolableValue<
     }
 
     @Override
-    final Initialized interpolate(Context context) {
+    final ThisInterface interpolate(Context context) {
       throw CommonExceptions.interpolateWithDelegateObject()
     }
 
@@ -180,7 +184,7 @@ interface InterpolableValue<
                 }
               }
               if (interpolable.rawValue != null) {
-                Target interpolatedValue = interpolable.doInterpolatePrimitive(context)
+                Target interpolatedValue = (Target)interpolable.doInterpolatePrimitive(context)
                 if (interpolatedValue != null) {
                   if (AbstractInitialized.this.@postProcess) {
                     interpolatedValue = AbstractInitialized.this.@postProcess.call(interpolatedValue)
