@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Context
 
 @CompileStatic
-interface InterpolableObject<ReadOnlyClass extends InterpolableObject, ReadWriteClass  extends InterpolableObject> {
+interface InterpolableObject<ReadOnlyClass extends InterpolableObject> {
   /**
    *
    * @param context
@@ -12,10 +12,4 @@ interface InterpolableObject<ReadOnlyClass extends InterpolableObject, ReadWrite
    * @return
    */
   ReadOnlyClass interpolate(Context context)
-
-  boolean isReadOnly()
-
-  ReadOnlyClass asReadOnly()
-
-  ReadWriteClass asReadWrite()
 }

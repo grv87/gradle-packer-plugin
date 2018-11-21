@@ -7,32 +7,24 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-@JsonDeserialize(as = ReadWriteRawValue)
+@JsonDeserialize(as = RawValue)
 @CompileStatic
 interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableLong> {
   @InheritConstructors
-  class ReadWriteRawValue extends InterpolableValue.ReadWriteRawValue<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong {
+  class RawValue extends InterpolableValue.RawValue<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized, RawValue> implements InterpolableLong {
     // This is required for initWithDefault
-    ReadWriteRawValue() {
+    RawValue() {
       super()
     }
 
     @JsonCreator
-    ReadWriteRawValue(Long rawValue) {
+    RawValue(Long rawValue) {
       super(rawValue)
     }
 
     @JsonCreator
-    ReadWriteRawValue(SimpleInterpolableString rawValue) {
+    RawValue(SimpleInterpolableString rawValue) {
       super(rawValue)
-    }
-
-    void setRawValue(Long rawValue) {
-      super.rawValue = rawValue
-    }
-
-    void setRawValue(SimpleInterpolableString rawValue) {
-      super.rawValue = rawValue
     }
 
     protected static final Boolean doInterpolatePrimitive(Context context, Boolean rawValue) {
@@ -45,20 +37,20 @@ interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableL
   }
 
   @InheritConstructors
-  class ReadWriteInitialized extends InterpolableValue.ReadWriteInitialized<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong { }
+  class Initialized extends InterpolableValue.Initialized<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized> implements InterpolableLong { }
 
   @InheritConstructors
-    class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong, ReadWriteRawValue, ReadWriteInitialized, AlreadyInterpolated> implements InterpolableLong { }
+    class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong> implements InterpolableLong { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values
     static final InterpolableLong initWithDefault(InterpolableLong interpolableValue, Supplier<Long> defaultValueSupplier, Closure<Boolean> ignoreIf = null, Closure<Long> postProcess = null) {
-      initWithDefault ReadWriteRawValue, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
+      initWithDefault RawValue, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
     }
 
     // This is used to create instances with default values
     static final InterpolableLong initWithDefault(InterpolableLong interpolableValue, Long defaultValue, Closure<Boolean> ignoreIf = null, Closure<Long> postProcess = null) {
-      initWithDefault ReadWriteRawValue, interpolableValue, defaultValue, ignoreIf, postProcess
+      initWithDefault RawValue, interpolableValue, defaultValue, ignoreIf, postProcess
     }
   }
 }
