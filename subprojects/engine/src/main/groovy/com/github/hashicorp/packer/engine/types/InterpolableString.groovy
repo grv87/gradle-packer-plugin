@@ -11,17 +11,17 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 @CompileStatic
 interface InterpolableString extends InterpolableValue<SimpleInterpolableString, String, InterpolableString> {
   @InheritConstructors
-  class RawValue extends InterpolableValue.RawValue<SimpleInterpolableString, String, InterpolableString, AlreadyInterpolated, Initialized> implements InterpolableString {
+  final class RawValue extends InterpolableValue.RawValue<SimpleInterpolableString, String, InterpolableString, AlreadyInterpolated, Initialized> implements InterpolableString {
     protected final String doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
       rawValue.interpolate context
     }
   }
 
   @InheritConstructors
-  class Initialized extends InterpolableValue.Initialized<SimpleInterpolableString, String, InterpolableString, AlreadyInterpolated, Initialized> implements InterpolableString { }
+  final class Initialized extends InterpolableValue.Initialized<SimpleInterpolableString, String, InterpolableString, AlreadyInterpolated, Initialized> implements InterpolableString { }
 
   @InheritConstructors
-  class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<SimpleInterpolableString, String, InterpolableString> implements InterpolableString { }
+  final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<SimpleInterpolableString, String, InterpolableString> implements InterpolableString { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values

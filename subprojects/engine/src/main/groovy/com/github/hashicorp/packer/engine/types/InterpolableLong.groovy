@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 @CompileStatic
 interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableLong> {
   @InheritConstructors
-  class RawValue extends InterpolableValue.RawValue<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized> implements InterpolableLong {
+  final class RawValue extends InterpolableValue.RawValue<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized> implements InterpolableLong {
     // This is required for initWithDefault
     RawValue() {
       super()
@@ -37,10 +37,10 @@ interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableL
   }
 
   @InheritConstructors
-  class Initialized extends InterpolableValue.Initialized<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized> implements InterpolableLong { }
+  final class Initialized extends InterpolableValue.Initialized<Object, Long, InterpolableLong, AlreadyInterpolated, Initialized> implements InterpolableLong { }
 
   @InheritConstructors
-  class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong> implements InterpolableLong { }
+  final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong> implements InterpolableLong { }
 
   static final class Utils extends InterpolableValue.Utils {
     // This is used to create instances with default values

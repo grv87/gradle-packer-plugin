@@ -53,12 +53,12 @@ interface InterpolableValue<
     > implements InterpolableValue<Source, Target, ThisInterface> {
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<InitializedClass> INITIALIZED_CLASS = (Class<InitializedClass>)new TypeToken<InitializedClass>(this.class) { }.rawType
-    @SuppressWarnings('UnstableApiUsage')
+    /*@SuppressWarnings('UnstableApiUsage')
     private static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<Closure<Target>> TARGET_CLOSURE_CLASS = (Class<Closure<Target>>)new TypeToken<Closure<Target>>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
-    private static final Class<Closure<Boolean>> BOOLEAN_CLOSURE_CLASS = (Class<Closure<Boolean>>)new TypeToken<Closure<Boolean>>(this.class) { }.rawType
+    private static final Class<Closure<Boolean>> BOOLEAN_CLOSURE_CLASS = (Class<Closure<Boolean>>)new TypeToken<Closure<Boolean>>(this.class) { }.rawType*/
 
     /*
      * CAVEAT:
@@ -92,6 +92,11 @@ interface InterpolableValue<
 
     private /*final*/ /* TODO */ Source rawValue
 
+    // This constructor is required for initWithDefault
+    RawValue() {
+      this.@rawValue = null
+    }
+
     // This is public so that it can be simply inherited by implementors // TOTHINK
     @JsonCreator
     RawValue(Source rawValue) {
@@ -103,7 +108,7 @@ interface InterpolableValue<
       this.@rawValue
     }
 
-    private static final Constructor<InitializedClass> INITIALIZED_CLASS_CONSTRUCTOR = INITIALIZED_CLASS.getConstructor(/*RAW_VALUE_CLASS*/ RawValue, TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS)
+    private static final Constructor<InitializedClass> INITIALIZED_CLASS_CONSTRUCTOR = INITIALIZED_CLASS.getConstructor(/*RAW_VALUE_CLASS*/ RawValue, /*TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS*/ Supplier, Closure, Closure)
 
     private InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
       INITIALIZED_CLASS_CONSTRUCTOR.newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
@@ -223,7 +228,7 @@ interface InterpolableValue<
     }
 
     private Object interpolatedValue
-    // ThisInterface constructor is required for Externalizable and AutoClone
+    // ThisInterface constructor is required for Externalizable
     protected AlreadyInterpolated() { }
 
     AlreadyInterpolated(Object interpolatedValue) {
