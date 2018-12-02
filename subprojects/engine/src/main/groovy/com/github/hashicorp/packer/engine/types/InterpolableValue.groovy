@@ -1,6 +1,7 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
 import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationException
@@ -15,15 +16,13 @@ import groovy.transform.Synchronized
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-
 import java.lang.reflect.Constructor
 import java.util.concurrent.Semaphore
 
 // @AutoExternalize(excludes = ['raw']) // TODO: Groovy 2.5.0
 @CompileStatic
 // Serializable is required for Gradle up-to-date checking
-@JsonDeserialize(using = Serializer)
+@JsonSerialize(using = Serializer)
 interface InterpolableValue<
   Source,
   Target extends Serializable,

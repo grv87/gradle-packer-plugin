@@ -7,8 +7,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 
 @CompileStatic
-interface InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E, InterpolableEnum<E>> {
-  abstract class ImmutableRaw<E extends Enum> extends InterpolableValue.ImmutableRaw<Object, E, InterpolableEnum, Interpolated, AlreadyInterpolated> implements InterpolableEnum<E> {
+interface InterpolableEnum<E extends Enum, ThisInterface extends InterpolableEnum<E, ThisInterface>> extends InterpolableValue<Object, E, ThisInterface> {
+  abstract class ImmutableRaw<E extends Enum, ThisInterface extends InterpolableEnum<E, ThisInterface>> extends InterpolableValue.ImmutableRaw<Object, E, InterpolableEnum, Interpolated, AlreadyInterpolated> implements InterpolableEnum<E, ThisInterface> {
     private static final Utils<E> UTILS = new Utils<E>()
 
     ImmutableRaw() {
@@ -33,7 +33,7 @@ interface InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E, 
     }
   }
 
-  abstract class Raw<E extends Enum> extends InterpolableValue.Raw<Object, E, InterpolableEnum, Interpolated, AlreadyInterpolated> implements InterpolableEnum<E> {
+  abstract class Raw<E extends Enum, ThisInterface extends InterpolableEnum<E, ThisInterface>> extends InterpolableValue.Raw<Object, E, InterpolableEnum, Interpolated, AlreadyInterpolated> implements InterpolableEnum<E, ThisInterface> {
     private static final Utils<E> UTILS = new Utils<E>()
 
     Raw() {
@@ -59,10 +59,10 @@ interface InterpolableEnum<E extends Enum> extends InterpolableValue<Object, E, 
   }
 
   @InheritConstructors
-  abstract class Interpolated<E extends Enum> extends InterpolableValue.Interpolated<Object, E, InterpolableEnum, AlreadyInterpolated> implements InterpolableEnum<E> { }
+  abstract class Interpolated<E extends Enum, ThisInterface extends InterpolableEnum<E, ThisInterface>> extends InterpolableValue.Interpolated<Object, E, InterpolableEnum, AlreadyInterpolated> implements InterpolableEnum<E, ThisInterface> { }
 
   @InheritConstructors
-  abstract class AlreadyInterpolated<E extends Enum> extends InterpolableValue.AlreadyInterpolated<Object, E, InterpolableEnum> implements InterpolableEnum<E> { }
+  abstract class AlreadyInterpolated<E extends Enum, ThisInterface extends InterpolableEnum<E, ThisInterface>> extends InterpolableValue.AlreadyInterpolated<Object, E, InterpolableEnum> implements InterpolableEnum<E, ThisInterface> { }
 
   private final static class Utils<E extends Enum> {
     @SuppressWarnings('UnstableApiUsage')

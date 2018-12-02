@@ -18,6 +18,7 @@ build/
 # IDEA Gradle
 *.iml
 .idea/**/gradle.xml
+*.ipr
 
 # GPGKeyImport
 .scoped-gpg/
