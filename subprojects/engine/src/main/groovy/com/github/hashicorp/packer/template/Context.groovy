@@ -1,10 +1,13 @@
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.annotations.ComputedInput
+
+import org.gradle.api.provider.Provider
+
+import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
-import com.google.common.collect.ImmutableCollection
-import com.google.common.collect.ImmutableSet
+
 import groovy.transform.CompileDynamic
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableList
@@ -18,9 +21,7 @@ import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.file.Directory
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
+
 import java.nio.file.Path
 import java.time.Instant
 import com.samskivert.mustache.Template as MustacheTemplate
@@ -37,15 +38,16 @@ import com.samskivert.mustache.Template as MustacheTemplate
 //
 // @ImmutableBase // TODO: Groovy 2.5.0 ?
 */
-@Immutable // TODO: Project is mutable
+@Immutable // Note: Context is itself is immutable, but templateVariables are mutable
+// Maybe we should make other objects mutable too - makes no sense to don't support mutability
 @CompileStatic
 // REVIEWED
 final class Context {
-  private final Map<String, String> userVariablesValues
+  private final Map<String, ?> userVariablesValues
 
-  private final Map<String, String> env
+  private final Map<String, ?> env
 
-  private final Map<String, ? extends Serializable> templateVariables
+  private final Map<String, ?> templateVariables
 
   private final File templateFile
 
@@ -63,10 +65,10 @@ final class Context {
 
   // cwd should be already resolved relatively to project dir
   @SuppressWarnings('UnnecessaryCast') // TODO
-  private Context(Map<String, String> userVariablesValues, Map<String, String> env, Map<String, ? extends Serializable> templateVariables, File templateFile, Path cwd) {
+  private Context(Map<String, ?> userVariablesValues, Map<String, ?> env, Map<String, ?> templateVariables, File templateFile, Path cwd) {
     this.userVariablesValues = userVariablesValues ? ImmutableMap.copyOf(userVariablesValues) : null
     this.env = env ? ImmutableMap.copyOf(env).withDefault { '' } : null // ADDTEST
-    this.templateVariables = templateVariables ? ImmutableMap.copyOf(templateVariables) : (Map<String, ? extends Serializable>)[:]
+    this.templateVariables = templateVariables ? ImmutableMap.copyOf(templateVariables) : (Map<String, ?>)[:]
     this.templateFile = templateFile
     this.cwd = cwd
   }
@@ -74,7 +76,7 @@ final class Context {
   /**
    * Creates new context
    */
-  Context(Map<String, String> userVariablesValues, Map<String, String> env, File templateFile, Path cwd) {
+  Context(Map<String, Object> userVariablesValues, Map<String, ?> env, File templateFile, Path cwd) {
     this(
       userVariablesValues,
       env,
@@ -103,8 +105,8 @@ final class Context {
    */
   Context forTemplateBody(Map<String, InterpolableString> userVariables) { // TODO: we could interpolate variables right here
     new Context(
-      (Map<String, String>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
-        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.get())]
+      (Map<String, ?>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
+        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.interpolated)]
       },
       null,
       templateFile,
@@ -118,11 +120,11 @@ final class Context {
    * @param variables Template variables to add
    * @return Clone of this context with added variables
    */
-  Context withTemplateVariables(Map<String, ? extends Serializable> templateVariables) {
+  Context withTemplateVariables(Map<String, ?> templateVariables) {
     new Context(
       userVariablesValues,
       env,
-      (Map<String, ? extends Serializable>)(this.templateVariables + templateVariables),
+      (this.templateVariables + templateVariables),
       templateFile,
       cwd
     )
@@ -230,7 +232,7 @@ final class Context {
     @Override
     @CompileStatic
     int size() {
-      parameterizedFunctions*.value*.size().sum() + parameterlessFunctions.size()
+      parameterizedFunctions*.value*.size().sum() + parameterlessConstantFunctions.size()
     }
 
     @Override
@@ -243,34 +245,48 @@ final class Context {
     @CompileStatic
     boolean containsKey(Object key) {
       String stringKey = (String)key
-      parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
+      parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
         Matcher matcher = stringKey =~ pattern
         if (matcher.matches()) {
           return values.containsKey(stringKey)
         }
       }
-      return parameterlessFunctions.containsKey(stringKey)
+      return parameterlessConstantFunctions.containsKey(stringKey)
     }
 
     @Override
     @CompileStatic
     boolean containsValue(Object value) {
-      parameterizedFunctions.any { Entry<Pattern, Map<String, ? extends Serializable>> entry ->
+      parameterizedFunctions.any { Entry<Pattern, Map<String, ?>> entry ->
         entry.value.containsValue(value)
-      } || parameterlessFunctions.containsValue(value)
+      } || parameterlessConstantFunctions.containsValue(value)
+    }
+
+    // TODO: Find usable Gradle built-in/third-party library method
+    private flattenValue(Object value) {
+      if (Callable.isInstance(value)) {
+        flattenValue(((Callable)value).call())
+      } else if (Provider.isInstance(value)) {
+        flattenValue(((Provider)value).get())
+      } else if (Supplier.isInstance(value)) {
+        flattenValue(((Supplier) value).get())
+      } else {
+        // If it is not Serializable then we get cast error here - it's what expected
+        (Serializable)value
+      }
     }
 
     @Override
     @CompileStatic
     final Serializable get(Object key) {
       String stringKey = (String)key
-      parameterizedFunctions.each { Pattern pattern, Map<String, ? extends Serializable> values ->
+      parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
         Matcher matcher = stringKey =~ pattern
         if (matcher.matches()) {
-          return values[matcher.group(1)] // TOTEST
+          return flattenValue(values[matcher.group(1)]) // TOTEST
         }
       }
-      return parameterlessFunctions[stringKey]
+      return parameterlessConstantFunctions[stringKey]
     }
 
     @Override
@@ -306,7 +322,9 @@ final class Context {
     @Override
     @CompileStatic
     Collection<Serializable> values() {
-      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions*.value*.values().flatten() + parameterlessFunctions.values()))
+      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions.collectMany { Map.Entry<Pattern, Map<String, ?>> entry ->
+        entry.value.values().collect { Map.Entry<String, ?> subentry -> flattenValue(subentry.value) }
+      } + parameterlessConstantFunctions)
     }
 
     @Override
@@ -315,14 +333,14 @@ final class Context {
       throw new UnsupportedOperationException()
     }
 
-    private final Map<Pattern, Map<String, ? extends Serializable>> parameterizedFunctions = ImmutableMap.copyOf(/*(Map<Pattern, Map<String, ? extends Serializable>>)*/[
+    private final Map<Pattern, Map<String, ?>> parameterizedFunctions = ImmutableMap.copyOf(/*(Map<Pattern, Map<String, ?>>)*/[
       (~/^env\s+`(\S+)`$/): env,
       (~/^user\s+`(\S+)`$/): userVariablesValues,
       (~/^\.(\S+)$/): templateVariables,
     ])
 
     // TODO: mark string as mutable if timestamp or uuid is used
-    private final Map<String, ? extends Serializable> parameterlessFunctions = ImmutableMap.copyOf((Map<String, Serializable>)[
+    private final Map<String, Serializable> parameterlessConstantFunctions = ImmutableMap.copyOf((Map<String, Serializable>)[
       'pwd': new File('.').canonicalPath, // TODO ???
       'template_dir': templateFile.parentFile.absolutePath,
       'timestamp': Instant.now().epochSecond,
@@ -332,6 +350,7 @@ final class Context {
     static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
   }
 
+  // This should be initialized exactly once, otherwise different threads could get different timestamp or uuid
   @Lazy
   private volatile InterpolationContext interpolationContext
 }

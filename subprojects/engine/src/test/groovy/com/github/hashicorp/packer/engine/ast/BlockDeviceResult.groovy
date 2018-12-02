@@ -1,6 +1,7 @@
 package com.github.hashicorp.packer.engine.ast
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.annotations.Default
@@ -12,7 +13,6 @@ import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
-import groovy.transform.Synchronized
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
@@ -67,7 +67,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
   abstract InterpolableString getKmsKeyId()
 
   static final class BlockDeviceImpl implements BlockDeviceResult {
-    @Internal // TOTEST
     private final InterpolableBoolean deleteOnTermination
 
     @Input
@@ -76,6 +75,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     @Override
     InterpolableBoolean getDeleteOnTermination() {
       this.@deleteOnTermination
+    }
+
+    @Internal
+    @JsonGetter('delete_on_termination')
+    protected InterpolableBoolean getDeleteOnTerminationForJson() {
+      this.@deleteOnTermination.raw != null ? this.@deleteOnTermination : null
     }
 
     private final InterpolableString deviceName
@@ -88,6 +93,11 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     }
 
     @Internal
+    @JsonGetter('device_name')
+    protected InterpolableString getDeviceNameForJson() {
+      this.@deviceName.raw != null ? this.@deviceName : null
+    }
+
     private final InterpolableBoolean encrypted
 
     @Input
@@ -96,6 +106,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     @Override
     InterpolableBoolean getEncrypted() {
       this.@encrypted
+    }
+
+    @Internal
+    @JsonGetter('encrypted')
+    protected InterpolableBoolean getEncryptedForJson() {
+      this.@encrypted.raw != null ? this.@encrypted : null
     }
 
     private final InterpolableLong iops
@@ -108,6 +124,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
       this.@iops
     }
 
+    @Internal
+    @JsonGetter('iops')
+    protected InterpolableLong getIopsForJson() {
+      this.@iops.raw != null ? this.@iops : null
+    }
+
     private final InterpolableBoolean noDevice
 
     @Input
@@ -116,6 +138,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     @Override
     InterpolableBoolean getNoDevice() {
       this.@noDevice
+    }
+
+    @Internal
+    @JsonGetter('no_device')
+    protected InterpolableBoolean getNoDeviceForJson() {
+      this.@noDevice.raw != null ? this.@noDevice : null
     }
 
     private final InterpolableString snapshotId
@@ -129,6 +157,11 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     }
 
     @Internal
+    @JsonGetter('snapshot_id')
+    protected InterpolableString getSnapshotIdForJson() {
+      this.@snapshotId.raw != null ? this.@snapshotId : null
+    }
+
     private final InterpolableString virtualName
 
     @Input
@@ -140,6 +173,11 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     }
 
     @Internal
+    @JsonGetter('virtual_name')
+    protected InterpolableString getVirtualNameForJson() {
+      this.@virtualName.raw != null ? this.@virtualName : null
+    }
+
     private final InterpolableString volumeType // TODO: Enum
 
     @Input
@@ -148,6 +186,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     @Override
     InterpolableString getVolumeType() {
       this.@volumeType
+    }
+
+    @Internal
+    @JsonGetter('volume_type')
+    protected InterpolableString getVolumeTypeForJson() {
+      this.@volumeType.raw != null ? this.@volumeType : null
     }
 
     private final InterpolableLong volumeSize
@@ -160,6 +204,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
       this.@volumeSize
     }
 
+    @Internal
+    @JsonGetter('delete-on-termination')
+    protected InterpolableBoolean getVolumeSizeForJson() {
+      this.@deleteOnTermination.raw != null ? this.@deleteOnTermination : null
+    }
+
     private final InterpolableString kmsKeyId
 
     @Input
@@ -168,6 +218,12 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
     @Override
     InterpolableString getKmsKeyId() {
       this.@kmsKeyId
+    }
+
+    @Internal
+    @JsonGetter('kms_key_id')
+    protected InterpolableString getKmsKeyIdForJson() {
+      this.@kmsKeyId.raw != null ? this.@kmsKeyId : null
     }
 
     @JsonCreator
@@ -183,16 +239,16 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
       @JsonProperty('volume_size') InterpolableLong volumeSize,
       @JsonProperty('kms_key_id') InterpolableString kmsKeyId
     ) {
-      this.@deleteOnTermination = deleteOnTermination ?: new InterpolableBoolean.RawValue()
-      this.@deviceName = deviceName ?: new InterpolableString.RawValue()
-      this.@encrypted = encrypted ?: new InterpolableBoolean.RawValue()
-      this.@iops = iops ?: new InterpolableLong.RawValue()
-      this.@noDevice = noDevice ?: new InterpolableBoolean.RawValue()
-      this.@snapshotId = snapshotId ?: new InterpolableString.RawValue()
-      this.@virtualName = virtualName ?: new InterpolableString.RawValue()
-      this.@volumeType = volumeType ?: new InterpolableString.RawValue()
-      this.@volumeSize = volumeSize ?: new InterpolableLong.RawValue()
-      this.@kmsKeyId = kmsKeyId ?: new InterpolableString.RawValue()
+      this.@deleteOnTermination = deleteOnTermination ?: new InterpolableBoolean.ImmutableRaw()
+      this.@deviceName = deviceName ?: new InterpolableString.ImmutableRaw()
+      this.@encrypted = encrypted ?: new InterpolableBoolean.ImmutableRaw()
+      this.@iops = iops ?: new InterpolableLong.ImmutableRaw()
+      this.@noDevice = noDevice ?: new InterpolableBoolean.ImmutableRaw()
+      this.@snapshotId = snapshotId ?: new InterpolableString.ImmutableRaw()
+      this.@virtualName = virtualName ?: new InterpolableString.ImmutableRaw()
+      this.@volumeType = volumeType ?: new InterpolableString.ImmutableRaw()
+      this.@volumeSize = volumeSize ?: new InterpolableLong.ImmutableRaw()
+      this.@kmsKeyId = kmsKeyId ?: new InterpolableString.ImmutableRaw()
     }
 
     private BlockDeviceImpl(Context context, BlockDeviceResult interpolateFrom) {

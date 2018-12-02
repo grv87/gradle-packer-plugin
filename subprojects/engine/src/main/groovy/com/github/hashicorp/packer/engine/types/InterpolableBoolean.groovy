@@ -4,21 +4,45 @@ import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.google.common.base.Supplier
 
-@JsonDeserialize(as = RawValue)
 @CompileStatic
 interface InterpolableBoolean extends InterpolableValue<Object, Boolean, InterpolableBoolean> {
-  @InheritConstructors
-  final class RawValue extends InterpolableValue.RawValue<Object, Boolean, InterpolableBoolean, AlreadyInterpolated, Initialized> implements InterpolableBoolean {
+  final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, Boolean, InterpolableBoolean, Interpolated, AlreadyInterpolated> implements InterpolableBoolean {
+    ImmutableRaw() {
+      super()
+    }
+
     @JsonCreator
-    RawValue(Boolean raw) {
+    ImmutableRaw(Boolean raw) {
       super(raw)
     }
 
     @JsonCreator
-    RawValue(SimpleInterpolableString raw) {
+    ImmutableRaw(SimpleInterpolableString raw) {
+      super(raw)
+    }
+
+    protected static final Boolean doInterpolatePrimitive(Context context, Boolean raw) {
+      raw
+    }
+
+    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      raw.interpolate context // TOTEST
+    }
+  }
+
+  final class Raw extends InterpolableValue.Raw<Object, Boolean, InterpolableBoolean, Interpolated, AlreadyInterpolated> implements InterpolableBoolean {
+    Raw() {
+      super()
+    }
+
+    @JsonCreator
+    Raw(Boolean raw) {
+      super(raw)
+    }
+
+    @JsonCreator
+    Raw(SimpleInterpolableString raw) {
       super(raw)
     }
 
@@ -32,20 +56,8 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
   }
 
   @InheritConstructors
-  final class Initialized extends InterpolableValue.Initialized<Object, Boolean, InterpolableBoolean, AlreadyInterpolated, Initialized> implements InterpolableBoolean { }
+  final class Interpolated extends InterpolableValue.Interpolated<Object, Boolean, InterpolableBoolean, AlreadyInterpolated> implements InterpolableBoolean { }
 
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Boolean, InterpolableBoolean> implements InterpolableBoolean { }
-
-  static final class Utils extends InterpolableValue.Utils {
-    // This is used to create instances with default values
-    static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Supplier<Boolean> defaultValueSupplier, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
-      initWithDefault RawValue, interpolableValue, defaultValueSupplier, ignoreIf, postProcess
-    }
-
-    // This is used to create instances with default values
-    static final InterpolableBoolean initWithDefault(InterpolableBoolean interpolableValue, Boolean defaultValue, Closure<Boolean> ignoreIf = null, Closure<Boolean> postProcess = null) {
-      initWithDefault RawValue, interpolableValue, defaultValue, ignoreIf, postProcess
-    }
-  }
 }

@@ -19,8 +19,11 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import com.github.hashicorp.packer.engine.annotations.ComputedNested
+import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import com.github.hashicorp.packer.engine.types.InterpolableLong
 import org.gradle.api.Project
 
 import java.nio.file.Path
@@ -196,6 +199,16 @@ class Template extends InterpolableObject {
     MAPPER.registerModule(new Jdk8Module())
     MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
     MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
+    /*
+     * TODO:
+     * 1. All classes
+     * 2. Mutable and immutable versions
+     */
+    SimpleModule immutableModule = new SimpleModule()
+    immutableModule.addAbstractTypeMapping(InterpolableBoolean, InterpolableBoolean.ImmutableRaw)
+    immutableModule.addAbstractTypeMapping(InterpolableString, InterpolableString.ImmutableRaw)
+    immutableModule.addAbstractTypeMapping(InterpolableLong, InterpolableLong.ImmutableRaw)
+    MAPPER.registerModule(immutableModule);
   }
 
   static Template readFromFile(File file) {

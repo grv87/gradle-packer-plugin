@@ -7,59 +7,108 @@ import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationExcep
 import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
-import com.google.common.base.Suppliers
 import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
 import groovy.transform.EqualsAndHashCode
-import com.fasterxml.jackson.annotation.JsonValue
-import groovy.transform.InheritConstructors
-import groovy.transform.PackageScope
+import groovy.transform.Synchronized
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+
 import java.lang.reflect.Constructor
 import java.util.concurrent.Semaphore
 
-// equals is required for Gradle up-to-date checking
 // @AutoExternalize(excludes = ['raw']) // TODO: Groovy 2.5.0
 @CompileStatic
-// Serializable and Externalizable are required for Gradle up-to-date checking
+// Serializable is required for Gradle up-to-date checking
+@JsonDeserialize(using = Serializer)
 interface InterpolableValue<
   Source,
   Target extends Serializable,
   ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
 > extends InterpolableObject<ThisInterface> {
-  @JsonValue
   Source getRaw()
 
-  private static class CommonExceptions {
-    private static RuntimeException interpolateWithDelegateObject() {
-      new UnsupportedOperationException('Value objects should be interpolated with deledate object')
-    }
+  void setRaw(Source raw)
 
-    private static RuntimeException objectNotInitialized() {
-      new IllegalStateException('Object is not initialized yet')
-    }
-  }
+  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
 
-  // delegate should be readOnly, or something terrible could happen
-  ThisInterface interpolateValue(Context context, InterpolableObject delegate)
+  ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
+
+  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf)
+
+  ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf)
+
+  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier)
+
+  ThisInterface interpolateValue(Context context, Target defaultValue)
+
+  ThisInterface interpolateValue(Context context)
 
   Target getInterpolated()
 
-  protected abstract static class RawValue<
+  private abstract static class Abstract<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
+  > implements InterpolableValue<Source, Target, ThisInterface> {
+    @Override
+    final ThisInterface interpolate(Context context) {
+      throw CommonExceptions.interpolateWithDefault()
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf) {
+      interpolateValue(context, defaultValueSupplier, ignoreIf, null)
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf) {
+      interpolateValue(context, defaultValue, ignoreIf, null)
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier) {
+      interpolateValue(context, defaultValueSupplier, null, null)
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Target defaultValue) {
+      interpolateValue(context, defaultValue, null, null)
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context) {
+      interpolateValue(context, (Target)null, null, null)
+    }
+  }
+
+  private abstract static class AbstractRaw<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface> & ThisInterface,
-    InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface
-    > implements InterpolableValue<Source, Target, ThisInterface> {
+    InterpolatedClass extends Interpolated<Source, Target, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
+  > extends Abstract<Source, Target, ThisInterface> {
     @SuppressWarnings('UnstableApiUsage')
-    private static final Class<InitializedClass> INITIALIZED_CLASS = (Class<InitializedClass>)new TypeToken<InitializedClass>(this.class) { }.rawType
-    /*@SuppressWarnings('UnstableApiUsage')
-    private static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
-    @SuppressWarnings('UnstableApiUsage')
-    private static final Class<Closure<Target>> TARGET_CLOSURE_CLASS = (Class<Closure<Target>>)new TypeToken<Closure<Target>>(this.class) { }.rawType
-    @SuppressWarnings('UnstableApiUsage')
-    private static final Class<Closure<Boolean>> BOOLEAN_CLOSURE_CLASS = (Class<Closure<Boolean>>)new TypeToken<Closure<Boolean>>(this.class) { }.rawType*/
+    private static final Constructor<InterpolatedClass> INTERPOLATED_CLASS_CONSTRUCTOR = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Closure, Closure)
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      INTERPOLATED_CLASS_CONSTRUCTOR.newInstance(this, context, defaultValueSupplier, ignoreIf, postProcess)
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      INTERPOLATED_CLASS_CONSTRUCTOR.newInstance(this, context, defaultValue, ignoreIf, postProcess)
+    }
+
+    @Override
+    final Target getInterpolated() {
+      throw new ValueNotInterpolatedYetException()
+    }
 
     /*
      * CAVEAT:
@@ -75,32 +124,25 @@ interface InterpolableValue<
     protected static /* TOTEST */ Target doInterpolatePrimitive(Context context, Object raw) {
       throw new InvalidRawValueClassException(raw)
     }
+  }
 
-    @Override
-    final ThisInterface interpolate(Context context) {
-      throw CommonExceptions.interpolateWithDelegateObject()
-    }
-
-    @Override
-    final ThisInterface interpolateValue(Context context, InterpolableObject delegate) {
-      throw CommonExceptions.objectNotInitialized()
-    }
-
-    @Override
-    final Target getInterpolated() {
-      throw new ValueNotInterpolatedYetException()
-    }
-
-    private /*final*/ /* TODO */ Source raw
+  protected abstract static class ImmutableRaw<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    InterpolatedClass extends Interpolated<Source, Target, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
+  > extends AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> {
+    private final Source raw
 
     // This constructor is required for initWithDefault
-    RawValue() {
+    ImmutableRaw() {
       this.@raw = null
     }
 
     // This is public so that it can be simply inherited by implementors // TOTHINK
     @JsonCreator
-    RawValue(Source raw) {
+    ImmutableRaw(Source raw) {
       this.@raw = raw
     }
 
@@ -109,29 +151,73 @@ interface InterpolableValue<
       this.@raw
     }
 
-    private static final Constructor<InitializedClass> INITIALIZED_CLASS_CONSTRUCTOR = INITIALIZED_CLASS.getConstructor(/*RAW_VALUE_CLASS*/ RawValue, /*TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS*/ Supplier, Closure, Closure)
-
-    private InitializedClass init(Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INITIALIZED_CLASS_CONSTRUCTOR.newInstance(this, defaultValueSupplier, ignoreIf, postProcess)
-    }
-
-    private InitializedClass init(Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INITIALIZED_CLASS_CONSTRUCTOR.newInstance(this, new Supplier<Target>() {
-        @Override
-        Target get() {
-          defaultValue
-        }
-      }, ignoreIf, postProcess)
+    @Override
+    final void setRaw(Source raw) {
+      throw new ReadOnlyPropertyException('raw', this.class.canonicalName)
     }
   }
 
-  protected abstract static class Initialized<
+  protected abstract static class Raw<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface> & ThisInterface,
-    InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface
-  > implements InterpolableValue<Source, Target, ThisInterface> {
+    InterpolatedClass extends Interpolated<Source, Target, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
+  > extends AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> {
+    private volatile Source raw
+
+    // This constructor is required for initWithDefault
+    Raw() {
+      this.@raw = null
+    }
+
+    // This is public so that it can be simply inherited by implementors // TOTHINK
+    @JsonCreator
+    Raw(Source raw) {
+      this.@raw = raw
+    }
+
+    @Override
+    @Synchronized
+    final Source getRaw() {
+      this.@raw
+    }
+
+    @Override
+    @Synchronized
+    final void setRaw(Source raw) {
+      this.@raw = raw
+    }
+  }
+
+  // equals is required for Gradle up-to-date checking
+  @EqualsAndHashCode(includes = ['get'])
+  protected abstract static class AbstractInterpolated<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
+  > extends Abstract<Source, Target, ThisInterface> implements Serializable {
+    @Override
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      throw new UnsupportedOperationException('Object is already interpolated')
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      throw new UnsupportedOperationException('Object is already interpolated')
+    }
+  }
+
+  @EqualsAndHashCode(includes = ['get'])
+  protected abstract static class Interpolated<
+    Source,
+    Target extends Serializable,
+    ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>/*,
+    RawClass extends */
+  > extends AbstractInterpolated<Source, Target, ThisInterface> {
+    @SuppressWarnings('UnstableApiUsage')
+    private static final Class<Target> TARGET = (Class<Target>)new TypeToken<Target>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
     private static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
 
@@ -142,74 +228,77 @@ interface InterpolableValue<
      * TODO: test on 2.5/3.0 and report an issue
      * <grv87 2018-11-22>
      */
-    private final /*RawValueClass*/RawValue interpolable
+    private final /*RawValueClass*/ AbstractRaw interpolable
 
-    private final Supplier<Target> defaultValueSupplier
+    private final Context context
+
+    private final Object defaultValue
 
     private final Closure<Boolean> ignoreIf
 
     private final Closure<Target> postProcess
 
-    protected Initialized(/*RawValueClass*/RawValue interpolable, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    protected Interpolated(/*RawValueClass*/ AbstractRaw interpolable, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
       this.@interpolable = interpolable
-      this.@defaultValueSupplier = defaultValueSupplier
-      this.@ignoreIf = (Closure<Boolean>)ignoreIf.clone()
-      this.@ignoreIf.resolveStrategy = Closure.DELEGATE_ONLY
-      this.@postProcess = (Closure<Target>)postProcess.clone()
-      this.@postProcess.resolveStrategy = Closure.TO_SELF
+      this.@context = context
+      this.@defaultValue = defaultValue
+      this.@ignoreIf = ignoreIf
+      this.@postProcess = postProcess
     }
 
-    @JsonValue
     @Override
     final Source getRaw() {
       (Source)this.@interpolable.raw
     }
 
     @Override
-    final ThisInterface interpolate(Context context) {
-      throw CommonExceptions.interpolateWithDelegateObject()
+    final void setRaw(Source raw) {
+      this.@interpolable.raw = raw
     }
 
-    @Override
-    ThisInterface interpolateValue(Context context, InterpolableObject delegate) {
-      ALREADY_INTERPOLATED_CLASS.getConstructor(Object).newInstance(
-        Suppliers.memoize(new Supplier<Target>() {
-          private final Semaphore semaphore = new Semaphore(1)
-
-          @Override
-          Target get() {
-            if (!semaphore.tryAcquire()) {
-              throw new RecursiveInterpolationException()
-            }
-            try {
-              if (AbstractInitialized.this.@ignoreIf != null) {
-                Closure<Boolean> ignoreIf = (Closure<Boolean>) AbstractInitialized.this.@ignoreIf.clone()
-                ignoreIf.delegate = delegate
-                if (ignoreIf.call() == Boolean.TRUE) {
-                  return null
-                }
-              }
-              if (interpolable.raw != null) {
-                Target interpolated = (Target)interpolable.doInterpolatePrimitive(context)
-                if (interpolated != null) {
-                  if (AbstractInitialized.this.@postProcess) {
-                    interpolated = AbstractInitialized.this.@postProcess.call(interpolated)
-                  }
-                  return interpolated
-                }
-              }
-              return AbstractInitialized.this.@defaultValueSupplier.get()
-            } finally {
-              semaphore.release()
-            }
-          }
-        })
-      )
+    private final Semaphore interpolationSemaphore = new Semaphore(1)
+    
+    private Target getRawDefaultValue() {
+      if (Supplier.isInstance(defaultValue)) {
+        ((Supplier<Target>)defaultValue).get()
+      } else {
+        (Target)defaultValue
+      }
     }
 
+    /**
+     * @serial Interpolated value
+     */
     @Override
+    @Synchronized
     final Target getInterpolated() {
-      throw new ValueNotInterpolatedYetException()
+      if (!interpolationSemaphore.tryAcquire()) {
+        throw new RecursiveInterpolationException()
+      }
+      try {
+        if (ignoreIf != null) {
+          if (ignoreIf.call() == Boolean.TRUE) {
+            return null
+          }
+        }
+        Target result = (Target)interpolable.doInterpolatePrimitive(context)
+        if (result != null) {
+          if (this.@postProcess) {
+            result = postProcess.call(result)
+          }
+          return result
+        }
+        return rawDefaultValue
+      } finally {
+        interpolationSemaphore.release()
+      }
+    }
+    @SuppressWarnings('unused') // IDEA bug
+    private static final long serialVersionUID = 6385036190092324496L
+
+    // TOTEST
+    Object writeReplace() {
+      ALREADY_INTERPOLATED_CLASS.getConstructor(TARGET).newInstance(interpolated)
     }
   }
 
@@ -218,88 +307,54 @@ interface InterpolableValue<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
-  > implements InterpolableValue<Source, Target, ThisInterface>, Externalizable {
-    @SuppressWarnings('UnstableApiUsage')
-    static final Class<Supplier<Target>> TARGET_SUPPLIER_CLASS = (Class<Supplier<Target>>)new TypeToken<Supplier<Target>>(this.class) { }.rawType
+  > extends AbstractInterpolated<Source, Target, ThisInterface> {
+    // CAVEAT: target should be immutable!
+    private Target interpolated
 
-    @JsonValue
+    // This constructor is required for Serializable
+    private AlreadyInterpolated(/*RawValueClass*/ ImmutableRaw interpolable, Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      this.interpolated = null
+    }
+
+    private AlreadyInterpolated(Target interpolated) {
+      this.@interpolated = interpolated
+    }
+
     @Override
     final Source getRaw() {
       throw new ObjectAlreadyInterpolatedWithFixedContextException()
     }
 
-    private Object interpolated
-    // ThisInterface constructor is required for Externalizable
-    protected AlreadyInterpolated() { }
-
-    AlreadyInterpolated(Object interpolated) {
-      this.@interpolated = interpolated
-    }
-
-    @SuppressWarnings('unused') // IDEA bug
-    private static final long serialVersionUID = 7881876550613522317L
-
-    /**
-     * @serialData interpolated
-     */
     @Override
-    void writeExternal(ObjectOutput out) throws IOException {
-      out.writeObject(getInterpolated())
-    }
-
-    @Override
-    void readExternal(ObjectInput oin) throws IOException, ClassNotFoundException {
-      this.@interpolated = (Target)oin.readObject()
-    }
-
-    @Override
-    final ThisInterface interpolate(Context context) {
-      throw CommonExceptions.interpolateWithDelegateObject()
-    }
-
-    @Override
-    final ThisInterface interpolateValue(Context context, InterpolableObject delegate) {
+    final void setRaw(Source raw) {
       throw new ObjectAlreadyInterpolatedWithFixedContextException()
     }
+
     /**
      * @serial Interpolated value
      */
     @Override
     final Target getInterpolated() {
-      TARGET_SUPPLIER_CLASS.isInstance(this.@interpolated) ? ((Supplier<Target>)this.@interpolated).get() : (Target)this.@interpolated
+      this.@interpolated
+    }
+
+    @SuppressWarnings('unused') // IDEA bug
+    private static final long serialVersionUID = -8039783875049401083L
+  }
+
+  private static class CommonExceptions {
+    private static RuntimeException interpolateWithDefault() {
+      new UnsupportedOperationException('Value objects should be interpolated with default value and other arguments')
     }
   }
 
-  @PackageScope
-  static class Utils {
-    static boolean requiresInitialization(InterpolableValue interpolableValue) {
-      interpolableValue == null || RawValue.isInstance(interpolableValue)
-    }
-
-    // ThisInterface is used to create instances with default values
-    protected static final <
-      Source,
-      Target extends Serializable,
-      ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
-      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface> & ThisInterface,
-      InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface,
-      RawValueClass extends RawValue<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass, RawValueClass> & ThisInterface
-    > ThisInterface initWithDefault(Class<RawValueClass> rawValueClass, ThisInterface interpolableValue, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      RawValueClass interpolable = (RawValueClass)interpolableValue ?: rawValueClass.getConstructor().newInstance()
-      interpolable.init defaultValueSupplier, ignoreIf, postProcess
-    }
-
-    // ThisInterface is used to create instances with default values
-    protected static final <
-      Source,
-      Target extends Serializable,
-      ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
-      AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface> & ThisInterface,
-      InitializedClass extends Initialized<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass> & ThisInterface,
-      RawValueClass extends RawValue<Source, Target, ThisInterface, AlreadyInterpolatedClass, InitializedClass, RawValueClass> & ThisInterface
-    > ThisInterface initWithDefault(Class<RawValueClass> rawValueClass, ThisInterface interpolableValue, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      RawValueClass interpolable = (RawValueClass)interpolableValue ?: rawValueClass.getConstructor().newInstance()
-      interpolable.init defaultValue, ignoreIf, postProcess
+  protected static final class Serializer extends JsonSerializer<InterpolableValue> {
+    @Override
+    void serialize(InterpolableValue interpolableValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException/*, JsonProcessingException*/ {
+      Object raw = interpolableValue.raw
+      if (raw != null) {
+        jsonGenerator.writeObject(raw)
+      }
     }
   }
 }
