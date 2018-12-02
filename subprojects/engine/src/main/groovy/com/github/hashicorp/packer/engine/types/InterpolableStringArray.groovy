@@ -1,34 +1,66 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
+import groovy.transform.InheritConstructors
 
 @CompileStatic
-class InterpolableStringArray extends InterpolableValue<Object, ArrayList<String>> {
-  static final class ArrayClass extends ImmutableList<InterpolableString> {
+interface InterpolableStringArray extends InterpolableValue<Object, ImmutableList<String>, InterpolableStringArray> {
+  final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, ImmutableList<String>, InterpolableStringArray, Interpolated, AlreadyInterpolated> implements InterpolableStringArray {
+    ImmutableRaw() {
+      super()
+    }
+
+    @JsonCreator
+    ImmutableRaw(List<String> raw) {
+      super(ImmutableList.copyOf(raw))
+    }
+
+    @JsonCreator
+    ImmutableRaw(SimpleInterpolableString raw) {
+      super(raw)
+    }
+
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, List<SimpleInterpolableString> raw) {
+      ImmutableList.copyOf(raw*.interpolate(context))
+    }
+
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      ImmutableList.copyOf(raw.interpolate(context).split(','))
+    }
   }
 
-  // This constructor is required for Externalizable
-  protected InterpolableStringArray() {
+  final class Raw extends InterpolableValue.Raw<Object, ImmutableList<String>, InterpolableStringArray, Interpolated, AlreadyInterpolated> implements InterpolableStringArray {
+    static final class ArrayClass extends ArrayList<SimpleInterpolableString> { }
+
+    Raw() {
+      super()
+    }
+
+    @JsonCreator
+    Raw(List<String> raw) {
+      super(ImmutableList.copyOf(raw))
+    }
+
+    @JsonCreator
+    Raw(SimpleInterpolableString raw) {
+      super(raw)
+    }
+
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, List<SimpleInterpolableString> raw) {
+      ImmutableList.copyOf(raw*.interpolate(context))
+    }
+
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      ImmutableList.copyOf(raw.interpolate(context).split(','))
+    }
   }
 
-  @JsonCreator
-  InterpolableStringArray(ArrayClass rawValue) {
-    super(rawValue)
-  }
+  @InheritConstructors
+  final class Interpolated extends InterpolableValue.Interpolated<Object, ImmutableList<String>, InterpolableStringArray, AlreadyInterpolated> implements InterpolableStringArray { }
 
-  @JsonCreator
-  InterpolableStringArray(InterpolableString rawValue) {
-    super(rawValue)
-  }
-
-  // @SuppressWarnings('ImplementationAsType')
-  protected final ArrayList<String> doInterpolatePrimitive(ArrayClass rawValue) {
-    new ArrayList<String>(rawValue*.interpolatedValue(context))
-  }
-
-  protected final ArrayList<String> doInterpolatePrimitive(InterpolableString rawValue) {
-    new ArrayList<String>(rawValue.interpolatedValue(context).split(',').toList())
-  }
+  @InheritConstructors
+  final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, ImmutableList<String>, InterpolableStringArray> implements InterpolableStringArray { }
 }

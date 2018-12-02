@@ -33,14 +33,14 @@ import com.samskivert.mustache.Template as MustacheTemplate
 // equals is used in InterpolableObject to check whether an object is already interpolated
 // TODO: maybe this is not required at all, if we just throw exception whenever object is already interpolated.
 // This would be cheaper + give us a possibility to catch some errors
-@EqualsAndHashCode(includes = ['userVariablesValues', 'env', 'templateVariables', 'templateFile', 'cwd'], cache = true)
+@EqualsAndHashCode(includeFields = true, includes = ['userVariablesValues', 'env', 'templateVariables', 'templateFile', 'cwd'], cache = true)
 /* NOT NEEDED
 //
 // @ImmutableBase // TODO: Groovy 2.5.0 ?
 */
 @Immutable // Note: Context is itself is immutable, but templateVariables are mutable
 // Maybe we should make other objects mutable too - makes no sense to don't support mutability
-@CompileStatic
+// @CompileStatic
 // REVIEWED
 final class Context {
   private final Map<String, ?> userVariablesValues
@@ -158,14 +158,14 @@ final class Context {
    * Also, if we wouldn't operate with Path at all, we could use instance of Directory as cwd
    */
   // Result of this is always absolute
-  private Path resolvePath(Path path) {
+  /* TOTHINK private*/ Path resolvePath(Path path) {
     cwd.resolve(path)
   }
 
   // Result of this is always absolute
-  /* TOTHINK private*/ /*Path resolvePath(String path) {
+  /* TOTHINK private*/ Path resolvePath(String path) {
     cwd.resolve(path)
-  }*/
+  }
 
   File resolveFile(Path path) {
     resolvePath(path).toFile()
@@ -230,19 +230,19 @@ final class Context {
   @CompileDynamic
   private final class InterpolationContext implements Map<String, Serializable> /* TODO: implements Mustache.CustomContext */ {
     @Override
-    @CompileStatic
+    // @CompileStatic
     int size() {
       parameterizedFunctions*.value*.size().sum() + parameterlessConstantFunctions.size()
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     boolean isEmpty() {
       return false
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     boolean containsKey(Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
@@ -255,7 +255,6 @@ final class Context {
     }
 
     @Override
-    @CompileStatic
     boolean containsValue(Object value) {
       parameterizedFunctions.any { Entry<Pattern, Map<String, ?>> entry ->
         entry.value.containsValue(value)
@@ -277,7 +276,7 @@ final class Context {
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     final Serializable get(Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
@@ -290,45 +289,43 @@ final class Context {
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     Serializable put(String key, Serializable value) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     Serializable remove(Object key) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     void putAll(Map<? extends String, ? extends Serializable> m) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     void clear() {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    @CompileStatic
+    // @CompileStatic
     Set<String> keySet() {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    @CompileStatic
     Collection<Serializable> values() {
       ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions.collectMany { Map.Entry<Pattern, Map<String, ?>> entry ->
         entry.value.values().collect { Map.Entry<String, ?> subentry -> flattenValue(subentry.value) }
-      } + parameterlessConstantFunctions)
+      } + parameterlessConstantFunctions))
     }
 
     @Override
-    @CompileStatic
     Set<Entry<String, Serializable>> entrySet() {
       throw new UnsupportedOperationException()
     }

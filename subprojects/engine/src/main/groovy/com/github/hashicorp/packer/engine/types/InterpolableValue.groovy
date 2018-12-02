@@ -10,7 +10,7 @@ import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
-import groovy.transform.EqualsAndHashCode
+// import groovy.transform.EqualsAndHashCode
 import groovy.transform.Synchronized
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
@@ -54,8 +54,9 @@ interface InterpolableValue<
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
   > implements InterpolableValue<Source, Target, ThisInterface> {
+    // TODO: With final error: You are not allowed to override the final method interpolate(com.github.hashicorp.packer.template.Context -> com.github.hashicorp.packer.template.Context) from class 'com.github.hashicorp.packer.engine.types.InterpolableValue$Abstract'.
     @Override
-    final ThisInterface interpolate(Context context) {
+    /*final*/ ThisInterface interpolate(Context context) {
       throw CommonExceptions.interpolateWithDefault()
     }
 
@@ -121,7 +122,7 @@ interface InterpolableValue<
       doInterpolatePrimitive context, raw
     }
 
-    protected static /* TOTEST */ Target doInterpolatePrimitive(Context context, Object raw) {
+    protected Target doInterpolatePrimitive(Context context, Object raw) {
       throw new InvalidRawValueClassException(raw)
     }
   }
@@ -191,7 +192,8 @@ interface InterpolableValue<
   }
 
   // equals is required for Gradle up-to-date checking
-  @EqualsAndHashCode(includes = ['get'])
+  // Doesn't work, don't know why
+  // @EqualsAndHashCode(includes = ['interpolated'])
   protected abstract static class AbstractInterpolated<
     Source,
     Target extends Serializable,
@@ -206,9 +208,18 @@ interface InterpolableValue<
     final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
       throw new UnsupportedOperationException('Object is already interpolated')
     }
+
+    @Override
+    boolean equals(Object other) {
+      if (other == null) return false
+      if (this.is(other)) return true
+      if (AbstractInterpolated.isInstance(other)) {
+        return this.interpolated == ((AbstractInterpolated)other).interpolated
+      }
+      return false
+    }
   }
 
-  @EqualsAndHashCode(includes = ['get'])
   protected abstract static class Interpolated<
     Source,
     Target extends Serializable,
@@ -283,8 +294,8 @@ interface InterpolableValue<
         }
         Target result = (Target)interpolable.doInterpolatePrimitive(context)
         if (result != null) {
-          if (this.@postProcess) {
-            result = postProcess.call(result)
+          if (postProcess) {
+            result = (Target)postProcess.call(result)
           }
           return result
         }
@@ -302,7 +313,6 @@ interface InterpolableValue<
     }
   }
 
-  @EqualsAndHashCode(includes = ['get'])
   protected abstract static class AlreadyInterpolated<
     Source,
     Target extends Serializable,
@@ -343,7 +353,7 @@ interface InterpolableValue<
   }
 
   private static class CommonExceptions {
-    private static RuntimeException interpolateWithDefault() {
+    protected static RuntimeException interpolateWithDefault() {
       new UnsupportedOperationException('Value objects should be interpolated with default value and other arguments')
     }
   }

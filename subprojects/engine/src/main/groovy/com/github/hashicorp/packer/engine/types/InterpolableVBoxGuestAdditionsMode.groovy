@@ -4,11 +4,17 @@ import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 
-@InheritConstructors
 @CompileStatic
-class InterpolableVBoxGuestAdditionsMode extends InterpolableEnum<VBoxGuestAdditionsMode> {
-  // This is used to create instances with default values
-  static final InterpolableVBoxGuestAdditionsMode withDefault(VBoxGuestAdditionsMode interpolatedValue) {
-    withDefault(InterpolableVBoxGuestAdditionsMode, interpolatedValue)
-  }
+interface InterpolableVBoxGuestAdditionsMode extends InterpolableEnum<VBoxGuestAdditionsMode> {
+  @InheritConstructors
+  final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VBoxGuestAdditionsMode> implements InterpolableVBoxGuestAdditionsMode { }
+
+  @InheritConstructors
+  final class Raw extends InterpolableEnum.ImmutableRaw<VBoxGuestAdditionsMode> implements InterpolableVBoxGuestAdditionsMode { }
+
+  @InheritConstructors
+  final class Interpolated extends InterpolableEnum.ImmutableRaw<VBoxGuestAdditionsMode> implements InterpolableVBoxGuestAdditionsMode { }
+
+  @InheritConstructors
+  final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<VBoxGuestAdditionsMode> implements InterpolableVBoxGuestAdditionsMode { }
 }

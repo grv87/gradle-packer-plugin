@@ -5,12 +5,28 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import java.nio.file.Path
 
-@InheritConstructors
-@CompileStatic
 // This class is required to overcome the fact that Gradle doesn't have InputDirectories annotation
-class InterpolableInputDirectory extends InterpolableFile {
-  @ComputedInputDirectory
-  File getInterpolatedValue() { // TODO: Directory ?
-    super.interpolatedValue
+@CompileStatic
+interface InterpolableInputDirectory extends InterpolableFile<InterpolableInputDirectory> {
+  @InheritConstructors
+  final class ImmutableRaw extends InterpolableFile.ImmutableRaw<InterpolableInputDirectory, Interpolated, AlreadyInterpolated> implements InterpolableInputDirectory { }
+
+  @InheritConstructors
+  final class Raw extends InterpolableFile.Raw<InterpolableInputDirectory, Interpolated, AlreadyInterpolated> implements InterpolableInputDirectory { }
+
+  @InheritConstructors
+  final class Interpolated extends InterpolableFile.Interpolated<InterpolableInputDirectory, AlreadyInterpolated> implements InterpolableInputDirectory {
+    @ComputedInputDirectory
+    File getInputDirectory() {
+      interpolated
+    }
+  }
+
+  @InheritConstructors
+  final class AlreadyInterpolated extends InterpolableFile.AlreadyInterpolated<InterpolableInputDirectory> implements InterpolableInputDirectory {
+    @ComputedInputDirectory
+    File getInputDirectory() {
+      interpolated
+    }
   }
 }

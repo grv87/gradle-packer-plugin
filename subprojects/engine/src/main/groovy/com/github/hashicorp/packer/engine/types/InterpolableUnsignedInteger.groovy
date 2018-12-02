@@ -1,35 +1,64 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.github.hashicorp.packer.template.Context
 import com.google.common.primitives.UnsignedInteger
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 
 @CompileStatic
-class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger> {
-  // This constructor is required for Externalizable
-  protected InterpolableUnsignedInteger() {
+interface InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger, InterpolableUnsignedInteger> {
+  final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, UnsignedInteger, InterpolableUnsignedInteger, Interpolated, AlreadyInterpolated> implements InterpolableUnsignedInteger {
+    ImmutableRaw() {
+      super()
+    }
+
+    @JsonCreator
+    ImmutableRaw(UnsignedInteger raw) {
+      super(raw)
+    }
+
+    @JsonCreator
+    ImmutableRaw(SimpleInterpolableString raw) {
+      super(raw)
+    }
+
+    protected static final UnsignedInteger doInterpolatePrimitive(Context context, UnsignedInteger raw) {
+      raw
+    }
+
+    protected static final UnsignedInteger doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      UnsignedInteger.valueOf(raw.interpolate(context))
+    }
   }
 
-  @JsonCreator
-  InterpolableUnsignedInteger(Integer raw) {
-    super(raw)
+  final class Raw extends InterpolableValue.Raw<Object, UnsignedInteger, InterpolableUnsignedInteger, Interpolated, AlreadyInterpolated> implements InterpolableUnsignedInteger {
+    Raw() {
+      super()
+    }
+
+    @JsonCreator
+    Raw(UnsignedInteger raw) {
+      super(raw)
+    }
+
+    @JsonCreator
+    Raw(SimpleInterpolableString raw) {
+      super(raw)
+    }
+
+    protected static final UnsignedInteger doInterpolatePrimitive(Context context, UnsignedInteger raw) {
+      raw
+    }
+
+    protected static final UnsignedInteger doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      UnsignedInteger.valueOf(raw.interpolate(context))
+    }
   }
 
-  @JsonCreator
-  InterpolableUnsignedInteger(InterpolableString raw) {
-    super(raw)
-  }
+  @InheritConstructors
+  final class Interpolated extends InterpolableValue.Interpolated<Object, UnsignedInteger, InterpolableUnsignedInteger, AlreadyInterpolated> implements InterpolableUnsignedInteger { }
 
-  protected final UnsignedInteger doInterpolatePrimitive(UnsignedInteger raw) {
-    rawValue
-  }
-
-  protected final UnsignedInteger doInterpolatePrimitive(InterpolableString raw) {
-    UnsignedInteger.valueOf(raw.interpolatedValue(context))
-  }
-
-  // This is used to create instances with default values
-  static final InterpolableUnsignedInteger withDefault(UnsignedInteger interpolatedValue) {
-    withDefault(InterpolableUnsignedInteger, interpolatedValue)
-  }
+  @InheritConstructors
+  final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, UnsignedInteger, InterpolableUnsignedInteger> implements InterpolableUnsignedInteger { }
 }

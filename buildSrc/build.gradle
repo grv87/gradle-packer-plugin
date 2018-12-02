@@ -22,8 +22,8 @@ buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 plugins {
-  id 'org.fidata.project.java' version '6.0.0-gradle-5.0' apply false
-  id 'org.fidata.project.groovy' version '6.0.0-gradle-5.0' apply false
+  id 'org.fidata.project.java' version '6.0.0-gradle-5-0-SNAPSHOT' apply false
+  id 'org.fidata.project.groovy' version '6.0.0-gradle-5-0-SNAPSHOT' apply false
 }
 
 ext.rootDir = file('..')

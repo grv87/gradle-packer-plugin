@@ -132,11 +132,18 @@ class File extends Provisioner<Configuration> {
     }
   }
 
+  interface InterpolableDirection extends InterpolableEnum<Direction> {
     @InheritConstructors
-  static class InterpolableDirection extends InterpolableEnum<Direction>  {
-    // This is used to create instances with default values
-    static final InterpolableDirection withDefault(Direction interpolatedValue) {
-      withDefault(InterpolableDirection, interpolatedValue)
-    }
+    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<Direction> implements InterpolableDirection { }
+
+    @InheritConstructors
+    final class Raw extends InterpolableEnum.ImmutableRaw<Direction> implements InterpolableDirection { }
+
+    @InheritConstructors
+    final class Interpolated extends InterpolableEnum.ImmutableRaw<Direction> implements InterpolableDirection { }
+
+    @InheritConstructors
+    final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<Direction> implements InterpolableDirection { }
   }
+
 }

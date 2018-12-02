@@ -20,72 +20,73 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 class InterpolableObjectASTTransformation implements ASTTransformation {
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-    List<ClassNode> clazzes = sourceUnit.AST.classes.findAll { ClassNode classNode ->
-      !classNode.interface && (classNode.modifiers & ClassNode.ACC_ABSTRACT) && classNode.implementsInterface(new ClassNode(InterpolableObject))
-    }
-    clazzes.each { ClassNode clazz ->
-      String clazzNameWithoutPackage = clazz.nameWithoutPackage
-      String implClassName = "${ clazzNameWithoutPackage }Impl"
-      ClassNode implClass = (ClassNode)new AstBuilder().buildFromSpec {
-        innerClass(implClassName, ClassNode.ACC_PUBLIC) {
-          classNode(clazzNameWithoutPackage, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL) {
-            /*interfaces {
-              classNode InterpolableObject
-            }*/
-          }
-          // classNode Object
-          methods {
-            clazz.methods.each { MethodNode methodNode1 ->
-              if (methodNode1.name.startsWith('get')) {
-                String fieldName = methodNode1.name.substring(3).uncapitalize()
-                method(methodNode1.name, ClassNode.ACC_PUBLIC, methodNode1.returnType) {
-                  ifStatement {
-                    booleanExpression {
-                      staticMethodCall(((ClassNode) (methodNode1.returnType.innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == 'Utils' })).typeClass, 'requiresInitialization') {
-                        argumentList {
-                          expression {
-                            field {
-
-                            }
-                          }
-                        }
-                      }
-                    }
-                    block {
-                      staticMethodCall(((ClassNode) (methodNode1.returnType.innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == 'Utils' })).typeClass, 'initWithDefault') {
-
-                      }
-                    }
-                    empty()
-                  }
-                  returnStatement {
-
-                    expression
-                  }
-                  field {
-
-                  }
-
-
-                }
-              }
-
-            }
-          }
-          interfaces {
-            classNode(clazzNameWithoutPackage, ClassNode.ACC_PUBLIC) {}
-          }
-        }
-      }.first()
-      clazz.module.addClass implClass
-      clazz.addAnnotation((AnnotationNode)new AstBuilder().buildFromSpec {
-          annotation(JsonDeserialize) {
-            member('as') {
-              new ClassExpression(implClass)
-            }
-          }
-        }.first()
-      )
-    }
+// TODO
+//    List<ClassNode> clazzes = sourceUnit.AST.classes.findAll { ClassNode classNode ->
+//      !classNode.interface && (classNode.modifiers & ClassNode.ACC_ABSTRACT) && classNode.implementsInterface(new ClassNode(InterpolableObject))
+//    }
+//    clazzes.each { ClassNode clazz ->
+//      String clazzNameWithoutPackage = clazz.nameWithoutPackage
+//      String implClassName = "${ clazzNameWithoutPackage }Impl"
+//      ClassNode implClass = (ClassNode)new AstBuilder().buildFromSpec {
+//        innerClass(implClassName, ClassNode.ACC_PUBLIC) {
+//          classNode(clazzNameWithoutPackage, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL) {
+//            /*interfaces {
+//              classNode InterpolableObject
+//            }*/
+//          }
+//          // classNode Object
+//          methods {
+//            clazz.methods.each { MethodNode methodNode1 ->
+//              if (methodNode1.name.startsWith('get')) {
+//                String fieldName = methodNode1.name.substring(3).uncapitalize()
+//                method(methodNode1.name, ClassNode.ACC_PUBLIC, methodNode1.returnType) {
+//                  ifStatement {
+//                    booleanExpression {
+//                      staticMethodCall(((ClassNode) (methodNode1.returnType.innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == 'Utils' })).typeClass, 'requiresInitialization') {
+//                        argumentList {
+//                          expression {
+//                            field {
+//
+//                            }
+//                          }
+//                        }
+//                      }
+//                    }
+//                    block {
+//                      staticMethodCall(((ClassNode) (methodNode1.returnType.innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == 'Utils' })).typeClass, 'initWithDefault') {
+//
+//                      }
+//                    }
+//                    empty()
+//                  }
+//                  returnStatement {
+//
+//                    expression
+//                  }
+//                  field {
+//
+//                  }
+//
+//
+//                }
+//              }
+//
+//            }
+//          }
+//          interfaces {
+//            classNode(clazzNameWithoutPackage, ClassNode.ACC_PUBLIC) {}
+//          }
+//        }
+//      }.first()
+//      clazz.module.addClass implClass
+//      clazz.addAnnotation((AnnotationNode)new AstBuilder().buildFromSpec {
+//          annotation(JsonDeserialize) {
+//            member('as') {
+//              new ClassExpression(implClass)
+//            }
+//          }
+//        }.first()
+//      )
+//    }
   }
 }

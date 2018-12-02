@@ -6,18 +6,41 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.Optional
 
-@InheritConstructors
 @CompileStatic
-class InterpolableInputURI extends InterpolableURI {
-  @ComputedInputFile
-  @Optional
-  URI getFileURI() { // TODO: RegularFile ?
-    super.fileURI
+interface InterpolableInputURI extends InterpolableURI<InterpolableInputURI> {
+  @InheritConstructors
+  final class ImmutableRaw extends InterpolableURI.ImmutableRaw<InterpolableInputURI, Interpolated, AlreadyInterpolated> implements InterpolableInputURI { }
+
+  @InheritConstructors
+  final class Raw extends InterpolableURI.Raw<InterpolableInputURI, Interpolated, AlreadyInterpolated> implements InterpolableInputURI { }
+
+  @InheritConstructors
+  final class Interpolated extends InterpolableURI.Interpolated<InterpolableInputURI, AlreadyInterpolated> implements InterpolableInputURI {
+    @ComputedInputFile
+    @Optional
+    URI getFileURI() { // TODO: RegularFile ?
+      super.fileURI
+    }
+
+    @ComputedInternal
+    @Optional
+    URI getNonFileURI() {
+      super.nonFileURI
+    }
   }
 
-  @ComputedInternal
-  @Optional
-  URI getNonFileURI() {
-    super.nonFileURI
+  @InheritConstructors
+  final class AlreadyInterpolated extends InterpolableURI.AlreadyInterpolated<InterpolableInputURI> implements InterpolableInputURI {
+    @ComputedInputFile
+    @Optional
+    URI getFileURI() { // TODO: RegularFile ?
+      super.fileURI
+    }
+
+    @ComputedInternal
+    @Optional
+    URI getNonFileURI() {
+      super.nonFileURI
+    }
   }
 }
