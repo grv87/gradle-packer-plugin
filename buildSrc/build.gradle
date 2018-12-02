@@ -33,9 +33,9 @@ apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 apply plugin: 'org.fidata.project.java'
 apply plugin: 'org.fidata.project.groovy'
 
-sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
+// TODO: sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
 
-apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
+// TODO: apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
 
 tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO

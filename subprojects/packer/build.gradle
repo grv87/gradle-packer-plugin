@@ -69,32 +69,34 @@ dependencies {
 
 import static org.apache.commons.io.FilenameUtils.getBaseName
 
-if (!isBuildSrc) {
-  tasks.register('packerValidate-integTest')
-
-  // TODO: CI doesn't have Packer installed
-  if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
-    for (File singleTemplateFile in project.fileTree('src/integTest/resources/com/github/hashicorp/packer/template') { ConfigurableFileTree fileTree ->
-      fileTree.include '**/*.json'
-    }) {
-      TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
-        templateFile = singleTemplateFile
-        syntaxOnly = true
-      }
-      tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
-        packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
-      }
-    }
-  }
-}
+// TODO
+//if (!isBuildSrc) {
+//  tasks.register('packerValidate-integTest')
+//
+//  // TODO: CI doesn't have Packer installed
+//  if (System.getenv().with { !containsKey('CI') && !containsKey('JENKINS_URL') }) {
+//    for (File singleTemplateFile in project.fileTree('src/integTest/resources/com/github/hashicorp/packer/template') { ConfigurableFileTree fileTree ->
+//      fileTree.include '**/*.json'
+//    }) {
+//      TaskProvider<Task> packerValidateIntegTestSingleTemplateProvider = tasks.register("packerValidate-integTest-${ getBaseName(singleTemplateFile.toString()) }", org.fidata.gradle.packer.PackerValidate) {
+//        templateFile = singleTemplateFile
+//        syntaxOnly = true
+//      }
+//      tasks.named('packerValidate-integTest').configure { Task packerValidateIntegTest ->
+//        packerValidateIntegTest.dependsOn packerValidateIntegTestSingleTemplateProvider
+//      }
+//    }
+//  }
+//}
 
 tasks.register('integTest', Test) {
   group = 'Verification'
   description = 'Runs integration tests'
   shouldRunAfter 'test' // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-08-08>
-  if (!isBuildSrc) {
-    dependsOn 'packerValidate-integTest'
-  }
+// TODO
+//  if (!isBuildSrc) {
+//    dependsOn 'packerValidate-integTest'
+//  }
   testClassesDirs = sourceSets['integTest'].output.classesDirs
   classpath = sourceSets['integTest'].runtimeClasspath
   reports.junitXml.destination = new File(xmlReportsDir, 'integTest')

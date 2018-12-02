@@ -37,8 +37,11 @@ ext.rootDir = file('.')
 apply from: new File(ext.rootDir, 'gradle/build-cache.gradle')
 apply from: new File(ext.rootDir, 'gradle/feature-previews.gradle')
 
-include 'engine'
-project(':engine').projectDir = new File(ext.rootDir, 'subprojects/engine')
-
-include 'packer'
-project(':packer').projectDir = new File(ext.rootDir, 'subprojects/packer')
+[
+  'engine',
+  'packer',
+  'plugin',
+].each {
+  include it
+  project(":$it").projectDir = new File(ext.rootDir, "subprojects/$it")
+}
