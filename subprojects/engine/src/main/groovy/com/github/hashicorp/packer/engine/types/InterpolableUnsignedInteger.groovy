@@ -11,21 +11,21 @@ class InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInte
   }
 
   @JsonCreator
-  InterpolableUnsignedInteger(Integer rawValue) {
-    super(rawValue)
+  InterpolableUnsignedInteger(Integer raw) {
+    super(raw)
   }
 
   @JsonCreator
-  InterpolableUnsignedInteger(InterpolableString rawValue) {
-    super(rawValue)
+  InterpolableUnsignedInteger(InterpolableString raw) {
+    super(raw)
   }
 
-  protected final UnsignedInteger doInterpolatePrimitive(UnsignedInteger rawValue) {
+  protected final UnsignedInteger doInterpolatePrimitive(UnsignedInteger raw) {
     rawValue
   }
 
-  protected final UnsignedInteger doInterpolatePrimitive(InterpolableString rawValue) {
-    UnsignedInteger.valueOf(rawValue.interpolatedValue(context))
+  protected final UnsignedInteger doInterpolatePrimitive(InterpolableString raw) {
+    UnsignedInteger.valueOf(raw.interpolatedValue(context))
   }
 
   // This is used to create instances with default values

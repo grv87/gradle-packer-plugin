@@ -15,21 +15,20 @@ import groovy.transform.EqualsAndHashCode
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.InheritConstructors
 import groovy.transform.PackageScope
-
 import java.lang.reflect.Constructor
 import java.util.concurrent.Semaphore
 
 // equals is required for Gradle up-to-date checking
-// @AutoExternalize(excludes = ['rawValue']) // TODO: Groovy 2.5.0
+// @AutoExternalize(excludes = ['raw']) // TODO: Groovy 2.5.0
 @CompileStatic
 // Serializable and Externalizable are required for Gradle up-to-date checking
 interface InterpolableValue<
   Source,
   Target extends Serializable,
   ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
-> extends InterpolableObject<ThisInterface>, Supplier<Target> {
+> extends InterpolableObject<ThisInterface> {
   @JsonValue
-  Source getRawValue()
+  Source getRaw()
 
   private static class CommonExceptions {
     private static RuntimeException interpolateWithDelegateObject() {
@@ -43,6 +42,8 @@ interface InterpolableValue<
 
   // delegate should be readOnly, or something terrible could happen
   ThisInterface interpolateValue(Context context, InterpolableObject delegate)
+
+  Target getInterpolated()
 
   protected abstract static class RawValue<
     Source,
@@ -64,15 +65,15 @@ interface InterpolableValue<
      * CAVEAT:
      * We use dynamic compiling to run
      * overloaded version of doInterpolatePrimitive
-     * depending on rawValue actual type
+     * depending on raw actual type
      */
     @CompileDynamic
     protected Target doInterpolatePrimitive(Context context) {
-      doInterpolatePrimitive context, rawValue
+      doInterpolatePrimitive context, raw
     }
 
-    protected static /* TOTEST */ Target doInterpolatePrimitive(Context context, Object rawValue) {
-      throw new InvalidRawValueClassException(rawValue)
+    protected static /* TOTEST */ Target doInterpolatePrimitive(Context context, Object raw) {
+      throw new InvalidRawValueClassException(raw)
     }
 
     @Override
@@ -86,26 +87,26 @@ interface InterpolableValue<
     }
 
     @Override
-    final Target get() {
+    final Target getInterpolated() {
       throw new ValueNotInterpolatedYetException()
     }
 
-    private /*final*/ /* TODO */ Source rawValue
+    private /*final*/ /* TODO */ Source raw
 
     // This constructor is required for initWithDefault
     RawValue() {
-      this.@rawValue = null
+      this.@raw = null
     }
 
     // This is public so that it can be simply inherited by implementors // TOTHINK
     @JsonCreator
-    RawValue(Source rawValue) {
-      this.@rawValue = rawValue
+    RawValue(Source raw) {
+      this.@raw = raw
     }
 
     @Override
-    final Source getRawValue() {
-      this.@rawValue
+    final Source getRaw() {
+      this.@raw
     }
 
     private static final Constructor<InitializedClass> INITIALIZED_CLASS_CONSTRUCTOR = INITIALIZED_CLASS.getConstructor(/*RAW_VALUE_CLASS*/ RawValue, /*TARGET_SUPPLIER_CLASS, BOOLEAN_CLOSURE_CLASS, TARGET_CLOSURE_CLASS*/ Supplier, Closure, Closure)
@@ -160,8 +161,8 @@ interface InterpolableValue<
 
     @JsonValue
     @Override
-    final Source getRawValue() {
-      (Source)this.@interpolable.rawValue
+    final Source getRaw() {
+      (Source)this.@interpolable.raw
     }
 
     @Override
@@ -188,13 +189,13 @@ interface InterpolableValue<
                   return null
                 }
               }
-              if (interpolable.rawValue != null) {
-                Target interpolatedValue = (Target)interpolable.doInterpolatePrimitive(context)
-                if (interpolatedValue != null) {
+              if (interpolable.raw != null) {
+                Target interpolated = (Target)interpolable.doInterpolatePrimitive(context)
+                if (interpolated != null) {
                   if (AbstractInitialized.this.@postProcess) {
-                    interpolatedValue = AbstractInitialized.this.@postProcess.call(interpolatedValue)
+                    interpolated = AbstractInitialized.this.@postProcess.call(interpolated)
                   }
-                  return interpolatedValue
+                  return interpolated
                 }
               }
               return AbstractInitialized.this.@defaultValueSupplier.get()
@@ -207,7 +208,7 @@ interface InterpolableValue<
     }
 
     @Override
-    final Target get() {
+    final Target getInterpolated() {
       throw new ValueNotInterpolatedYetException()
     }
   }
@@ -223,32 +224,32 @@ interface InterpolableValue<
 
     @JsonValue
     @Override
-    final Source getRawValue() {
+    final Source getRaw() {
       throw new ObjectAlreadyInterpolatedWithFixedContextException()
     }
 
-    private Object interpolatedValue
+    private Object interpolated
     // ThisInterface constructor is required for Externalizable
     protected AlreadyInterpolated() { }
 
-    AlreadyInterpolated(Object interpolatedValue) {
-      this.@interpolatedValue = interpolatedValue
+    AlreadyInterpolated(Object interpolated) {
+      this.@interpolated = interpolated
     }
 
     @SuppressWarnings('unused') // IDEA bug
     private static final long serialVersionUID = 7881876550613522317L
 
     /**
-     * @serialData interpolatedValue
+     * @serialData interpolated
      */
     @Override
     void writeExternal(ObjectOutput out) throws IOException {
-      out.writeObject(get())
+      out.writeObject(getInterpolated())
     }
 
     @Override
     void readExternal(ObjectInput oin) throws IOException, ClassNotFoundException {
-      this.@interpolatedValue = (Target)oin.readObject()
+      this.@interpolated = (Target)oin.readObject()
     }
 
     @Override
@@ -264,8 +265,8 @@ interface InterpolableValue<
      * @serial Interpolated value
      */
     @Override
-    final Target get() {
-      TARGET_SUPPLIER_CLASS.isInstance(this.@interpolatedValue) ? ((Supplier<Target>)this.@interpolatedValue).get() : (Target)this.@interpolatedValue
+    final Target getInterpolated() {
+      TARGET_SUPPLIER_CLASS.isInstance(this.@interpolated) ? ((Supplier<Target>)this.@interpolated).get() : (Target)this.@interpolated
     }
   }
 

@@ -1,6 +1,8 @@
 package com.github.hashicorp.packer.engine.ast
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
 import com.github.hashicorp.packer.engine.annotations.PostProcess
@@ -18,10 +20,10 @@ import org.gradle.internal.impldep.com.fasterxml.jackson.databind.annotation.Jso
 
 @JsonDeserialize(as = BlockDeviceImpl)
 @CompileStatic
-abstract class BlockDeviceResult implements InterpolableObject<BlockDeviceResult> {
+interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
   @Input
   @Default({ Boolean.FALSE })
-  @IgnoreIf({ noDevice.get() || virtualName.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   abstract InterpolableBoolean getDeleteOnTermination()
 
   @Input
@@ -29,11 +31,11 @@ abstract class BlockDeviceResult implements InterpolableObject<BlockDeviceResult
 
   @Input
   @Default({ Boolean.FALSE })
-  @IgnoreIf({ noDevice.get() || virtualName.get() || snapshotId.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated })
   abstract InterpolableBoolean getEncrypted()
 
   @Input
-  @IgnoreIf({ volumeType.get() != 'io1' /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */ })
+  @IgnoreIf({ volumeType.interpolated != 'io1' /* TODO: Bug in either Packer or AWS documentation. This should be supported for gp2 volumes too */ })
   abstract InterpolableLong getIops()
 
   @Input
@@ -41,204 +43,191 @@ abstract class BlockDeviceResult implements InterpolableObject<BlockDeviceResult
   abstract InterpolableBoolean getNoDevice()
 
   @Input
-  @IgnoreIf({ noDevice.get() || virtualName.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   abstract InterpolableString getSnapshotId()
 
   @Input
-  @IgnoreIf({ noDevice.get() })
+  @IgnoreIf({ noDevice.interpolated })
   @PostProcess({ String interpolatedValue -> interpolatedValue.startsWith('ephemeral') ? null : interpolatedValue })
   abstract InterpolableString getVirtualName()
 
   @Input
   @Default({ 'standard' })
-  @IgnoreIf({ noDevice.get() || virtualName.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   abstract InterpolableString getVolumeType()
 
   @Input
   // @Default() TODO: If you're creating the volume from a snapshot and don't specify a volume size, the default is the snapshot size.
-  @IgnoreIf({ noDevice.get() || virtualName.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   @PostProcess({ Long interpolableValue -> interpolableValue > 0 ? interpolableValue : null})
   abstract InterpolableLong getVolumeSize()
 
   @Input
-  @IgnoreIf({ noDevice.get() || virtualName.get() })
+  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   abstract InterpolableString getKmsKeyId()
 
-  static final class BlockDeviceImpl extends BlockDeviceResult {
+  static final class BlockDeviceImpl implements BlockDeviceResult {
     @Internal // TOTEST
-    protected InterpolableBoolean deleteOnTermination
+    private final InterpolableBoolean deleteOnTermination
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableBoolean getDeleteOnTermination() {
-      if (InterpolableBoolean.Utils.requiresInitialization(deleteOnTermination)) {
-        deleteOnTermination = InterpolableBoolean.Utils.initWithDefault(deleteOnTermination, Boolean.FALSE, {
-          noDevice.get() || virtualName.get()
-        })
-      }
-      deleteOnTermination
+      this.@deleteOnTermination
     }
 
-    protected InterpolableString deviceName
+    private final InterpolableString deviceName
 
     @Input
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableString getDeviceName() {
-      if (InterpolableString.Utils.requiresInitialization(deviceName)) {
-        deviceName = InterpolableString.Utils.initWithDefault(deviceName, (String) null)
-      }
-      deviceName
+      this.@deviceName
     }
 
     @Internal
-    protected InterpolableBoolean encrypted
+    private final InterpolableBoolean encrypted
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableBoolean getEncrypted() {
-      if (InterpolableBoolean.Utils.requiresInitialization(encrypted)) {
-        encrypted = InterpolableBoolean.Utils.initWithDefault(encrypted, Boolean.FALSE, {
-          noDevice.get() || virtualName.get() || snapshotId.get()
-        })
-      }
-      encrypted
+      this.@encrypted
     }
 
-    protected InterpolableLong iops
+    private final InterpolableLong iops
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableLong getIops() {
-      if (InterpolableLong.Utils.requiresInitialization(iops)) {
-        iops = InterpolableLong.Utils.initWithDefault(iops, (Long) null, {
-          volumeType.get() != 'io1'
-          /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */
-        })
-      }
-      iops
+      this.@iops
     }
 
-    protected InterpolableBoolean noDevice
+    private final InterpolableBoolean noDevice
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableBoolean getNoDevice() {
-      if (InterpolableBoolean.Utils.requiresInitialization(noDevice)) {
-        noDevice = InterpolableBoolean.Utils.initWithDefault(noDevice, Boolean.FALSE)
-      }
-      noDevice
+      this.@noDevice
     }
 
-    protected InterpolableString snapshotId
+    private final InterpolableString snapshotId
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableString getSnapshotId() {
-      if (InterpolableString.Utils.requiresInitialization(snapshotId)) {
-        snapshotId = InterpolableString.Utils.initWithDefault(snapshotId, (String) null, {
-          noDevice.get() || virtualName.get()
-        })
-      }
-      snapshotId
+      this.@snapshotId
     }
 
     @Internal
-    protected InterpolableString virtualName
+    private final InterpolableString virtualName
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableString getVirtualName() {
-      if (InterpolableString.Utils.requiresInitialization(virtualName)) {
-        virtualName = InterpolableString.Utils.initWithDefault(virtualName, (String) null, {
-          noDevice.get()
-        }, { String interpolatedValue -> interpolatedValue.startsWith('ephemeral') ? null : interpolatedValue })
-      }
-      virtualName
+      this.@virtualName
     }
 
     @Internal
-    protected InterpolableString volumeType
+    private final InterpolableString volumeType // TODO: Enum
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableString getVolumeType() {
-      if (InterpolableString.Utils.requiresInitialization(volumeType)) {
-        volumeType = InterpolableString.Utils.initWithDefault(volumeType, 'standard', {
-          noDevice.get() || virtualName.get()
-        })
-      }
-      volumeType
+      this.@volumeType
     }
 
-    protected InterpolableLong volumeSize
+    private final InterpolableLong volumeSize
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableLong getVolumeSize() {
-      if (InterpolableLong.Utils.requiresInitialization(volumeSize)) {
-        volumeSize = InterpolableLong.Utils.initWithDefault(volumeSize, (Long) null, {
-          noDevice.get() || virtualName.get()
-        }, { Long interpolableValue -> interpolableValue > 0 ? interpolableValue : null })
-      }
-      volumeSize
+      this.@volumeSize
     }
 
-    protected InterpolableString kmsKeyId
+    private final InterpolableString kmsKeyId
 
     @Input
     @Optional
     @JsonIgnore
-    @Synchronized
     @Override
     InterpolableString getKmsKeyId() {
-      if (InterpolableString.Utils.requiresInitialization(kmsKeyId)) {
-        kmsKeyId = InterpolableString.Utils.initWithDefault(kmsKeyId, (String) null, {
-          noDevice.get() || virtualName.get()
-        })
-      }
-      kmsKeyId
+      this.@kmsKeyId
+    }
+
+    @JsonCreator
+    BlockDeviceImpl(
+      @JsonProperty('delete_on_termination') InterpolableBoolean deleteOnTermination,
+      @JsonProperty('device_name') InterpolableString deviceName,
+      @JsonProperty('encrypted') InterpolableBoolean encrypted,
+      @JsonProperty('iops') InterpolableLong iops,
+      @JsonProperty('on_devide') InterpolableBoolean noDevice,
+      @JsonProperty('snapshot_id') InterpolableString snapshotId,
+      @JsonProperty('virtual_name') InterpolableString virtualName,
+      @JsonProperty('volume_type') InterpolableString volumeType,
+      @JsonProperty('volume_size') InterpolableLong volumeSize,
+      @JsonProperty('kms_key_id') InterpolableString kmsKeyId
+    ) {
+      this.@deleteOnTermination = deleteOnTermination ?: new InterpolableBoolean.RawValue()
+      this.@deviceName = deviceName ?: new InterpolableString.RawValue()
+      this.@encrypted = encrypted ?: new InterpolableBoolean.RawValue()
+      this.@iops = iops ?: new InterpolableLong.RawValue()
+      this.@noDevice = noDevice ?: new InterpolableBoolean.RawValue()
+      this.@snapshotId = snapshotId ?: new InterpolableString.RawValue()
+      this.@virtualName = virtualName ?: new InterpolableString.RawValue()
+      this.@volumeType = volumeType ?: new InterpolableString.RawValue()
+      this.@volumeSize = volumeSize ?: new InterpolableLong.RawValue()
+      this.@kmsKeyId = kmsKeyId ?: new InterpolableString.RawValue()
+    }
+
+    private BlockDeviceImpl(Context context, BlockDeviceResult interpolateFrom) {
+      this.@deleteOnTermination = interpolateFrom.deleteOnTermination.interpolateValue(context, Boolean.FALSE, {
+        noDevice.interpolated || virtualName.interpolated
+      })
+      this.@deviceName = interpolateFrom.deviceName.interpolateValue(context, (String)null)
+      this.@encrypted = interpolateFrom.encrypted.interpolateValue(context, Boolean.FALSE, {
+        noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated
+      })
+      this.@iops = interpolateFrom.iops.interpolateValue(context, (Long)null, {
+        /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */
+        volumeType.interpolated != 'io1'
+      })
+      this.@noDevice = interpolateFrom.noDevice.interpolateValue(context, Boolean.FALSE)
+      this.@snapshotId = interpolateFrom.snapshotId.interpolateValue(context, (String)null, {
+        noDevice.interpolated || virtualName.interpolated
+      })
+      this.@virtualName = interpolateFrom.virtualName.interpolateValue(context, (String)null, {
+        noDevice.interpolated
+      }, { String interpolated -> interpolated.startsWith('ephemeral') ? null : interpolated })
+      this.@volumeType = interpolateFrom.volumeType.interpolateValue(context, 'standard', {
+        noDevice.interpolated || virtualName.interpolated
+      })
+      this.@volumeSize = interpolateFrom.volumeSize.interpolateValue(context, (Long)null, {
+        noDevice.interpolated || virtualName.interpolated
+      }, { Long interpolated -> interpolated > 0 ? interpolated : null })
+      this.@kmsKeyId = interpolateFrom.kmsKeyId.interpolateValue(context, (String)null, {
+        noDevice.interpolated || virtualName.interpolated
+      })
     }
 
     @Override
     BlockDeviceResult interpolate(Context context) {
-      BlockDeviceImpl result = new BlockDeviceImpl()
-      result.@deleteOnTermination = deleteOnTermination.interpolateValue(context, result)
-      result.@deviceName = deviceName.interpolateValue(context, result)
-      result.@encrypted = encrypted.interpolateValue(context, result)
-      result.@iops = iops.interpolateValue(context, result)
-      result.@noDevice = noDevice.interpolateValue(context, result)
-      result.@snapshotId = snapshotId.interpolateValue(context, result)
-      result.@virtualName = virtualName.interpolateValue(context, result)
-      result.@volumeType = volumeType.interpolateValue(context, result)
-      result.@volumeSize = volumeSize.interpolateValue(context, result)
-      result.@kmsKeyId = kmsKeyId.interpolateValue(context, result)
-      result
+      new BlockDeviceImpl(context, this)
     }
   }
 }

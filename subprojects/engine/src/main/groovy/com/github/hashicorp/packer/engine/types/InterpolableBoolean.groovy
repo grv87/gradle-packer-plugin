@@ -1,11 +1,11 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.github.hashicorp.packer.template.Context
-import com.google.common.base.Supplier
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.google.common.base.Supplier
 
 @JsonDeserialize(as = RawValue)
 @CompileStatic
@@ -13,21 +13,21 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
   @InheritConstructors
   final class RawValue extends InterpolableValue.RawValue<Object, Boolean, InterpolableBoolean, AlreadyInterpolated, Initialized> implements InterpolableBoolean {
     @JsonCreator
-    RawValue(Boolean rawValue) {
-      super(rawValue)
+    RawValue(Boolean raw) {
+      super(raw)
     }
 
     @JsonCreator
-    RawValue(SimpleInterpolableString rawValue) {
-      super(rawValue)
+    RawValue(SimpleInterpolableString raw) {
+      super(raw)
     }
 
-    protected static final Boolean doInterpolatePrimitive(Context context, Boolean rawValue) {
-      rawValue
+    protected static final Boolean doInterpolatePrimitive(Context context, Boolean raw) {
+      raw
     }
 
-    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
-      rawValue.interpolate context // TOTEST
+    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      raw.interpolate context // TOTEST
     }
   }
 

@@ -1,6 +1,5 @@
 package com.github.hashicorp.packer.engine.types
 
-
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
 import groovy.transform.CompileStatic
@@ -12,8 +11,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 interface InterpolableString extends InterpolableValue<SimpleInterpolableString, String, InterpolableString> {
   @InheritConstructors
   final class RawValue extends InterpolableValue.RawValue<SimpleInterpolableString, String, InterpolableString, AlreadyInterpolated, Initialized> implements InterpolableString {
-    protected final String doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
-      rawValue.interpolate context
+    protected final String doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      raw.interpolate context
     }
   }
 

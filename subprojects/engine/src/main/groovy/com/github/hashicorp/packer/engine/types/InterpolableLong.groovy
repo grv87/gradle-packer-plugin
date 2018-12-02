@@ -18,21 +18,21 @@ interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableL
     }
 
     @JsonCreator
-    RawValue(Long rawValue) {
-      super(rawValue)
+    RawValue(Long raw) {
+      super(raw)
     }
 
     @JsonCreator
-    RawValue(SimpleInterpolableString rawValue) {
-      super(rawValue)
+    RawValue(SimpleInterpolableString raw) {
+      super(raw)
     }
 
-    protected static final Boolean doInterpolatePrimitive(Context context, Boolean rawValue) {
-      rawValue
+    protected static final Long doInterpolatePrimitive(Context context, Long raw) {
+      raw
     }
 
-    protected static final Boolean doInterpolatePrimitive(Context context, SimpleInterpolableString rawValue) {
-      rawValue.interpolate(context).toLong()
+    protected static final Long doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
+      raw.interpolate(context).toLong()
     }
   }
 
