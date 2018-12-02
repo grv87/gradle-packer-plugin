@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
 @CompileStatic
 @GroovyASTTransformation(phase= CompilePhase.SEMANTIC_ANALYSIS)
-class InterpolableObjectASTTransformation implements ASTTransformation {
+class AutoImplementASTTransformation implements ASTTransformation {
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
 // TODO

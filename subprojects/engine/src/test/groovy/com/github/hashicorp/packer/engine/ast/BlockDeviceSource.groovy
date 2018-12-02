@@ -13,6 +13,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.Input
 
+@
 @CompileStatic
 interface BlockDeviceSource extends InterpolableObject<BlockDeviceSource> {
   @Input
