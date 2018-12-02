@@ -215,7 +215,7 @@ interface InterpolableValue<
       if (AbstractInterpolated.isInstance(other)) {
         return this.interpolated == ((AbstractInterpolated)other).interpolated
       }
-      return false
+      false
     }
   }
 
@@ -298,7 +298,7 @@ interface InterpolableValue<
           }
           return result
         }
-        return rawDefaultValue
+        rawDefaultValue
       } finally {
         interpolationSemaphore.release()
       }

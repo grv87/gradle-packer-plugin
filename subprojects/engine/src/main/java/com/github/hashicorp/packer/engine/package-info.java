@@ -19,7 +19,7 @@
  */
 /**
  * This package contains engine to make Java port simpler and maintainable.
- * These engine are not originated from Packer code,
- * they are implemented specifically for this Java port
+ * This code is not originated from Packer code,
+ * it is implemented specifically for this Java port
  */
 package com.github.hashicorp.packer.engine;
