@@ -22,9 +22,9 @@ buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 plugins {
-  id 'org.fidata.project.java' version '5.0.0'
-  id 'org.fidata.project.groovy' version '5.0.0'
-  id 'org.fidata.plugin' version '5.0.0'
+  id 'org.fidata.project.java' version '5.1.0'
+  id 'org.fidata.project.groovy' version '5.1.0'
+  id 'org.fidata.plugin' version '5.1.0'
 }
 
 description = 'Runs Packer builds from Gradle'
