@@ -46,8 +46,6 @@ import java.util.regex.Pattern
 class AutoImplementASTTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/^get/
 
-  private static final GroovyShell GROOVY_SHELL = new GroovyShell()
-
   private static final String CONTEXT = 'context'
   private static final VariableExpression CONTEXT_VAR_X = GeneralUtils.varX(CONTEXT)
   private static final ConstantExpression NULL = GeneralUtils.constX(null)
@@ -65,6 +63,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
     }
     // TODO: Check for CompileStatic ?
     // TODO: remove AutoImplement annotation
+
+    GroovyShell groovyShell = new GroovyShell(this.class.classLoader)
 
     String interfaseName = interfase.nameWithoutPackage
     String interfaseFullName = interfase.name
@@ -159,7 +159,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           if (defaultAnnotation != null) {
             method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
-              interpolateValueParameters.add GeneralUtils.constX(((Closure)GROOVY_SHELL.evaluate((defaultAnnotation.members['value'].text))).call())
+              interpolateValueParameters.add GeneralUtils.constX(((Closure)groovyShell.evaluate((defaultAnnotation.members['value'].text))).call())
             } else {
               interpolateValueParameters.add defaultAnnotation.members['value']
             }

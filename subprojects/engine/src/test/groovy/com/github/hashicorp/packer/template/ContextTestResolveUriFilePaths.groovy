@@ -17,7 +17,7 @@ import java.nio.file.Path
 @RunWith(JUnitParamsRunner)
 @CompileStatic
 class ContextTestResolveUriFilePaths {
-  public static final File tf = File.createTempFile('', 'packer')
+  public static final File tf = File.createTempFile('TODO', 'packer') // TODO
   public static final Path tfPath = tf.toPath().toRealPath().normalize()
 
   @BeforeClass
@@ -61,7 +61,7 @@ class ContextTestResolveUriFilePaths {
   @Parameters
   @TestCaseName('resolveUri("{0}") {3}')
   void test(final Path cwd, final String original, final String expected) {
-    String result = new Context(null, null, null, cwd, null).resolveUri(original).toString()
+    String result = new Context(null, null, null, cwd).resolveUri(original).toString()
     if (expected) {
       assert result == expected
     }

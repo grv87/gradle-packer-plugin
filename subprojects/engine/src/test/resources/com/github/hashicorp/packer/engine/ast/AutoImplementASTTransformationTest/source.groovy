@@ -10,57 +10,68 @@ import com.github.hashicorp.packer.engine.types.InterpolableEnum
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.google.common.base.Charsets
+import com.google.common.io.Resources
+import groovy.transform.ASTTest
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.builder.AstAssert
+import org.codehaus.groovy.ast.builder.AstBuilder
+import org.codehaus.groovy.control.CompilePhase
 import org.gradle.api.tasks.Input
 
+@ASTTest(phase = CompilePhase.SEMANTIC_ANALYSIS, value = {
+  List<ASTNode> expected = new AstBuilder().buildFromString(Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
+  AstAssert.assertSyntaxTree(expected, node)
+})
 @AutoImplement
 @CompileStatic
 interface BlockDeviceSource extends InterpolableObject<BlockDeviceSource> {
   @Input
   @Default({ Boolean.FALSE })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  abstract InterpolableBoolean getDeleteOnTermination()
+  InterpolableBoolean getDeleteOnTermination()
 
   @Input
-  abstract InterpolableString getDeviceName()
+  InterpolableString getDeviceName()
 
   @Input
   @Default({ Boolean.FALSE })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated })
-  abstract InterpolableBoolean getEncrypted()
+  InterpolableBoolean getEncrypted()
 
   @Input
   @IgnoreIf({ volumeType.interpolated != VolumeType.IO1 /* TODO: Bug in either Packer or AWS documentation. This should be supported for gp2 volumes too */ })
-  abstract InterpolableLong getIops()
+  InterpolableLong getIops()
 
   @Input
   @Default({ Boolean.FALSE })
-  abstract InterpolableBoolean getNoDevice()
+  InterpolableBoolean getNoDevice()
 
   @Input
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  abstract InterpolableString getSnapshotId()
+  InterpolableString getSnapshotId()
 
   @Input
   @IgnoreIf({ noDevice.interpolated })
   @PostProcess({ String interpolated -> interpolated.startsWith('ephemeral') ? null : interpolated })
-  abstract InterpolableString getVirtualName()
+  InterpolableString getVirtualName()
 
   @Input
   @Default({ 'standard' })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  abstract InterpolableVolumeType getVolumeType()
+  InterpolableVolumeType getVolumeType()
 
   @Input
   // @Default() TODO: If you're creating the volume from a snapshot and don't specify a volume size, the default is the snapshot size.
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   @PostProcess({ Long interpolableValue -> interpolableValue > 0 ? interpolableValue : null})
-  abstract InterpolableLong getVolumeSize()
+  InterpolableLong getVolumeSize()
 
   @Input
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  abstract InterpolableString getKmsKeyId()
+  InterpolableString getKmsKeyId()
 
   enum VolumeType {
     STANDARD,

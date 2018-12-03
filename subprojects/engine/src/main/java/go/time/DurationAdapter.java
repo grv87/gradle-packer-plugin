@@ -45,17 +45,17 @@ public final class DurationAdapter {
   public final static Duration MINUTE = Duration.of(1L, ChronoUnit.MINUTES);
   public final static Duration HOUR = Duration.of(1L, ChronoUnit.HOURS);
 
-  final static long NANOSECONDS_PER_MICROSECOND = TimeUnit.MICROSECONDS.toNanos(1L);
-  final static long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1L);
-  final static long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1L);
-  final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1L);
-  final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1L);
+  public final static long NANOSECONDS_PER_MICROSECOND = TimeUnit.MICROSECONDS.toNanos(1L);
+  public final static long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1L);
+  public final static long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1L);
+  public final static long SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1L);
+  public final static long MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1L);
 
-  final static UnsignedLong NANOSECONDS_PER_MICROSECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MICROSECOND);
-  final static UnsignedLong NANOSECONDS_PER_MILLISECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MILLISECOND);
-  final static UnsignedLong NANOSECONDS_PER_SECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_SECOND);
-  final static UnsignedLong SECONDS_PER_MINUTE_ULONG = UnsignedLong.valueOf(SECONDS_PER_MINUTE);
-  final static UnsignedLong MINUTES_PER_HOUR_ULONG = UnsignedLong.valueOf(MINUTES_PER_HOUR);
+  public final static UnsignedLong NANOSECONDS_PER_MICROSECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MICROSECOND);
+  public final static UnsignedLong NANOSECONDS_PER_MILLISECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_MILLISECOND);
+  public final static UnsignedLong NANOSECONDS_PER_SECOND_ULONG = UnsignedLong.valueOf(NANOSECONDS_PER_SECOND);
+  public final static UnsignedLong SECONDS_PER_MINUTE_ULONG = UnsignedLong.valueOf(SECONDS_PER_MINUTE);
+  public final static UnsignedLong MINUTES_PER_HOUR_ULONG = UnsignedLong.valueOf(MINUTES_PER_HOUR);
 
   private final static long NUMERAL_SYSTEM_BASE = 10L;
   private final static UnsignedLong NUMERAL_SYSTEM_BASE_ULONG = UnsignedLong.valueOf(NUMERAL_SYSTEM_BASE);

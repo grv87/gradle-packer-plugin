@@ -208,7 +208,7 @@ final class Context {
     // If so, then just pass it through.
     try {
       URI resultUri = new URI(result)
-      if (!resultUri.scheme.empty && !resultUri.host.empty) {
+      if (!resultUri.scheme?.empty && !resultUri.host?.empty) {
         return resultUri
       }
     } catch (URISyntaxException ignored) {
