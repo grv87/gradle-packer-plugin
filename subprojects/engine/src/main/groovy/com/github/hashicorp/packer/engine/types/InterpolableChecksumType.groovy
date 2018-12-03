@@ -7,14 +7,14 @@ import groovy.transform.InheritConstructors
 @CompileStatic
 interface InterpolableChecksumType extends InterpolableEnum<ChecksumType, InterpolableChecksumType> {
 @InheritConstructors
-  final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
+  final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType, Interpolated, AlreadyInterpolated> implements InterpolableChecksumType { }
 
   @InheritConstructors
-  final class Raw extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
+  final class Raw extends InterpolableEnum.Raw<ChecksumType, InterpolableChecksumType, Interpolated, AlreadyInterpolated> implements InterpolableChecksumType { }
 
   @InheritConstructors
-  final class Interpolated extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
+  final class Interpolated extends InterpolableEnum.Interpolated<ChecksumType, InterpolableChecksumType, AlreadyInterpolated> implements InterpolableChecksumType { }
 
   @InheritConstructors
-  final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
+  final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
 }

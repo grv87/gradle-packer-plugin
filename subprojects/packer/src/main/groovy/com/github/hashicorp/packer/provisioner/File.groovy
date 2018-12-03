@@ -134,15 +134,15 @@ class File extends Provisioner<Configuration> {
 
   interface InterpolableDirection extends InterpolableEnum<Direction, InterpolableDirection> {
     @InheritConstructors
-    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<Direction, InterpolableDirection> implements InterpolableDirection { }
+    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<Direction, InterpolableDirection, Interpolated, AlreadyInterpolated> implements InterpolableDirection { }
 
     @InheritConstructors
-    final class Raw extends InterpolableEnum.ImmutableRaw<Direction, InterpolableDirection> implements InterpolableDirection { }
+    final class Raw extends InterpolableEnum.Raw<Direction, InterpolableDirection, Interpolated, AlreadyInterpolated> implements InterpolableDirection { }
 
     @InheritConstructors
-    final class Interpolated extends InterpolableEnum.ImmutableRaw<Direction, InterpolableDirection> implements InterpolableDirection { }
+    final class Interpolated extends InterpolableEnum.Interpolated<Direction, InterpolableDirection, AlreadyInterpolated> implements InterpolableDirection { }
 
     @InheritConstructors
-    final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<Direction, InterpolableDirection> implements InterpolableDirection { }
+    final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<Direction, InterpolableDirection> implements InterpolableDirection { }
   }
 }

@@ -21,56 +21,58 @@ import org.gradle.internal.impldep.com.fasterxml.jackson.databind.annotation.Jso
 @JsonDeserialize(as = BlockDeviceImpl)
 @CompileStatic
 interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
+  @JsonProperty('delete_on_termination')
   @Input
-  @Default({ Boolean.FALSE })
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
+  @Optional
   abstract InterpolableBoolean getDeleteOnTermination()
 
+  @JsonProperty('device_name')
   @Input
   abstract InterpolableString getDeviceName()
 
+  @JsonProperty('encrypted')
   @Input
-  @Default({ Boolean.FALSE })
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated })
+  @Optional
   abstract InterpolableBoolean getEncrypted()
 
+  @JsonProperty('iops')
   @Input
-  @IgnoreIf({ volumeType.interpolated != VolumeType.IO1 /* TODO: Bug in either Packer or AWS documentation. This should be supported for gp2 volumes too */ })
+  @Optional
   abstract InterpolableLong getIops()
 
+  @JsonProperty('on_devide')
   @Input
-  @Default({ Boolean.FALSE })
+  @Optional
   abstract InterpolableBoolean getNoDevice()
 
+  @JsonProperty('snapshot_id')
   @Input
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
+  @Optional
   abstract InterpolableString getSnapshotId()
 
+  @JsonProperty('virtual_name')
   @Input
-  @IgnoreIf({ noDevice.interpolated })
-  @PostProcess({ String interpolated -> interpolated.startsWith('ephemeral') ? null : interpolated })
+  @Optional
   abstract InterpolableString getVirtualName()
 
+  @JsonProperty('volume_type')
   @Input
-  @Default({ 'standard' })
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
+  @Optional
   abstract InterpolableVolumeType getVolumeType()
 
+  @JsonProperty('volume_size')
   @Input
-  // @Default() TODO: If you're creating the volume from a snapshot and don't specify a volume size, the default is the snapshot size.
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  @PostProcess({ Long interpolableValue -> interpolableValue > 0 ? interpolableValue : null})
+  @Optional
   abstract InterpolableLong getVolumeSize()
 
+  @JsonProperty('kms_key_id')
   @Input
-  @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
+  @Optional
   abstract InterpolableString getKmsKeyId()
 
   static final class BlockDeviceImpl implements BlockDeviceResult {
     private final InterpolableBoolean deleteOnTermination
 
-    @Input
-    @Optional
     @Override
     InterpolableBoolean getDeleteOnTermination() {
       this.@deleteOnTermination
@@ -78,7 +80,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableString deviceName
 
-    @Input
     @Override
     InterpolableString getDeviceName() {
       this.@deviceName
@@ -86,8 +87,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableBoolean encrypted
 
-    @Input
-    @Optional
     @Override
     InterpolableBoolean getEncrypted() {
       this.@encrypted
@@ -95,8 +94,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableLong iops
 
-    @Input
-    @Optional
     @Override
     InterpolableLong getIops() {
       this.@iops
@@ -104,8 +101,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableBoolean noDevice
 
-    @Input
-    @Optional
     @Override
     InterpolableBoolean getNoDevice() {
       this.@noDevice
@@ -113,8 +108,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableString snapshotId
 
-    @Input
-    @Optional
     @Override
     InterpolableString getSnapshotId() {
       this.@snapshotId
@@ -122,8 +115,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableString virtualName
 
-    @Input
-    @Optional
     @Override
     InterpolableString getVirtualName() {
       this.@virtualName
@@ -131,8 +122,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableVolumeType volumeType
 
-    @Input
-    @Optional
     @Override
     InterpolableVolumeType getVolumeType() {
       this.@volumeType
@@ -140,8 +129,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableLong volumeSize
 
-    @Input
-    @Optional
     @Override
     InterpolableLong getVolumeSize() {
       this.@volumeSize
@@ -149,8 +136,6 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
     private final InterpolableString kmsKeyId
 
-    @Input
-    @Optional
     @Override
     InterpolableString getKmsKeyId() {
       this.@kmsKeyId
@@ -185,7 +170,7 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
       this.@deleteOnTermination = raw.deleteOnTermination.interpolateValue(context, Boolean.FALSE, {
         noDevice.interpolated || virtualName.interpolated
       })
-      this.@deviceName = raw.deviceName.interpolateValue(context, (String)null)
+      this.@deviceName = raw.deviceName.interpolateValue(context)
       this.@encrypted = raw.encrypted.interpolateValue(context, Boolean.FALSE, {
         noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated
       })
@@ -199,13 +184,17 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
       })
       this.@virtualName = raw.virtualName.interpolateValue(context, (String)null, {
         noDevice.interpolated
-      }, { String interpolated -> interpolated.startsWith('ephemeral') ? null : interpolated })
+      }) { String interpolated ->
+        interpolated.startsWith('ephemeral') ? null : interpolated
+      }
       this.@volumeType = raw.volumeType.interpolateValue(context, VolumeType.STANDARD, {
         noDevice.interpolated || virtualName.interpolated
       })
       this.@volumeSize = raw.volumeSize.interpolateValue(context, (Long)null, {
         noDevice.interpolated || virtualName.interpolated
-      }, { Long interpolated -> interpolated > 0 ? interpolated : null })
+      }) { Long interpolated ->
+        interpolated > 0 ? interpolated : null
+      }
       this.@kmsKeyId = raw.kmsKeyId.interpolateValue(context, (String)null, {
         noDevice.interpolated || virtualName.interpolated
       })
@@ -233,15 +222,15 @@ interface BlockDeviceResult extends InterpolableObject<BlockDeviceResult> {
 
   interface InterpolableVolumeType extends InterpolableEnum<VolumeType, InterpolableVolumeType> {
     @InheritConstructors
-    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType, Interpolated, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class Raw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class Raw extends InterpolableEnum.Raw<VolumeType, InterpolableVolumeType, Interpolated, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class Interpolated extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class Interpolated extends InterpolableEnum.Interpolated<VolumeType, InterpolableVolumeType, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
   }
 }

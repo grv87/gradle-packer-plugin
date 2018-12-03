@@ -46,6 +46,11 @@ interface InterpolableValue<
 
   ThisInterface interpolateValue(Context context)
 
+  // Note: Map variants are provided but not used, since it is unnecessary map creation and dissection
+  ThisInterface interpolateValue(Map<String, ?> args, Closure<Target> postProcess)
+
+  ThisInterface interpolateValue(Map<String, ?> args)
+
   Target getInterpolated()
 
   private abstract static class Abstract<
@@ -83,6 +88,20 @@ interface InterpolableValue<
     final ThisInterface interpolateValue(Context context) {
       interpolateValue(context, (Target)null, null, null)
     }
+
+    @Override
+    final ThisInterface interpolateValue(Map<String, ?> args, Closure<Target> postProcess) {
+      if (args.containsKey('defaultValueSupplier')) {
+        interpolateValue((Context)args['context'], (Supplier<Target>)args.get('defaultValueSupplier', null), (Closure<Boolean>)args.get('ignoreIf', null), postProcess)
+      } else {
+        interpolateValue((Context)args['context'], (Target)args.get('defaultValue', null), (Closure<Boolean>)args.get('ignoreIf', null), postProcess)
+      }
+    }
+
+    @Override
+    final ThisInterface interpolateValue(Map<String, ?> args) {
+      interpolateValue(args, null)
+    }
   }
 
   private abstract static class AbstractRaw<
@@ -91,7 +110,7 @@ interface InterpolableValue<
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
     InterpolatedClass extends Interpolated<Source, Target, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
     AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
-  > extends Abstract<Source, Target, ThisInterface> {
+  > extends Abstract<Source, Target, ThisInterface> implements Cloneable {
     @SuppressWarnings('UnstableApiUsage')
     private static final Constructor<InterpolatedClass> INTERPOLATED_CLASS_CONSTRUCTOR = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Closure, Closure)
 
@@ -124,6 +143,9 @@ interface InterpolableValue<
     protected Target doInterpolatePrimitive(Context context, Object raw) {
       throw new InvalidRawValueClassException(raw)
     }
+
+    @Override
+    abstract AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> clone()
   }
 
   protected abstract static class ImmutableRaw<
@@ -154,6 +176,11 @@ interface InterpolableValue<
     @Override
     final void setRaw(Source raw) {
       throw new ReadOnlyPropertyException('raw', this.class.canonicalName)
+    }
+
+    @Override
+    AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> clone() {
+      this
     }
   }
 
@@ -187,6 +214,13 @@ interface InterpolableValue<
     @Synchronized
     final void setRaw(Source raw) {
       this.@raw = raw
+    }
+
+    @Override
+    AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> clone() {
+      Raw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> result = (Raw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass>)this.class.getConstructor().newInstance()
+      result.@raw = this.@raw
+      result
     }
   }
 
@@ -249,7 +283,7 @@ interface InterpolableValue<
     private final Closure<Target> postProcess
 
     protected Interpolated(/*RawValueClass*/ AbstractRaw interpolable, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      this.@interpolable = interpolable
+      this.@interpolable = interpolable.clone()
       this.@context = context
       this.@defaultValue = defaultValue
       this.@ignoreIf = ignoreIf

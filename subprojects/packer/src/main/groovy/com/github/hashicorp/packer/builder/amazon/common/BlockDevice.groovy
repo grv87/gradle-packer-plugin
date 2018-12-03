@@ -78,15 +78,15 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
 
   interface InterpolableVolumeType extends InterpolableEnum<VolumeType, InterpolableVolumeType> {
     @InheritConstructors
-    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType, Interpolated, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class Raw extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class Raw extends InterpolableEnum.Raw<VolumeType, InterpolableVolumeType, Interpolated, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class Interpolated extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class Interpolated extends InterpolableEnum.Interpolated<VolumeType, InterpolableVolumeType, AlreadyInterpolated> implements InterpolableVolumeType { }
 
     @InheritConstructors
-    final class AlreadyInterpolated extends InterpolableEnum.ImmutableRaw<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
+    final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<VolumeType, InterpolableVolumeType> implements InterpolableVolumeType { }
   }
 }

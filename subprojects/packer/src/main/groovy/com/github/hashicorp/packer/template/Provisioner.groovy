@@ -80,7 +80,7 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
       overrideConfiguration.interpolate(context)
-      Class<? extends Configuration> clazz = CONFIGURATION_CLASS
+      Class</*? extends Configuration*/ P> clazz = CONFIGURATION_CLASS
       while (true) {
         clazz.fields.each { Field field ->
           Object value = field.get(overrideConfiguration)

@@ -9,4 +9,5 @@ import java.lang.annotation.Target
 @Retention(RetentionPolicy.SOURCE)
 @interface Default {
   Class value()
+  boolean dynamic() default false
 }

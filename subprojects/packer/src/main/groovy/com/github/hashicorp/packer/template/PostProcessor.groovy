@@ -96,9 +96,9 @@ abstract class PostProcessor extends InterpolableObject {
 
   protected abstract Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
-  private static final Map<String, Class<? extends PostProcessor>> SUBTYPES = [:]
+  private static final Map<String, Class<PostProcessor>> SUBTYPES = [:]
 
-  static void registerSubtype(String type, Class<? extends PostProcessor> clazz) {
+  static void registerSubtype(String type, Class<PostProcessor> clazz) {
     SUBTYPES.put type, clazz
     Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
   }

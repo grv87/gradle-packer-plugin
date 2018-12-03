@@ -14,9 +14,9 @@ interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>
   @InheritConstructors
   class ImmutableRaw<
     ThisInterface extends InterpolableFile<ThisInterface>,
-    InterpolatedClass extends Interpolated<ThisInterface, AlreadyInterpolatedClass>,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface>
-    > extends InterpolableValue.ImmutableRaw<SimpleInterpolableString, File, InterpolableFile, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
+    InterpolatedClass extends Interpolated<ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface> & ThisInterface
+  > extends InterpolableValue.ImmutableRaw<SimpleInterpolableString, File, InterpolableFile, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
     protected static final File doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
       context.interpolatePath(raw.interpolate(context)).toFile()
     }
@@ -30,9 +30,9 @@ interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>
   @InheritConstructors
   class Raw<
     ThisInterface extends InterpolableFile<ThisInterface>,
-    InterpolatedClass extends Interpolated<ThisInterface, AlreadyInterpolatedClass>,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface>
-    > extends InterpolableValue.Raw<SimpleInterpolableString, File, InterpolableFile, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
+    InterpolatedClass extends Interpolated<ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
+    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface> & ThisInterface
+  > extends InterpolableValue.Raw<SimpleInterpolableString, File, InterpolableFile, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
     protected static final File doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
       context.interpolatePath(raw.interpolate(context)).toFile()
     }
@@ -46,8 +46,8 @@ interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>
   @InheritConstructors
   class Interpolated<
     ThisInterface extends InterpolableFile<ThisInterface>,
-    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface>
-    > extends InterpolableValue.Interpolated<SimpleInterpolableString, File, InterpolableFile, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
+    AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface> & ThisInterface
+  > extends InterpolableValue.Interpolated<SimpleInterpolableString, File, InterpolableFile, AlreadyInterpolatedClass> implements InterpolableFile<ThisInterface> {
     @Override
     File call() {
       interpolated
@@ -57,7 +57,7 @@ interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>
   @InheritConstructors
   class AlreadyInterpolated<
     ThisInterface extends InterpolableFile<ThisInterface>
-    > extends InterpolableValue.AlreadyInterpolated<SimpleInterpolableString, File, InterpolableFile> implements InterpolableFile<ThisInterface> {
+  > extends InterpolableValue.AlreadyInterpolated<SimpleInterpolableString, File, InterpolableFile> implements InterpolableFile<ThisInterface> {
     @Override
     File call() {
       interpolated
