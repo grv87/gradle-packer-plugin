@@ -262,12 +262,13 @@ interface InterpolableValue<
     }
 
     @Override
+    @Synchronized
     final void setRaw(Source raw) {
       this.@interpolable.raw = raw
     }
 
     private final Semaphore interpolationSemaphore = new Semaphore(1)
-    
+
     private Target getRawDefaultValue() {
       if (Supplier.isInstance(defaultValue)) {
         ((Supplier<Target>)defaultValue).get()
@@ -303,6 +304,7 @@ interface InterpolableValue<
         interpolationSemaphore.release()
       }
     }
+
     @SuppressWarnings('unused') // IDEA bug
     private static final long serialVersionUID = 6385036190092324496L
 

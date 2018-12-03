@@ -1,6 +1,7 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonValue
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
 import com.github.hashicorp.packer.engine.annotations.PostProcess
@@ -13,6 +14,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.Input
 
+@AutoImplement
 @CompileStatic
 interface BlockDevice extends InterpolableObject<BlockDevice> {
   @Input

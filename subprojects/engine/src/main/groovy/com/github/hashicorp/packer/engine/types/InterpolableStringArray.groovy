@@ -14,7 +14,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
     }
 
     @JsonCreator
-    ImmutableRaw(List<String> raw) {
+    ImmutableRaw(ImmutableList<String> raw) {
       super(ImmutableList.copyOf(raw))
     }
 
@@ -23,7 +23,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
       super(raw)
     }
 
-    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, List<SimpleInterpolableString> raw) {
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, ImmutableList<SimpleInterpolableString> raw) {
       ImmutableList.copyOf(raw*.interpolate(context))
     }
 
