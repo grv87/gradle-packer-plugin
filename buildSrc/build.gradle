@@ -18,26 +18,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-buildscript {
+/*buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 plugins {
   id 'org.fidata.project.java' version '6.0.0-gradle-5-0-SNAPSHOT' apply false
   id 'org.fidata.project.groovy' version '6.0.0-gradle-5-0-SNAPSHOT' apply false
-}
+}*/
 
 ext.rootDir = file('..')
 
 apply from: new File(ext.rootDir, 'buildSrc/gradle/load-properties.gradle')
 
-apply plugin: 'org.fidata.project.java'
-apply plugin: 'org.fidata.project.groovy'
+/*apply plugin: 'org.fidata.project.java'
+apply plugin: 'org.fidata.project.groovy'*/
 
 // TODO: sourceSets.main.groovy.srcDirs = [new File(project.ext.rootDir,  'src/validate/groovy')]
 
 // TODO: apply from: new File(ext.rootDir, 'gradle/dependencies-validate-compile.gradle')
 
-tasks.named('codenarcMain').configure {
+/*tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO
 }
 
@@ -49,3 +49,4 @@ allprojects {
 }
 
 dependencies.runtime project(path)
+*/

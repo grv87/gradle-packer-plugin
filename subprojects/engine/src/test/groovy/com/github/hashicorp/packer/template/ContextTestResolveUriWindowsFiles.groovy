@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.template
 
+import org.junit.Ignore
+
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import groovy.transform.CompileStatic
 import org.junit.BeforeClass
@@ -16,6 +18,7 @@ import junitparams.naming.TestCaseName
  */
 @RunWith(JUnitParamsRunner)
 @CompileStatic
+@Ignore
 class ContextTestResolveUriWindowsFiles {
   @ClassRule
   public static final TemporaryFolder temporaryFolder = new TemporaryFolder()

@@ -191,6 +191,7 @@ final class Context {
   // the original URL might be "local/file.iso" which isn't a valid URL,
   // and so DownloadableURL will return "file://local/file.iso"
   // No other transformations are done to the path.
+  // TODO: @throws
   URI resolveUri(String original) {
     // Code from packer/common DownloadableURL
     String result
@@ -208,13 +209,56 @@ final class Context {
     // If so, then just pass it through.
     try {
       URI resultUri = new URI(result)
-      if (!resultUri.scheme?.empty && !resultUri.host?.empty) {
+      if (!resultUri.scheme && !resultUri.host) {
         return resultUri
       }
     } catch (URISyntaxException ignored) {
       // This means that it is not an URI
       // Then we assume it is a regular path
     }
+
+    /* TODO:
+      // If it's a file scheme, then convert it back to a regular path so the next
+      // case which forces it to an absolute path, will correct it.
+      if u, err := url.Parse(original); err == nil && strings.ToLower(u.Scheme) == "file" {
+        original = u.Path
+      }
+
+      // If we're on Windows and we start with a slash, then this absolute path
+      // is wrong. Fix it up, so the next case can figure out the absolute path.
+      if rpath := strings.SplitN(original, "/", 2); rpath[0] == "" && runtime.GOOS == "windows" {
+        result = rpath[1]
+      } else {
+        result = original
+      }
+
+      // Since we should be some kind of path (relative or absolute), check
+      // that the file exists, then make it an absolute path so we can return an
+      // absolute uri.
+      if _, err := os.Stat(result); err == nil {
+        result, err = filepath.Abs(filepath.FromSlash(result))
+        if err != nil {
+          return "", err
+        }
+
+        result, err = filepath.EvalSymlinks(result)
+        if err != nil {
+          return "", err
+        }
+
+        result = filepath.Clean(result)
+        return fmt.Sprintf("file://%s%s", absPrefix, filepath.ToSlash(result)), nil
+      }
+
+      // Otherwise, check if it was originally an absolute path, and fix it if so.
+      if strings.HasPrefix(original, "/") {
+        return fmt.Sprintf("file://%s%s", absPrefix, result), nil
+      }
+
+      // Anything left should be a non-existent relative path. So fix it up here.
+      result = filepath.ToSlash(filepath.Clean(result))
+      return fmt.Sprintf("file://./%s", result), nil
+     */
 
     // Then we rely on built-in Java algorithms
     return resolvePath(result).toUri()
