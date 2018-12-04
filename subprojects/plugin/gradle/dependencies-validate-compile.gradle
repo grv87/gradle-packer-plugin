@@ -19,7 +19,7 @@
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
 dependencies {
-  api gradleApi()
+  // Provided by packer: api gradleApi()
   api project(path: ':packer'/*, configuration: 'runtimeElements'*/)
   api group: 'org.ysb33r.gradle', name: 'grolifant', version: '[0.8, 1['
 }

@@ -7,12 +7,12 @@ plugins {
 }
 dependencies {
   api gradleApi()
-  api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
-  api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
-  api /* TODO: fixed in Gradle 5.1-20181022112637+0000 */ group: 'com.samskivert', name: 'jmustache', version: '[1, 2['
-  api /* TODO: fixed in Gradle 5.1-20181022112637+0000 */ group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '[3, 4['
-  implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3[' // TODO: Databind is required only for JsonDeserialize annotation for AutoImplement. There are other ways - see InterpolableValue. Need to sync these approaches
+  implementation group: 'com.samskivert', name: 'jmustache', version: '[1, 2['
+  implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '[3, 4['
+  api group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3, 4['
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
 }
@@ -25,26 +25,42 @@ dependencies {
  */
 afterEvaluate {
   jvm.javadocLinks['com.fasterxml.jackson.annotation'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-annotations' }.moduleVersion.replaceFirst(/.0$/, '') }/")
-  jvm.javadocLinks['com.fasterxml.jackson.databind'] = uri("http://fasterxml.github.io/jackson-annotations/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-core' }.moduleVersion.replaceFirst(/.0$/, '') }/")
+  jvm.javadocLinks['com.fasterxml.jackson.databind'] = uri("http://fasterxml.github.io/jackson-databind/javadoc/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'com.fasterxml.jackson.core' && it.moduleName == 'jackson-databind' }.moduleVersion.replaceFirst(/.0$/, '') }/")
 }
 
 sourceSets {
   testFixtures {
     groovy.srcDirs = ['src/testFixtures/groovy']
-    /*compileClasspath += sourceSets['main'].output
-    runtimeClasspath += output + sourceSets['main'].output*/
-
+  }
+  integTest {
+    groovy.srcDirs = ['src/integTest/groovy']
+    resources.srcDirs = ['src/integTest/resources']
   }
 }
 
 plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('testFixtures')
+plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['testFixtures'].implementationConfigurationName)
+sourceSets.named('integTest').configure {
+  plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClasspath it
+}
+plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('integTest')
+plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['integTest'].implementationConfigurationName)
 
 dependencies {
-  testFixturesImplementation localGroovy()
-  // testFixturesImplementation sourceSets.main.output
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
-  testImplementation sourceSets.testFixtures.output
+  // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+  integTestImplementation sourceSets.testFixtures.output
+}
+
+tasks.register('integTest', Test) {
+  group = 'Verification'
+  description = 'Runs integration tests'
+  shouldRunAfter 'test' // WORKAROUND: https://github.com/FIDATA/gradle-base-plugins/issues/27 <grv87 2018-12-05>
+  testClassesDirs = sourceSets['integTest'].output.classesDirs
+  classpath = sourceSets['integTest'].runtimeClasspath
+  reports.junitXml.destination = new File(xmlReportsDir, 'integTest')
+  reports.html.destination = new File(htmlReportsDir, 'integTest')
 }
 
 tasks.named('codenarcMain').configure {

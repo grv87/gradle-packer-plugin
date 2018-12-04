@@ -73,6 +73,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
     String implClassName = "${ interfaseName }Impl"
     String implClassFullName = "$interfaseFullName$DOLLAR$implClassName"
 
+    // Can't find an easier way to do this
     ClassNode interfaseRef = new ClassNode(interfase.name, interfase.modifiers, interfase.superClass)
 
     ClassNode implClass = (ClassNode)interfase.innerClasses.find { ClassNode clazz -> clazz.nameWithoutPackage == implClassName }

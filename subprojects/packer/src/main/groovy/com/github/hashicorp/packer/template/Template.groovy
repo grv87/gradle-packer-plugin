@@ -19,16 +19,18 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.types.InterpolableValue
+
+import static Context.BUILD_NAME_VARIABLE_NAME
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import com.github.hashicorp.packer.engine.annotations.ComputedNested
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import org.gradle.api.Project
-
 import java.nio.file.Path
-
-import static Context.BUILD_NAME_VARIABLE_NAME
 import groovy.transform.CompileDynamic
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
@@ -199,6 +201,7 @@ class Template extends InterpolableObject {
     MAPPER.registerModule(new Jdk8Module())
     MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
     MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
+    MAPPER.registerModule(InterpolableValue.SERIALIZER_MODULE)
     /*
      * TODO:
      * 1. All classes

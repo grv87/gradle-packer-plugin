@@ -1,7 +1,7 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
 import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationException
@@ -22,7 +22,6 @@ import java.util.concurrent.Semaphore
 // @AutoExternalize(excludes = ['raw']) // TODO: Groovy 2.5.0
 @CompileStatic
 // Serializable is required for Gradle up-to-date checking
-@JsonSerialize(using = Serializer)
 interface InterpolableValue<
   Source,
   Target extends Serializable,
@@ -393,13 +392,17 @@ interface InterpolableValue<
     }
   }
 
-  protected static final class Serializer extends JsonSerializer<InterpolableValue> {
-    @Override
-    void serialize(InterpolableValue interpolableValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException/*, JsonProcessingException*/ {
-      Object raw = interpolableValue.raw
-      if (raw != null) {
-        jsonGenerator.writeObject(raw)
+  public static final SimpleModule SERIALIZER_MODULE = {
+    SimpleModule result = new SimpleModule()
+    result.addSerializer(InterpolableValue, new JsonSerializer<InterpolableValue>() {
+      @Override
+      void serialize(InterpolableValue interpolableValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException/*, JsonProcessingException*/ {
+        Object raw = interpolableValue.raw
+        if (raw != null) {
+          jsonGenerator.writeObject(raw)
+        }
       }
-    }
-  }
+    })
+    result
+  }.call()
 }
