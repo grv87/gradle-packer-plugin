@@ -199,7 +199,8 @@ class Template extends InterpolableObject {
     MAPPER.registerModule(new AfterburnerModule())
     MAPPER.registerModule(new GuavaModule())
     MAPPER.registerModule(new Jdk8Module())
-    MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+    // Annotations replaced this
+    // MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
     MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
     MAPPER.registerModule(InterpolableValue.SERIALIZER_MODULE)
     /*

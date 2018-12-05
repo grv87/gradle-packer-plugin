@@ -18,7 +18,6 @@ import junitparams.naming.TestCaseName
  */
 @RunWith(JUnitParamsRunner)
 @CompileStatic
-@Ignore
 class ContextTestResolveUriWindowsFiles {
   @ClassRule
   public static final TemporaryFolder temporaryFolder = new TemporaryFolder()

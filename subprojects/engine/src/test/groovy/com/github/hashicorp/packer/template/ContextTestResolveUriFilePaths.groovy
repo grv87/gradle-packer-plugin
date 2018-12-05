@@ -18,7 +18,6 @@ import java.nio.file.Path
  */
 @RunWith(JUnitParamsRunner)
 @CompileStatic
-@Ignore
 class ContextTestResolveUriFilePaths {
   public static final File tf = File.createTempFile('TODO', 'packer') // TODO
   public static final Path tfPath = tf.toPath().toRealPath().normalize()

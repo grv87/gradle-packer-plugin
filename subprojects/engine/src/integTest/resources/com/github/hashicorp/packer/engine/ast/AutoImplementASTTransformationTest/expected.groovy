@@ -37,7 +37,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
   @Optional
   InterpolableLong getIops()
 
-  @JsonProperty('on_devide')
+  @JsonProperty('no_device')
   @Input
   @Optional
   InterpolableBoolean getNoDevice()
@@ -144,7 +144,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
       @JsonProperty('device_name') InterpolableString deviceName,
       @JsonProperty('encrypted') InterpolableBoolean encrypted,
       @JsonProperty('iops') InterpolableLong iops,
-      @JsonProperty('on_devide') InterpolableBoolean noDevice,
+      @JsonProperty('no_device') InterpolableBoolean noDevice,
       @JsonProperty('snapshot_id') InterpolableString snapshotId,
       @JsonProperty('virtual_name') InterpolableString virtualName,
       @JsonProperty('volume_type') /*InterpolableVolumeType*/ InterpolableString volumeType,
@@ -163,36 +163,36 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
       this.@kmsKeyId = kmsKeyId ?: new InterpolableString.ImmutableRaw()
     }
 
-    private BlockDeviceImpl(Context context, BlockDevice raw) {
-      this.@deleteOnTermination = raw.deleteOnTermination.interpolateValue(context, Boolean.FALSE, {
+    private BlockDeviceImpl(Context context, BlockDevice from) {
+      this.@deleteOnTermination = from.deleteOnTermination.interpolateValue(context, Boolean.FALSE, {
         noDevice.interpolated || virtualName.interpolated
       })
-      this.@deviceName = raw.deviceName.interpolateValue(context)
-      this.@encrypted = raw.encrypted.interpolateValue(context, Boolean.FALSE, {
+      this.@deviceName = from.deviceName.interpolateValue(context)
+      this.@encrypted = from.encrypted.interpolateValue(context, Boolean.FALSE, {
         noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated
       })
-      this.@iops = raw.iops.interpolateValue(context, (Long)null, {
+      this.@iops = from.iops.interpolateValue(context, (Long)null, {
         /* TODO: Bug in either packer or AWS documentation. This should be supported for gp2 volumes too */
         volumeType.interpolated != /*VolumeType.IO1*/ 'io1'
       })
-      this.@noDevice = raw.noDevice.interpolateValue(context, Boolean.FALSE)
-      this.@snapshotId = raw.snapshotId.interpolateValue(context, (String)null, {
+      this.@noDevice = from.noDevice.interpolateValue(context, Boolean.FALSE)
+      this.@snapshotId = from.snapshotId.interpolateValue(context, (String)null, {
         noDevice.interpolated || virtualName.interpolated
       })
-      this.@virtualName = raw.virtualName.interpolateValue(context, (String)null, {
+      this.@virtualName = from.virtualName.interpolateValue(context, (String)null, {
         noDevice.interpolated
       }) { String interpolated ->
         interpolated.startsWith('ephemeral') ? null : interpolated
       }
-      this.@volumeType = raw.volumeType.interpolateValue(context, /*VolumeType.STANDARD*/ 'standard', {
+      this.@volumeType = from.volumeType.interpolateValue(context, /*VolumeType.STANDARD*/ 'standard', {
         noDevice.interpolated || virtualName.interpolated
       })
-      this.@volumeSize = raw.volumeSize.interpolateValue(context, (Long)null, {
+      this.@volumeSize = from.volumeSize.interpolateValue(context, (Long)null, {
         noDevice.interpolated || virtualName.interpolated
       }) { Long interpolated ->
         interpolated > 0 ? interpolated : null
       }
-      this.@kmsKeyId = raw.kmsKeyId.interpolateValue(context, (String)null, {
+      this.@kmsKeyId = from.kmsKeyId.interpolateValue(context, (String)null, {
         noDevice.interpolated || virtualName.interpolated
       })
     }

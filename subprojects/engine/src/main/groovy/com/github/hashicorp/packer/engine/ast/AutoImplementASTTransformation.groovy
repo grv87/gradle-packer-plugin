@@ -3,6 +3,7 @@ package com.github.hashicorp.packer.engine.ast
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
@@ -20,18 +21,20 @@ import org.codehaus.groovy.ast.FieldNode
 import org.codehaus.groovy.ast.InnerClassNode
 import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.MixinNode
+import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.ast.Parameter
-import org.codehaus.groovy.ast.builder.AstBuilder
-import org.codehaus.groovy.ast.expr.ClassExpression
+import org.codehaus.groovy.ast.expr.ClosureExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 import org.codehaus.groovy.ast.expr.Expression
-import org.codehaus.groovy.ast.expr.FieldExpression
 import org.codehaus.groovy.ast.expr.VariableExpression
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.ast.stmt.ExpressionStatement
 import org.codehaus.groovy.ast.stmt.ReturnStatement
 import org.codehaus.groovy.ast.stmt.Statement
 import org.codehaus.groovy.ast.tools.GeneralUtils
 import org.codehaus.groovy.ast.tools.GenericsUtils
+import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
@@ -49,7 +52,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
   private static final String CONTEXT = 'context'
   private static final VariableExpression CONTEXT_VAR_X = GeneralUtils.varX(CONTEXT)
   private static final ConstantExpression NULL = GeneralUtils.constX(null)
-  private static final ClassExpression THIS_X = GeneralUtils.classX(ClassNode.THIS)
+  private static final VariableExpression THIS_X = GeneralUtils.varX('this')
   private static final String DOLLAR = '$'
 
   @Override
@@ -73,8 +76,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
     String implClassName = "${ interfaseName }Impl"
     String implClassFullName = "$interfaseFullName$DOLLAR$implClassName"
 
-    // Can't find an easier way to do this
-    ClassNode interfaseRef = new ClassNode(interfase.name, interfase.modifiers, interfase.superClass)
+    ClassNode interfaseRef = GenericsUtils.newClass(interfase)
 
     ClassNode implClass = (ClassNode)interfase.innerClasses.find { ClassNode clazz -> clazz.nameWithoutPackage == implClassName }
     if (implClass == null) {
@@ -83,7 +85,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
         implClassFullName,
         ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL,
         ClassHelper.make(Object, false), // TODO: remove unnecessary garbage
-        [interfaseRef, ClassHelper.make(GroovyObject, false)] as ClassNode[],
+        [interfaseRef] as ClassNode[],
         [] as MixinNode[]
       )
       // implClass = new ClassNode(implClassFullName, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL, interfase)
@@ -111,7 +113,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
       }
 
       if (m && method.parameters.length == 0) {
-        String fieldName = m.replaceFirst('')
+        String fieldName = m.replaceFirst('').uncapitalize()
 
         if (method.annotations.any { AnnotationNode it -> it.classNode.typeClass == IgnoreIf } ) {
           method.addAnnotation(new AnnotationNode(ClassHelper.make(Optional)))
@@ -120,7 +122,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
         AnnotationNode jsonPropertyAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == JsonProperty }
         if (jsonPropertyAnnotation == null) {
           jsonPropertyAnnotation = new AnnotationNode(ClassHelper.make(JsonProperty))
-          jsonPropertyAnnotation.addMember('value', GeneralUtils.constX(fieldName))
+          jsonPropertyAnnotation.addMember('value', GeneralUtils.constX(((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)))
           method.addAnnotation(jsonPropertyAnnotation)
         }
 
@@ -130,7 +132,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
         }
 
         FieldNode field = implClass.addField(fieldName, ClassNode.ACC_PRIVATE | ClassNode.ACC_FINAL, typ, null)
-        FieldExpression fieldX = GeneralUtils.fieldX(field)
+        ConstantExpression fieldNameConstant = GeneralUtils.constX(fieldName)
+        Expression thisField = GeneralUtils.attrX(THIS_X, fieldNameConstant)
 
         MethodNode methodImpl = implClass.addMethod(
           method.name,
@@ -138,7 +141,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           typ,
           /*method.parameters*/ new Parameter[0],
           method.exceptions,
-          new ReturnStatement(fieldX)
+          new ReturnStatement(thisField)
         )
         // TODO: methodImpl.addAnnotation(new AnnotationNode(ClassHelper.make(Override)))
 
@@ -149,15 +152,14 @@ class AutoImplementASTTransformation implements ASTTransformation {
         }
         constructorParameters.add constructorParameter
 
-        defaultConstructorStatements.add GeneralUtils.assignS(fieldX, new ElvisOperatorExpression(GeneralUtils.varX(fieldName), GeneralUtils.ctorX(ClassHelper.make("$typ.name${ DOLLAR }ImmutableRaw" /* TODO */))))
+        defaultConstructorStatements.add GeneralUtils.assignS(thisField, new ElvisOperatorExpression(GeneralUtils.varX(fieldName), GeneralUtils.ctorX(ClassHelper.make("$typ.name${ DOLLAR }ImmutableRaw" /* TODO */))))
 
         // TODO: + Context vars
         AnnotationNode defaultAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == Default }
         AnnotationNode ignoreIfAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == IgnoreIf }
         AnnotationNode postProcessAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == PostProcess }
 
-        Expression thisField = GeneralUtils.propX(THIS_X, fieldX)
-        Expression fromField = GeneralUtils.propX(GeneralUtils.varX('from'), fieldX)
+        Expression fromField = GeneralUtils.propX(GeneralUtils.varX('from'), fieldNameConstant)
 
         if (isValue) {
           List<Expression> interpolateValueParameters = [(Expression)CONTEXT_VAR_X]
@@ -165,9 +167,23 @@ class AutoImplementASTTransformation implements ASTTransformation {
           if (defaultAnnotation != null) {
             method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
-              interpolateValueParameters.add GeneralUtils.constX(((Closure)groovyShell.evaluate((defaultAnnotation.members['value'].text))).call())
-            } else {
               interpolateValueParameters.add defaultAnnotation.members['value']
+            } else {
+              List<Statement> statements = ((BlockStatement)((ClosureExpression)(defaultAnnotation.members['value'])).code).statements
+              int countOfStatements = statements.size()
+              if (countOfStatements != 1) {
+                throw new IllegalArgumentException(sprintf('Closure passed to Default annotation should have exactly one statement. Got: %d', countOfStatements))
+              }
+              Statement firstS = statements.first()
+              Expression defaultValueX
+              if (ExpressionStatement.isInstance(firstS)) {
+                defaultValueX = ((ExpressionStatement)firstS).expression
+              } else if (ReturnStatement.isInstance(firstS)) {
+                defaultValueX = ((ReturnStatement)firstS).expression
+              } else {
+                throw new IllegalArgumentException(sprintf('Closure passed to Default annotation should have expression or return statement. Got: %s', firstS))
+              }
+              interpolateValueParameters.add defaultValueX
             }
           } else if (ignoreIfAnnotation != null || postProcessAnnotation != null) {
             interpolateValueParameters.add GeneralUtils.castX(targetClass, NULL)
@@ -205,15 +221,15 @@ class AutoImplementASTTransformation implements ASTTransformation {
     ConstructorNode defaultConstructor = implClass.addConstructor(
       ClassNode.ACC_PUBLIC,
       constructorParameters.toArray(new Parameter[0]),
-      null,
+      [] as ClassNode[],
       GeneralUtils.block(null, defaultConstructorStatements) // TODO: need to call super() ?
     )
     defaultConstructor.addAnnotation(new AnnotationNode(ClassHelper.make(JsonCreator)))
 
     ConstructorNode interpolateConstructor = implClass.addConstructor(
       ClassNode.ACC_PRIVATE,
-      [new Parameter(ClassHelper.make(Context), CONTEXT), new Parameter(interfaseRef, 'raw')].toArray(new Parameter[2]),
-      null,
+      [new Parameter(ClassHelper.make(Context), CONTEXT), new Parameter(interfaseRef, 'from')].toArray(new Parameter[2]),
+      [] as ClassNode[],
       GeneralUtils.block(null, interpolateConstructorStatements) // TODO: need to call super() ?
     )
 
@@ -222,11 +238,19 @@ class AutoImplementASTTransformation implements ASTTransformation {
       ClassNode.ACC_PUBLIC,
       interfaseRef,
       [new Parameter(ClassHelper.make(Context), CONTEXT)].toArray(new Parameter[1]),
-      null,
+      [] as ClassNode[],
       GeneralUtils.stmt(GeneralUtils.ctorX(implClass, GeneralUtils.args(CONTEXT_VAR_X, THIS_X /* TOTEST or varX('this') */)))
     )
     // TODO: interpolateMethodImpl.addAnnotation(new AnnotationNode(ClassHelper.make(Override)))
 
-    interfase.module.addClass(implClass)
+    // sourceUnit.AST.addClass(implClass)
+    // implClass.module = new ModuleNode(sourceUnit)
+    // implClass.conte
+    // interfase.module.addClass(implClass)
+    new CompilationUnit(sourceUnit.AST.unit.config).with {
+      addClassNode(implClass)
+      // AST.addModule(interfase.module)
+      compile()
+    }
   }
 }
