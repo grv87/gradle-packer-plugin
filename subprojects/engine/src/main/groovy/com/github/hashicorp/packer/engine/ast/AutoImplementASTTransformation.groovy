@@ -115,10 +115,6 @@ class AutoImplementASTTransformation implements ASTTransformation {
       if (m && method.parameters.length == 0) {
         String fieldName = m.replaceFirst('').uncapitalize()
 
-        if (method.annotations.any { AnnotationNode it -> it.classNode.typeClass == IgnoreIf } ) {
-          method.addAnnotation(new AnnotationNode(ClassHelper.make(Optional)))
-        }
-
         AnnotationNode jsonPropertyAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == JsonProperty }
         if (jsonPropertyAnnotation == null) {
           jsonPropertyAnnotation = new AnnotationNode(ClassHelper.make(JsonProperty))
@@ -146,10 +142,10 @@ class AutoImplementASTTransformation implements ASTTransformation {
         // TODO: methodImpl.addAnnotation(new AnnotationNode(ClassHelper.make(Override)))
 
         Parameter constructorParameter = new Parameter(typ, fieldName)
-        constructorParameter.addAnnotation(jsonPropertyAnnotation)
+        /*constructorParameter.addAnnotation(jsonPropertyAnnotation)
         if (jsonAliasAnnotation != null) {
           constructorParameter.addAnnotation(jsonAliasAnnotation)
-        }
+        }*/
         constructorParameters.add constructorParameter
 
         defaultConstructorStatements.add GeneralUtils.assignS(thisField, new ElvisOperatorExpression(GeneralUtils.varX(fieldName), GeneralUtils.ctorX(ClassHelper.make("$typ.name${ DOLLAR }ImmutableRaw" /* TODO */))))
@@ -192,6 +188,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           if (ignoreIfAnnotation != null) {
             method.annotations.remove(ignoreIfAnnotation)
             interpolateValueParameters.add ignoreIfAnnotation.members['value']
+            method.addAnnotation(new AnnotationNode(ClassHelper.make(Optional)))
           } else if (postProcessAnnotation != null) {
             interpolateValueParameters.add NULL
           }
@@ -224,7 +221,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
       [] as ClassNode[],
       GeneralUtils.block(null, defaultConstructorStatements) // TODO: need to call super() ?
     )
-    defaultConstructor.addAnnotation(new AnnotationNode(ClassHelper.make(JsonCreator)))
+    // ERROR here
+    // defaultConstructor.addAnnotation(new AnnotationNode(ClassHelper.make(JsonCreator)))
 
     ConstructorNode interpolateConstructor = implClass.addConstructor(
       ClassNode.ACC_PRIVATE,
@@ -246,11 +244,11 @@ class AutoImplementASTTransformation implements ASTTransformation {
     // sourceUnit.AST.addClass(implClass)
     // implClass.module = new ModuleNode(sourceUnit)
     // implClass.conte
-    // interfase.module.addClass(implClass)
     new CompilationUnit(sourceUnit.AST.unit.config).with {
       addClassNode(implClass)
       // AST.addModule(interfase.module)
       compile()
     }
+    interfase.module.addClass(implClass)
   }
 }
