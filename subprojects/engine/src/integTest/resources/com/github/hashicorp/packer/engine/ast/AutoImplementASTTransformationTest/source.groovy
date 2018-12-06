@@ -16,11 +16,14 @@ import groovy.inspect.swingui.AstNodeToScriptAdapter
 import groovy.transform.ASTTest
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.InnerClassNode
 import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.ast.builder.AstAssert
 import org.codehaus.groovy.ast.builder.AstBuilder
+import org.codehaus.groovy.ast.tools.WideningCategories
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.ErrorCollector
@@ -30,7 +33,7 @@ import org.codehaus.groovy.control.SourceUnit
 
 import org.gradle.api.tasks.Input
 
-@ASTTest(phase = CompilePhase.CLASS_GENERATION, value = {
+@ASTTest(phase = CompilePhase.CANONICALIZATION, value = {
   /*List<ASTNode> expected = new AstBuilder().buildFromString(Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
   println(((ClassNode)node).innerClasses)*/
   CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
@@ -41,9 +44,13 @@ import org.gradle.api.tasks.Input
   // ModuleNode expected = new ModuleNode(new SourceUnit(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), compilerConfiguration, new GroovyClassLoader(), errorCollector)) // .getAST()
   // println errorCollector.errors
   // println expected.classes TODO
-  expected = new AstBuilder().buildFromString(CompilePhase.SEMANTIC_ANALYSIS, Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
-  AstAssert.assertSyntaxTree(expected.findAll { e -> InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> InnerClassNode.isInstance(s) })
-  AstAssert.assertSyntaxTree(expected.findAll { e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> ClassNode.isInstance(s) && !InnerClassNode.isInstance(s) })
+
+  expected = new AstBuilder().buildFromString(CompilePhase.CANONICALIZATION, Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
+  AstAssert.assertSyntaxTree(expected.findAll { ASTNode e -> InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> InnerClassNode.isInstance(s) })
+  expectedClasses = expected.findAll { ASTNode e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }
+  actualClasses = node.module.classes.findAll { ASTNode e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }
+  actualClasses*.annotations*.removeAll { AnnotationNode a -> WideningCategories.implementsInterfaceOrSubclassOf(a.classNode, ClassHelper.make(ASTTest)) }
+  AstAssert.assertSyntaxTree(expectedClasses, actualClasses)
 })
 @AutoImplement
 @CompileStatic

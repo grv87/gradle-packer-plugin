@@ -13,7 +13,7 @@ import groovy.transform.CompileStatic
 // import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
-import org.gradle.internal.impldep.com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
 @JsonDeserialize(as = BlockDeviceImpl)
 @CompileStatic
@@ -39,7 +39,6 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
 
   @JsonProperty('no_device')
   @Input
-  @Optional
   InterpolableBoolean getNoDevice()
 
   @JsonProperty('snapshot_id')

@@ -24,8 +24,8 @@ import org.fidata.gradle.packer.exceptions.SharedDataNotFound
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
-import static org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils.removeExtension
-import static org.gradle.internal.impldep.org.apache.commons.io.FileUtils.iterateFiles
+import static org.apache.commons.io.FilenameUtils.removeExtension
+import static org.apache.commons.io.FileUtils.iterateFiles
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.template.OnlyExcept
