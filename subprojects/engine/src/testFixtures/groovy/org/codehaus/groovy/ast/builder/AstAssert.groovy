@@ -128,7 +128,6 @@ class AstAssert {
                 assertSyntaxTree([expected.defaultValue], [actual.defaultValue], "${ path }.defaultValue")
                 Assert.assertEquals("$path: Wrong parameter name", expected.name, actual.name)
                 assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
-
             },
             ConstructorCallExpression : { expected, actual, path ->
                 assertNameOnly expected, actual, path, 'type'

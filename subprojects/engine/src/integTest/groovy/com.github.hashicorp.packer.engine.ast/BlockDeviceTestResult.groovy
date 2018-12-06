@@ -15,9 +15,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.impldep.com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-@JsonDeserialize(as = BlockDeviceImpl)
+@JsonDeserialize(as = BlockDeviceTestResultImpl)
 @CompileStatic
-interface BlockDevice extends InterpolableObject<BlockDevice> {
+interface BlockDeviceTestResult extends InterpolableObject<BlockDeviceTestResult> {
   @JsonProperty('delete_on_termination')
   @Input
   @Optional
@@ -67,7 +67,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
   @Optional
   InterpolableString getKmsKeyId()
 
-  static final class BlockDeviceImpl implements BlockDevice {
+  static final class BlockDeviceTestResultImpl implements BlockDeviceTestResult {
     private final InterpolableBoolean deleteOnTermination
 
     @Override
@@ -139,7 +139,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
     }
 
     @JsonCreator
-    BlockDeviceImpl(
+    BlockDeviceTestResultImpl(
       @JsonProperty('delete_on_termination') InterpolableBoolean deleteOnTermination,
       @JsonProperty('device_name') InterpolableString deviceName,
       @JsonProperty('encrypted') InterpolableBoolean encrypted,
@@ -151,19 +151,19 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
       @JsonProperty('volume_size') InterpolableLong volumeSize,
       @JsonProperty('kms_key_id') InterpolableString kmsKeyId
     ) {
-      this.@deleteOnTermination = deleteOnTermination != null ? deleteOnTermination : new InterpolableBoolean.ImmutableRaw()
-      this.@deviceName = deviceName != null ? deviceName : new InterpolableString.ImmutableRaw()
-      this.@encrypted = encrypted != null ? encrypted : new InterpolableBoolean.ImmutableRaw()
-      this.@iops = iops != null ? iops : new InterpolableLong.ImmutableRaw()
-      this.@noDevice = noDevice != null ? noDevice : new InterpolableBoolean.ImmutableRaw()
-      this.@snapshotId = snapshotId != null ? snapshotId : new InterpolableString.ImmutableRaw()
-      this.@virtualName = virtualName != null ? virtualName : new InterpolableString.ImmutableRaw()
-      this.@volumeType = volumeType != null ? volumeType : new /*InterpolableVolumeType*/ InterpolableString.ImmutableRaw()
-      this.@volumeSize = volumeSize != null ? volumeSize : new InterpolableLong.ImmutableRaw()
-      this.@kmsKeyId = kmsKeyId != null ? kmsKeyId : new InterpolableString.ImmutableRaw()
+      this.@deleteOnTermination = deleteOnTermination ?: new InterpolableBoolean.ImmutableRaw()
+      this.@deviceName = deviceName ?: new InterpolableString.ImmutableRaw()
+      this.@encrypted = encrypted ?: new InterpolableBoolean.ImmutableRaw()
+      this.@iops = iops ?: new InterpolableLong.ImmutableRaw()
+      this.@noDevice = noDevice ?: new InterpolableBoolean.ImmutableRaw()
+      this.@snapshotId = snapshotId ?: new InterpolableString.ImmutableRaw()
+      this.@virtualName = virtualName ?: new InterpolableString.ImmutableRaw()
+      this.@volumeType = volumeType ?: new /*InterpolableVolumeType*/ InterpolableString.ImmutableRaw()
+      this.@volumeSize = volumeSize ?: new InterpolableLong.ImmutableRaw()
+      this.@kmsKeyId = kmsKeyId ?: new InterpolableString.ImmutableRaw()
     }
 
-    private BlockDeviceImpl(Context context, BlockDevice from) {
+    private BlockDeviceTestResultImpl(Context context, BlockDeviceTestResult from) {
       this.@deleteOnTermination = from.deleteOnTermination.interpolateValue(context, Boolean.FALSE, {
         noDevice.interpolated || virtualName.interpolated
       })
@@ -198,8 +198,8 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
     }
 
     @Override
-    BlockDevice interpolate(Context context) {
-      new BlockDeviceImpl(context, this)
+    BlockDeviceTestResult interpolate(Context context) {
+      new BlockDeviceTestResultImpl(context, this)
     }
   }
 

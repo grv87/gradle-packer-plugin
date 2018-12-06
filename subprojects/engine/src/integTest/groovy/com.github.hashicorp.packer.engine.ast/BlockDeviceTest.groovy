@@ -10,44 +10,14 @@ import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.google.common.base.Charsets
-import com.google.common.io.Resources
-import groovy.inspect.swingui.AstNodeToScriptAdapter
-import groovy.transform.ASTTest
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.ast.ASTNode
-import org.codehaus.groovy.ast.ClassNode
-import org.codehaus.groovy.ast.InnerClassNode
-import org.codehaus.groovy.ast.ModuleNode
-import org.codehaus.groovy.ast.builder.AstAssert
-import org.codehaus.groovy.ast.builder.AstBuilder
-import org.codehaus.groovy.control.CompilePhase
-import org.codehaus.groovy.control.CompilerConfiguration
-import org.codehaus.groovy.control.ErrorCollector
-import org.codehaus.groovy.control.SourceUnit
-
 // import groovy.transform.InheritConstructors
 
 import org.gradle.api.tasks.Input
 
-@ASTTest(phase = CompilePhase.CLASS_GENERATION, value = {
-  /*List<ASTNode> expected = new AstBuilder().buildFromString(Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
-  println(((ClassNode)node).innerClasses)*/
-  CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
-  compilerConfiguration.debug = true
-  ErrorCollector errorCollector = new ErrorCollector(compilerConfiguration)
-  GroovyClassLoader groovyClassLoader = new GroovyClassLoader()
-  // groovyClassLoader.de
-  // ModuleNode expected = new ModuleNode(new SourceUnit(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), compilerConfiguration, new GroovyClassLoader(), errorCollector)) // .getAST()
-  // println errorCollector.errors
-  // println expected.classes TODO
-  expected = new AstBuilder().buildFromString(CompilePhase.SEMANTIC_ANALYSIS, Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expected.groovy'), Charsets.UTF_8))
-  AstAssert.assertSyntaxTree(expected.findAll { e -> InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> InnerClassNode.isInstance(s) })
-  AstAssert.assertSyntaxTree(expected.findAll { e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> ClassNode.isInstance(s) && !InnerClassNode.isInstance(s) })
-})
 @AutoImplement
 @CompileStatic
-interface BlockDevice extends InterpolableObject<BlockDevice> {
+interface BlockDeviceTest extends InterpolableObject<BlockDeviceTest> {
   @Input
   @Default({ Boolean.FALSE })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })

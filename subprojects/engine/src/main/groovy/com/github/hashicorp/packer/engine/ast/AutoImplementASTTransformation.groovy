@@ -1,5 +1,34 @@
 package com.github.hashicorp.packer.engine.ast
 
+import static org.codehaus.groovy.ast.tools.GeneralUtils.binX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.boolX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.varX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.constX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.classX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.attrX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.NE
+import static org.codehaus.groovy.ast.tools.GeneralUtils.ternaryX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.castX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.assignS
+import static org.codehaus.groovy.ast.tools.GeneralUtils.args
+import static org.codehaus.groovy.ast.tools.GeneralUtils.block
+import static org.codehaus.groovy.ast.tools.GeneralUtils.stmt
+import static org.codehaus.groovy.ast.tools.GeneralUtils.propX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.param
+import static org.codehaus.groovy.ast.tools.GeneralUtils.callX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.returnS
+import static org.codehaus.groovy.ast.ClassHelper.OBJECT_TYPE
+import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY
+import static org.codehaus.groovy.ast.ClassHelper.makeCached
+import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
+import static org.codehaus.groovy.ast.ClassNode.ACC_PUBLIC
+import static org.codehaus.groovy.ast.ClassNode.ACC_PRIVATE
+import static org.codehaus.groovy.ast.ClassNode.ACC_STATIC
+import static org.codehaus.groovy.ast.ClassNode.ACC_FINAL
+import static org.codehaus.groovy.ast.tools.GenericsUtils.newClass
+import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActualGenericsTypeMap
+import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -14,27 +43,21 @@ import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
-import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.ConstructorNode
 import org.codehaus.groovy.ast.FieldNode
 import org.codehaus.groovy.ast.InnerClassNode
 import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.MixinNode
-import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.ast.Parameter
 import org.codehaus.groovy.ast.expr.ClosureExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
-import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 import org.codehaus.groovy.ast.expr.Expression
 import org.codehaus.groovy.ast.expr.VariableExpression
 import org.codehaus.groovy.ast.stmt.BlockStatement
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
 import org.codehaus.groovy.ast.stmt.ReturnStatement
 import org.codehaus.groovy.ast.stmt.Statement
-import org.codehaus.groovy.ast.tools.GeneralUtils
-import org.codehaus.groovy.ast.tools.GenericsUtils
-import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
@@ -50,10 +73,26 @@ class AutoImplementASTTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/^get/
 
   private static final String CONTEXT = 'context'
-  private static final VariableExpression CONTEXT_VAR_X = GeneralUtils.varX(CONTEXT)
-  private static final ConstantExpression NULL = GeneralUtils.constX(null)
-  private static final VariableExpression THIS_X = GeneralUtils.varX('this')
+  private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT)
+  private static final ConstantExpression NULL = constX(null)
+  private static final VariableExpression THIS_X = varX('this')
   private static final String DOLLAR = '$'
+  public static final ClassNode JSON_PROPERTY_CLASS = makeCached(JsonProperty)
+  public static final ClassNode JSON_ALIAS_CLASS = makeCached(JsonAlias)
+  public static final ClassNode INTERPOLABLE_VALUE_CLASS = makeCached(InterpolableValue)
+  public static final ClassNode INTERPOLABLE_OBJECT_CLASS = makeCached(InterpolableObject)
+  public static final ClassNode DEFAULT_CLASS = makeCached(Default)
+  public static final ClassNode IGNORE_IF_CLASS = makeCached(IgnoreIf)
+  public static final ClassNode POST_PROCESS_CLASS = makeCached(PostProcess)
+  public static final String FROM = 'from'
+  public static final ClassNode OVERRIDE_CLASS = makeCached(Override)
+  public static final AnnotationNode OVERRIDE_ANNOTATION = new AnnotationNode(OVERRIDE_CLASS)
+  public static final ClassNode JSON_CREATOR_CLASS = makeCached(JsonCreator)
+  public static final ClassNode COMPILE_STATIC_CLASS = makeCached(CompileStatic)
+  public static final ClassNode JSON_DESERIALIZE_CLASS = makeCached(JsonDeserialize)
+  public static final ClassNode OPTIONAL_CLASS = makeCached(Optional)
+  public static final ClassNode CONTEXT_CLASS = makeCached(Context)
+  public static final Parameter CONTEXT_PARAM = param(CONTEXT_CLASS, CONTEXT)
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
@@ -61,41 +100,37 @@ class AutoImplementASTTransformation implements ASTTransformation {
     if (!interfase.interface) {
       throw new IllegalArgumentException('AutoImplement annotations should be applied to interfaces')
     }
-    if (!interfase.implementsInterface(ClassHelper.make(InterpolableObject))) {
-    // if (!interfase.interfaces.any { ClassNode it -> InterpolableObject.isAssignableFrom(it.typeClass) }) {
-      throw new IllegalArgumentException(sprintf('AutoImplement annotations should be applied to interfaces extending InterpolableObject. Got: %s', interfase.interfaces*.typeClass))
+    if (!implementsInterfaceOrSubclassOf(interfase, INTERPOLABLE_OBJECT_CLASS)) { 
+      throw new IllegalArgumentException(sprintf('AutoImplement annotations should be applied to interfaces extending InterpolableObject. Got: %s', interfase.interfaces))
     }
     // TODO: Check for CompileStatic ?
 
-    interfase.annotations.removeAll { AnnotationNode node -> AutoImplement.isAssignableFrom(interfase.annotations[0].classNode.typeClass) }
-
-    GroovyShell groovyShell = new GroovyShell(this.class.classLoader)
+    // TOTHINK: No need for this
+    // assert interfase.annotations.removeAll { AnnotationNode node -> implementsInterfaceOrSubclassOf(node.classNode, make(AutoImplement)) }
+    // assert interfase.annotations.remove(astNodes[0])
 
     String interfaseName = interfase.nameWithoutPackage
     String interfaseFullName = interfase.name
     String implClassName = "${ interfaseName }Impl"
     String implClassFullName = "$interfaseFullName$DOLLAR$implClassName"
 
-    ClassNode interfaseRef = GenericsUtils.newClass(interfase)
+    ClassNode interfaseRef = newClass(interfase)
 
-    ClassNode implClass = (ClassNode)interfase.innerClasses.find { ClassNode clazz -> clazz.nameWithoutPackage == implClassName }
-    if (implClass == null) {
-      implClass = new InnerClassNode(
-        interfaseRef,
-        implClassFullName,
-        ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL,
-        ClassHelper.make(Object, false), // TODO: remove unnecessary garbage
-        [interfaseRef] as ClassNode[],
-        [] as MixinNode[]
-      )
-      // implClass = new ClassNode(implClassFullName, ClassNode.ACC_PUBLIC | ClassNode.ACC_STATIC | ClassNode.ACC_FINAL, interfase)
-    }
-
-    AnnotationNode jsonDeserializeAnnotation = new AnnotationNode(ClassHelper.make(JsonDeserialize))
-    jsonDeserializeAnnotation.addMember('as', GeneralUtils.classX(implClass))
+    ClassNode implClass = (ClassNode)interfase.innerClasses.find { ClassNode clazz -> clazz.nameWithoutPackage == implClassName } ?: new InnerClassNode(
+      interfaseRef,
+      implClassFullName,
+      ACC_PUBLIC | ACC_STATIC | ACC_FINAL,
+      OBJECT_TYPE, // TODO: remove unnecessary garbage
+      [interfaseRef] as ClassNode[],
+      [] as MixinNode[]
+    )
+    implClass.addAnnotation(new AnnotationNode(COMPILE_STATIC_CLASS)) // !!!
+    
+    AnnotationNode jsonDeserializeAnnotation = new AnnotationNode(JSON_DESERIALIZE_CLASS)
+    jsonDeserializeAnnotation.addMember('as', classX(implClass))
     interfase.addAnnotation(jsonDeserializeAnnotation)
 
-    List<Parameter> constructorParameters = []
+    List<Parameter> constructorParams = []
 
     List<Statement> defaultConstructorStatements = []
     List<Statement> interpolateConstructorStatements = []
@@ -104,66 +139,96 @@ class AutoImplementASTTransformation implements ASTTransformation {
       Matcher m = GETTER_PATTERN.matcher(method.name)
       ClassNode typ = method.returnType
 
-      // new CompilationUnit(sourceUnit.AST.unit.config).add
-
-      boolean isValue = InterpolableValue.isAssignableFrom(typ.typeClass)
+      boolean isValue = implementsInterfaceOrSubclassOf(typ, INTERPOLABLE_VALUE_CLASS)
       ClassNode targetClass
       if (isValue) {
-         targetClass = GenericsUtils.findActualTypeByGenericsPlaceholderName('Target', GenericsUtils.makeDeclaringAndActualGenericsTypeMap(ClassHelper.make(InterpolableValue), typ))
+         targetClass = findActualTypeByGenericsPlaceholderName('Target', makeDeclaringAndActualGenericsTypeMap(INTERPOLABLE_VALUE_CLASS, typ))
       }
 
       if (m && method.parameters.length == 0) {
         String fieldName = m.replaceFirst('').uncapitalize()
+        ConstantExpression fieldNameConstant = constX(fieldName)
+        Expression thisFieldX = attrX(
+          THIS_X,
+          fieldNameConstant
+        )
+        Expression fromFieldX = propX(
+          varX(FROM),
+          fieldNameConstant
+        )
+        VariableExpression fieldVarX = varX(fieldName)
 
-        AnnotationNode jsonPropertyAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == JsonProperty }
+        // String typImplClassName = isValue ? "$typ.name${ DOLLAR }ImmutableRaw" /* TODO */ : "$typ.name$DOLLAR${typ.name}Impl"
+        String typImplClassName = isValue ? 'ImmutableRaw' : "${typ.name}Impl"
+        ClassNode typImplType = (ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.nameWithoutPackage == typImplClassName }
+
+        AnnotationNode jsonPropertyAnnotation = method.annotations.find { AnnotationNode it -> implementsInterfaceOrSubclassOf(it.classNode, JSON_PROPERTY_CLASS) }
         if (jsonPropertyAnnotation == null) {
-          jsonPropertyAnnotation = new AnnotationNode(ClassHelper.make(JsonProperty))
-          jsonPropertyAnnotation.addMember('value', GeneralUtils.constX(((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)))
-          method.addAnnotation(jsonPropertyAnnotation)
+          String fieldJsonName = ((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)
+          jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
+          jsonPropertyAnnotation.addMember('value', constX(jsonDeserializeAnnotation))
+          method.addAnnotation jsonPropertyAnnotation
         }
 
-        AnnotationNode jsonAliasAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == JsonAlias }
+        AnnotationNode jsonAliasAnnotation = method.annotations.find { implementsInterfaceOrSubclassOf(it.classNode, JSON_ALIAS_CLASS) }
         if (jsonAliasAnnotation != null) {
-          assert method.annotations.remove(jsonAliasAnnotation) /* TODO */
+          assert method.annotations.remove(jsonAliasAnnotation)
         }
 
-        FieldNode field = implClass.addField(fieldName, ClassNode.ACC_PRIVATE | ClassNode.ACC_FINAL, typ, null)
-        ConstantExpression fieldNameConstant = GeneralUtils.constX(fieldName)
-        Expression thisField = GeneralUtils.attrX(THIS_X, fieldNameConstant)
+        implClass.addField(
+          fieldName,
+          ACC_PRIVATE | ACC_FINAL,
+          typ,
+          null
+        )
 
         MethodNode methodImpl = implClass.addMethod(
           method.name,
-          ClassNode.ACC_PUBLIC,
+          ACC_PUBLIC,
           typ,
-          /*method.parameters*/ new Parameter[0],
+          method.parameters,
           method.exceptions,
-          new ReturnStatement(thisField)
+          returnS(thisFieldX)
         )
-        // TODO: methodImpl.addAnnotation(new AnnotationNode(ClassHelper.make(Override)))
+        methodImpl.addAnnotation(OVERRIDE_ANNOTATION)
 
-        Parameter constructorParameter = new Parameter(typ, fieldName)
-        /*constructorParameter.addAnnotation(jsonPropertyAnnotation)
+        Parameter constructorParameter = param(
+          typ,
+          fieldName
+        )
+        constructorParameter.addAnnotation(jsonPropertyAnnotation)
         if (jsonAliasAnnotation != null) {
           constructorParameter.addAnnotation(jsonAliasAnnotation)
-        }*/
-        constructorParameters.add constructorParameter
+        }
+        constructorParams.add constructorParameter
 
-        defaultConstructorStatements.add GeneralUtils.assignS(thisField, new ElvisOperatorExpression(GeneralUtils.varX(fieldName), GeneralUtils.ctorX(ClassHelper.make("$typ.name${ DOLLAR }ImmutableRaw" /* TODO */))))
+        defaultConstructorStatements.add assignS(
+          thisFieldX,
+          ternaryX(
+            boolX(
+              binX(
+                fieldVarX,
+                NE,
+                NULL
+              )
+            ),
+            fieldVarX,
+            ctorX(typImplType)
+          )
+        )
 
         // TODO: + Context vars
-        AnnotationNode defaultAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == Default }
-        AnnotationNode ignoreIfAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == IgnoreIf }
-        AnnotationNode postProcessAnnotation = method.annotations.find { AnnotationNode it -> it.classNode.typeClass == PostProcess }
-
-        Expression fromField = GeneralUtils.propX(GeneralUtils.varX('from'), fieldNameConstant)
+        AnnotationNode defaultAnnotation = method.annotations.find { AnnotationNode it -> implementsInterfaceOrSubclassOf(it.classNode, DEFAULT_CLASS) }
+        AnnotationNode ignoreIfAnnotation = method.annotations.find { AnnotationNode it -> implementsInterfaceOrSubclassOf(it.classNode, IGNORE_IF_CLASS) }
+        AnnotationNode postProcessAnnotation = method.annotations.find { AnnotationNode it -> implementsInterfaceOrSubclassOf(it.classNode, POST_PROCESS_CLASS) }
 
         if (isValue) {
-          List<Expression> interpolateValueParameters = [(Expression)CONTEXT_VAR_X]
+          List<Expression> interpolateValueParams = [(Expression)CONTEXT_VAR_X]
 
           if (defaultAnnotation != null) {
-            method.annotations.remove(defaultAnnotation)
+            assert method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
-              interpolateValueParameters.add defaultAnnotation.members['value']
+              interpolateValueParams.add defaultAnnotation.members['value']
             } else {
               List<Statement> statements = ((BlockStatement)((ClosureExpression)(defaultAnnotation.members['value'])).code).statements
               int countOfStatements = statements.size()
@@ -179,26 +244,32 @@ class AutoImplementASTTransformation implements ASTTransformation {
               } else {
                 throw new IllegalArgumentException(sprintf('Closure passed to Default annotation should have expression or return statement. Got: %s', firstS))
               }
-              interpolateValueParameters.add defaultValueX
+              interpolateValueParams.add defaultValueX
             }
           } else if (ignoreIfAnnotation != null || postProcessAnnotation != null) {
-            interpolateValueParameters.add GeneralUtils.castX(targetClass, NULL)
+            interpolateValueParams.add castX(
+              targetClass,
+              NULL
+            )
           }
 
           if (ignoreIfAnnotation != null) {
-            method.annotations.remove(ignoreIfAnnotation)
-            interpolateValueParameters.add ignoreIfAnnotation.members['value']
-            method.addAnnotation(new AnnotationNode(ClassHelper.make(Optional)))
+            assert method.annotations.remove(ignoreIfAnnotation)
+            interpolateValueParams.add ignoreIfAnnotation.members['value']
+            method.addAnnotation(new AnnotationNode(OPTIONAL_CLASS))
           } else if (postProcessAnnotation != null) {
-            interpolateValueParameters.add NULL
+            interpolateValueParams.add NULL
           }
 
           if (postProcessAnnotation != null) {
-            method.annotations.remove(postProcessAnnotation)
-            interpolateValueParameters.add postProcessAnnotation.members['value']
+            assert method.annotations.remove(postProcessAnnotation)
+            interpolateValueParams.add postProcessAnnotation.members['value']
           }
 
-          interpolateConstructorStatements.add GeneralUtils.assignS(/*fieldX*/thisField, GeneralUtils.callX(fromField, 'interpolateValue', GeneralUtils.args(interpolateValueParameters)))
+          interpolateConstructorStatements.add assignS(
+            thisFieldX,
+            callX(fromFieldX, 'interpolateValue', args(interpolateValueParams))
+          )
         } else {
           if (defaultAnnotation != null) {
             throw new IllegalStateException('Default annotation is applicable to values only')
@@ -210,45 +281,64 @@ class AutoImplementASTTransformation implements ASTTransformation {
             throw new IllegalStateException('PostProcess annotation is applicable to values only')
           }
 
-          interpolateConstructorStatements.add GeneralUtils.assignS(/*fieldX*/thisField, GeneralUtils.callX(fromField, 'interpolate', GeneralUtils.args(CONTEXT_VAR_X)))
+          interpolateConstructorStatements.add assignS(
+            thisFieldX,
+            callX(
+              fromFieldX,
+              'interpolate',
+              args(CONTEXT_VAR_X)
+            )
+          )
         }
       }
     }
 
     ConstructorNode defaultConstructor = implClass.addConstructor(
-      ClassNode.ACC_PUBLIC,
-      constructorParameters.toArray(new Parameter[0]),
-      [] as ClassNode[],
-      GeneralUtils.block(null, defaultConstructorStatements) // TODO: need to call super() ?
+      ACC_PUBLIC,
+      constructorParams.toArray(new Parameter[0]),
+      EMPTY_ARRAY,
+      block(
+        null,
+        defaultConstructorStatements
+      ) // TODO: need to call super() ?
     )
-    // ERROR here
-    // defaultConstructor.addAnnotation(new AnnotationNode(ClassHelper.make(JsonCreator)))
+    defaultConstructor.addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
 
-    ConstructorNode interpolateConstructor = implClass.addConstructor(
-      ClassNode.ACC_PRIVATE,
-      [new Parameter(ClassHelper.make(Context), CONTEXT), new Parameter(interfaseRef, 'from')].toArray(new Parameter[2]),
-      [] as ClassNode[],
-      GeneralUtils.block(null, interpolateConstructorStatements) // TODO: need to call super() ?
+    implClass.addConstructor(
+      ACC_PRIVATE,
+      [
+        CONTEXT_PARAM,
+        param(
+          interfaseRef, FROM
+        )
+      ].toArray(new Parameter[2]),
+      EMPTY_ARRAY,
+      block(
+        null,
+        interpolateConstructorStatements
+      ) // TODO: need to call super() ?
     )
 
     MethodNode interpolateMethodImpl = implClass.addMethod(
       'interpolate',
-      ClassNode.ACC_PUBLIC,
+      ACC_PUBLIC,
       interfaseRef,
-      [new Parameter(ClassHelper.make(Context), CONTEXT)].toArray(new Parameter[1]),
-      [] as ClassNode[],
-      GeneralUtils.stmt(GeneralUtils.ctorX(implClass, GeneralUtils.args(CONTEXT_VAR_X, THIS_X /* TOTEST or varX('this') */)))
+      [
+        CONTEXT_PARAM
+      ].toArray(new Parameter[1]),
+      EMPTY_ARRAY,
+      stmt(
+        ctorX(
+          implClass,
+          args(
+            CONTEXT_VAR_X,
+            THIS_X
+          )
+        )
+      )
     )
-    // TODO: interpolateMethodImpl.addAnnotation(new AnnotationNode(ClassHelper.make(Override)))
+    interpolateMethodImpl.addAnnotation(OVERRIDE_ANNOTATION)
 
-    // sourceUnit.AST.addClass(implClass)
-    // implClass.module = new ModuleNode(sourceUnit)
-    // implClass.conte
-    new CompilationUnit(sourceUnit.AST.unit.config).with {
-      addClassNode(implClass)
-      // AST.addModule(interfase.module)
-      compile()
-    }
     interfase.module.addClass(implClass)
   }
 }
