@@ -37,7 +37,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
   @Optional
   InterpolableLong getIops()
 
-  @JsonProperty('no_devide')
+  @JsonProperty('no_device')
   @Input
   @Optional
   InterpolableBoolean getNoDevice()
