@@ -74,70 +74,53 @@ import java.util.regex.Pattern
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 class AutoImplementASTTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/^get/
-
   private static final ConstantExpression NULL = constX(null)
   private static final VariableExpression THIS_X = varX('this')
   private static final String DOLLAR = '$'
-  public static final ClassNode JSON_PROPERTY_CLASS = makeCached(JsonProperty)
-  public static final ClassNode JSON_ALIAS_CLASS = makeCached(JsonAlias)
-  public static final ClassNode INTERPOLABLE_VALUE_CLASS = makeCached(InterpolableValue)
-  public static final ClassNode INTERPOLABLE_OBJECT_CLASS = makeCached(InterpolableObject)
-  public static final ClassNode DEFAULT_CLASS = makeCached(Default)
-  public static final ClassNode IGNORE_IF_CLASS = makeCached(IgnoreIf)
-  public static final ClassNode POST_PROCESS_CLASS = makeCached(PostProcess)
-  public static final String FROM = 'from'
-  public static final ClassNode OVERRIDE_CLASS = makeCached(Override)
-  public static final AnnotationNode OVERRIDE_ANNOTATION = new AnnotationNode(OVERRIDE_CLASS)
-  public static final ClassNode JSON_CREATOR_CLASS = makeCached(JsonCreator)
-  public static final ClassNode COMPILE_STATIC_CLASS = makeCached(CompileStatic)
-  public static final AnnotationNode COMPILE_STATIC_ANNOTATION = new AnnotationNode(COMPILE_STATIC_CLASS)
-  public static final ClassNode JSON_DESERIALIZE_CLASS = makeCached(JsonDeserialize)
-  public static final ClassNode OPTIONAL_CLASS = makeCached(Optional)
+  private static final ClassNode JSON_PROPERTY_CLASS = makeCached(JsonProperty)
+  private static final ClassNode JSON_ALIAS_CLASS = makeCached(JsonAlias)
+  private static final ClassNode INTERPOLABLE_VALUE_CLASS = makeCached(InterpolableValue)
+  private static final ClassNode INTERPOLABLE_OBJECT_CLASS = makeCached(InterpolableObject)
+  private static final ClassNode DEFAULT_CLASS = makeCached(Default)
+  private static final ClassNode IGNORE_IF_CLASS = makeCached(IgnoreIf)
+  private static final ClassNode POST_PROCESS_CLASS = makeCached(PostProcess)
+  private static final String FROM = 'from'
+  private static final AnnotationNode OVERRIDE_ANNOTATION = new AnnotationNode(makeCached(Override))
+  private static final ClassNode JSON_CREATOR_CLASS = makeCached(JsonCreator)
+  private static final ClassNode COMPILE_STATIC_CLASS = makeCached(CompileStatic)
+  private static final AnnotationNode COMPILE_STATIC_ANNOTATION = new AnnotationNode(COMPILE_STATIC_CLASS)
+  private static final ClassNode JSON_DESERIALIZE_CLASS = makeCached(JsonDeserialize)
+  private static final ClassNode OPTIONAL_CLASS = makeCached(Optional)
   private static final String CONTEXT = 'context'
-  public static final ClassNode CONTEXT_CLASS = makeCached(Context)
-  public static final Parameter CONTEXT_PARAM = param(CONTEXT_CLASS, CONTEXT)
+  private static final ClassNode CONTEXT_CLASS = makeCached(Context)
+  private static final Parameter CONTEXT_PARAM = param(CONTEXT_CLASS, CONTEXT)
   private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT_PARAM)
+  private static final String IMMUTABLE_RAW = 'ImmutableRaw'
+  private static final String IMPL = 'Impl'
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-    ClassNode interfase = (ClassNode) astNodes[1]
+    AnnotationNode annotationNode = (AnnotationNode)astNodes[0]
+    ClassNode interfase = (ClassNode)astNodes[1]
     if (!interfase.interface) {
-      sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
-        new SyntaxException(
-          '@com.github.hashicorp.packer.engine.annotations.AutoImplement annotation can be applied to interface only',
-          interfase.lineNumber, interfase.columnNumber, interfase.lastLineNumber, interfase.lastColumnNumber
-        ),
-        sourceUnit
-      )
+      addErrorOnAnnotation sourceUnit, annotationNode, 'interfaces only'
       return
     }
     if (!implementsInterfaceOrSubclassOf(interfase, INTERPOLABLE_OBJECT_CLASS)) {
-      sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
-        new SyntaxException(
-          sprintf('@com.github.hashicorp.packer.engine.annotations.AutoImplement should be applied to interfaces extending InterpolableObject. Got: %s', interfase.interfaces),
-          interfase.lineNumber, interfase.columnNumber, interfase.lastLineNumber, interfase.lastColumnNumber
-        ),
-        sourceUnit
-      )
+      addErrorOnAnnotation sourceUnit, annotationNode, 'interfaces extending InterpolableObject', interfase.interfaces
       return
     }
     if (!getAnnotation(interfase, COMPILE_STATIC_CLASS)) {
-      sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
-        new SyntaxException(
-          '@com.github.hashicorp.packer.engine.annotations.AutoImplement annotation should be applied to statically compiled interfaces',
-          interfase.lineNumber, interfase.columnNumber, interfase.lastLineNumber, interfase.lastColumnNumber
-        ),
-        sourceUnit
-      )
+      addErrorOnAnnotation sourceUnit, annotationNode, 'statically compiled interfaces only'
       return
     }
 
     // TOTHINK: No need for this, but test fails
-    assert interfase.annotations.remove(astNodes[0])
+    interfase.annotations.remove(astNodes[0])
 
     String interfaseName = interfase.nameWithoutPackage
     String interfaseFullName = interfase.name
-    String implClassName = "${ interfaseName }Impl"
+    String implClassName = "$interfaseName$IMPL"
     String implClassFullName = "$interfaseFullName$DOLLAR$implClassName"
 
     ClassNode interfaseRef = newClass(interfase)
@@ -187,10 +170,12 @@ class AutoImplementASTTransformation implements ASTTransformation {
         )
         VariableExpression fieldVarX = varX(fieldName)
 
-        String typImplClassName = isValue ? "$typ.name${ DOLLAR }ImmutableRaw" /* TODO: + Mutable version */ : "$typ.name$DOLLAR${typ.name}Impl"
-        /*this.class.classLoader.loadClass(typImplClassName)
-        ClassNode typImplType = makeCached(typImplClassName)*/
-        ClassNode typImplType = make(this.class.classLoader.loadClass(typImplClassName))
+        /*
+         * Due to https://issues.apache.org/jira/browse/GROOVY-8914 inner classes don't work anyway.
+         * Maybe we should remove this code too
+          */
+        String typImplClassName =  "$typ.name$DOLLAR${ isValue ? IMMUTABLE_RAW /* TODO: + Mutable version */ : "$typ.name$IMPL" }"
+        ClassNode typImplType = typ.name.startsWith("$interfase.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null) {
@@ -202,7 +187,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
         if (jsonAliasAnnotation != null) {
-          assert method.annotations.remove(jsonAliasAnnotation)
+          method.annotations.remove(jsonAliasAnnotation)
         }
 
         implClass.addField(
@@ -257,7 +242,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           List<Expression> interpolateValueParams = [(Expression)CONTEXT_VAR_X]
 
           if (defaultAnnotation != null) {
-            assert method.annotations.remove(defaultAnnotation)
+            method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
               interpolateValueParams.add defaultAnnotation.members['value']
             } else {
@@ -265,13 +250,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
               List<Statement> statements = ((BlockStatement)defaultClosure.code).statements
               int countOfStatements = statements.size()
               if (countOfStatements != 1) {
-                sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
-                  new SyntaxException(
-                    sprintf('Closure passed to @com.github.hashicorp.packer.engine.annotations.Default annotation should have exactly one statement. Got: %d', countOfStatements),
-                    defaultClosure.lineNumber, defaultClosure.columnNumber, defaultClosure.lastLineNumber, defaultClosure.lastColumnNumber
-                  ),
-                  sourceUnit
-                )
+                addErrorOnDefaultClosure sourceUnit, defaultClosure, 'have exactly one statement', countOfStatements
                 return
               }
               Statement firstS = statements.first()
@@ -281,13 +260,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
               } else if (ReturnStatement.isInstance(firstS)) {
                 defaultValueX = ((ReturnStatement)firstS).expression
               } else {
-                sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
-                  new SyntaxException(
-                    sprintf('Closure passed to Default annotation should have expression or return statement. Got: %s', firstS),
-                    firstS.lineNumber, firstS.columnNumber, firstS.lastLineNumber, firstS.lastColumnNumber
-                  ),
-                  sourceUnit
-                )
+                addErrorOnDefaultClosure sourceUnit, firstS, 'have expression or return statement', firstS, 'If you can\'t express it this way, set dynamic member to true'
                 return
               }
               interpolateValueParams.add defaultValueX
@@ -300,7 +273,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           }
 
           if (ignoreIfAnnotation != null) {
-            assert method.annotations.remove(ignoreIfAnnotation)
+            method.annotations.remove(ignoreIfAnnotation)
             interpolateValueParams.add ignoreIfAnnotation.members['value']
             method.addAnnotation(new AnnotationNode(OPTIONAL_CLASS))
           } else if (postProcessAnnotation != null) {
@@ -308,7 +281,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           }
 
           if (postProcessAnnotation != null) {
-            assert method.annotations.remove(postProcessAnnotation)
+            method.annotations.remove(postProcessAnnotation)
             interpolateValueParams.add postProcessAnnotation.members['value']
           }
 
@@ -318,15 +291,15 @@ class AutoImplementASTTransformation implements ASTTransformation {
           )
         } else {
           if (defaultAnnotation != null) {
-            addErrorValuesOnlyAnnotation sourceUnit, defaultAnnotation
+            addErrorOnValuesOnlyAnnotation sourceUnit, defaultAnnotation, typ.name
             return
           }
           if (ignoreIfAnnotation != null) {
-            addErrorValuesOnlyAnnotation sourceUnit, ignoreIfAnnotation
+            addErrorOnValuesOnlyAnnotation sourceUnit, ignoreIfAnnotation, typ.name
             return
           }
           if (postProcessAnnotation != null) {
-            addErrorValuesOnlyAnnotation sourceUnit, postProcessAnnotation
+            addErrorOnValuesOnlyAnnotation sourceUnit, postProcessAnnotation, typ.name
             return
           }
 
@@ -394,8 +367,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
     interpolateMethodImpl.addAnnotation(OVERRIDE_ANNOTATION)
 
     if (generateImplClass) {
-      StaticCompileTransformation staticCompileTransformation = new StaticCompileTransformation()
-      staticCompileTransformation.visit([COMPILE_STATIC_ANNOTATION, implClass] as ASTNode[], sourceUnit)
+      new StaticCompileTransformation().visit([COMPILE_STATIC_ANNOTATION, implClass] as ASTNode[], sourceUnit)
 
       // sourceUnit.AST.addClass(implClass)
       // interfase.compileUnit.addClass(implClass)
@@ -403,14 +375,26 @@ class AutoImplementASTTransformation implements ASTTransformation {
     }
   }
 
-  private static void addErrorValuesOnlyAnnotation(SourceUnit sourceUnit, AnnotationNode valueAnnotation) {
+  private static void addError(SourceUnit sourceUnit, ASTNode node, String message) {
     sourceUnit.errorCollector.addErrorAndContinue new SyntaxErrorMessage(
       new SyntaxException(
-        "@$valueAnnotation.classNode.name annotation is applicable to values only",
-        valueAnnotation.lineNumber, valueAnnotation.columnNumber, valueAnnotation.lastLineNumber, valueAnnotation.lastColumnNumber
+        message,
+        node.lineNumber, node.columnNumber, node.lastLineNumber, node.lastColumnNumber
       ),
       sourceUnit
     )
+  }
+
+  private static void addErrorOnAnnotation(SourceUnit sourceUnit, AnnotationNode annotation, String expectedTargetDescription, Object actual = null) {
+    addError sourceUnit, annotation, "@$annotation.classNode.name is applicable to $expectedTargetDescription${ actual ? ". Got: $actual" : ''}"
+  }
+
+  private static void addErrorOnValuesOnlyAnnotation(SourceUnit sourceUnit, AnnotationNode valueAnnotation, Object actual = null) {
+    addErrorOnAnnotation sourceUnit, valueAnnotation, 'values only', actual
+  }
+
+  private static void addErrorOnDefaultClosure(SourceUnit sourceUnit, ASTNode node, String expectedDescription, Object actual, String extraInfo = null) {
+    addError sourceUnit, node, sprintf("Closure passed to @${ Default.class.name } should $expectedDescription. Got: %d${ extraInfo ? ". $extraInfo" : ''}", actual)
   }
 
   // Overcomes the fact that AnnotatedNode#getAnnotations(ClassNode) returns an array

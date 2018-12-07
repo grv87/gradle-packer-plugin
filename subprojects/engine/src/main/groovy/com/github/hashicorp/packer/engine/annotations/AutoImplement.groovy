@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.annotations
 
+import com.github.hashicorp.packer.engine.ast.AutoImplementASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformationClass
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -8,6 +9,6 @@ import java.lang.annotation.Target
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-@GroovyASTTransformationClass(['com.github.hashicorp.packer.engine.ast.AutoImplementASTTransformation'])
+@GroovyASTTransformationClass(classes = [AutoImplementASTTransformation])
 @interface AutoImplement {
 }
