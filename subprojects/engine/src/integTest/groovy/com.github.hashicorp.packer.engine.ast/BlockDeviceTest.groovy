@@ -15,7 +15,7 @@ import groovy.transform.CompileStatic
 
 import org.gradle.api.tasks.Input
 
-@AutoImplement
+// @AutoImplement
 @CompileStatic
 interface BlockDeviceTest extends InterpolableObject<BlockDeviceTest> {
   @Input

@@ -66,3 +66,12 @@ tasks.register('integTest', Test) {
 tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO
 }
+
+task('writeClasspath').doLast {
+  buildDir.mkdirs()
+  new File(buildDir, "classpath.txt").text = configurations.integTestImplementation.asPath + "\n"
+}
+task(type: Copy, 'copyDependencies') {
+  from configurations.integTestCompileClasspath
+  into new File(buildDir, "dependencies")
+}

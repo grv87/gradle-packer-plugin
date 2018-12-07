@@ -362,6 +362,13 @@ class AstAssert {
                 assertSyntaxTree(expected.methods, actual.methods, "${ path }.methods")
                 assertSyntaxTree([expected.statementBlock], [actual.statementBlock], "${ path }.statementBlock")
             },
+            CompareToNullExpression : { expected, actual, path ->
+                assertSyntaxTree([expected.objectExpression], [actual.objectExpression], "${ path }.objectExpression")
+                assertSyntaxTree([expected.operation], [actual.operation], "${ path }.operation")
+            },
+            'OptimizingBooleanExpression' : { expected, actual, path ->
+              assertSyntaxTree([expected.expression], [actual.expression], "${ path }.expression")
+            },
     ]
 
     /**
@@ -394,7 +401,7 @@ class AstAssert {
             } else {
               Assert.assertEquals("$itemPath: Wrong type in AST Node", expectedClass, actualItem.class)
 
-              if (ASSERTION_MAP.containsKey(expectedClass.getSimpleName())) {
+              if (ASSERTION_MAP.containsKey(expectedClass.simpleName)) {
                 Closure assertion = ASSERTION_MAP.get(expectedClass.simpleName)
                 assertion(expectedItem, actualItem, itemPath)
               } else {

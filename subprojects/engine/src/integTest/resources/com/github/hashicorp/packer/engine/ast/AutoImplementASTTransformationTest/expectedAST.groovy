@@ -198,7 +198,7 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
 
     @Override
     BlockDevice interpolate(Context context) {
-      new BlockDeviceImpl(context, this)
+      return (BlockDevice)new BlockDeviceImpl(context, this)
     }
   }
 
