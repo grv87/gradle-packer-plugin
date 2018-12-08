@@ -9,9 +9,6 @@ dependencies {
   annotationProcessor project(path: ':engine'/*, configuration: 'apiElements'*/)
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
   // Provided by engine: api gradleApi()
-  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: '[2.9, 3['
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '[2.9, 3['
   // Provided by engine: implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
   // api(group: 'org.apache.jclouds.labs', name: 'aliyun-ecs', version: '[2, 3[').status = 'integration'
@@ -32,6 +29,11 @@ dependencies {
 }
 
 configurations.named('implementation').configure { exclude(group: 'org.slf4j', module: 'slf4j-api') }
+
+tasks.withType(GroovyCompile).named('compileGroovy').configure { GroovyCompile compileGroovy ->
+  compileGroovy.configurationScript = file('config/groovyc.groovy')
+
+}
 
 /*
  * WORKAROUND:

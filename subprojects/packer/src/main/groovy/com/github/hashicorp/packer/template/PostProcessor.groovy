@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
@@ -100,7 +101,7 @@ abstract class PostProcessor extends InterpolableObject {
 
   static void registerSubtype(String type, Class<PostProcessor> clazz) {
     SUBTYPES.put type, clazz
-    Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
+    ObjectMapperProvider.registerSubtypes(new NamedType(clazz, type))
   }
 
     static final class PostProcessorArrayDefinition extends InterpolableObject {

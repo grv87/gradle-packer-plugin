@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
@@ -111,6 +112,6 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
   }
 
   static void registerSubtype(String type, Class<? extends Provisioner> clazz) {
-    Template.MAPPER.registerSubtypes(new NamedType(clazz, type))
+    ObjectMapperProvider.registerSubtypes(new NamedType(clazz, type))
   }
 }

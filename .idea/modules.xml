@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/packer/packer.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/packer/packer.iml" group="packer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_functionalTest.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_functionalTest.iml" group="packer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_integTest.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_integTest.iml" group="packer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_main.iml" group="packer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/packer/packer_test.iml" group="packer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin.iml" group="plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_compatTest.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_compatTest.iml" group="plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_functionalTest.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_functionalTest.iml" group="plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_gradleTest.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_gradleTest.iml" group="plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_main.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_main.iml" group="plugin" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_test.iml" filepath="$PROJECT_DIR$/.idea/modules/subprojects/plugin/plugin_test.iml" group="plugin" />
+    </modules>
+  </component>
+</project>

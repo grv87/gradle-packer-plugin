@@ -1,6 +1,7 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -10,8 +11,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
+@AutoImplement
 @CompileStatic
-class AccessConfig extends InterpolableObject {
+interface AccessConfig extends InterpolableObject {
   @Internal
   InterpolableString accessKey
 
@@ -42,23 +44,12 @@ class AccessConfig extends InterpolableObject {
   InterpolableBoolean skipMetadataApiCheck
 
   @Internal
-  InterpolableString token // This will also be read from the AWS_SESSION_TOKEN environmental variable
+  InterpolableString token // TODO: This will also be read from the AWS_SESSION_TOKEN environmental variable
 
-  @Override
-  protected void doInterpolate() {
-    accessKey?.interpolate context
-    customEndpointEc2?.interpolate context
-    mfaCode?.interpolate context
-    profileName?.interpolate context
-    rawRegion?.interpolate context
-    secretKey?.interpolate context
-    skipValidation?.interpolate context
-    skipMetadataApiCheck?.interpolate context
-    token?.interpolate context
-  }
-
-  @ComputedInput
-  String getOwner() {
-    // TODO
+  abstract class AccessConfigImpl implements AccessConfig {
+    @ComputedInput
+    String getOwner() {
+      // TODO
+    }
   }
 }

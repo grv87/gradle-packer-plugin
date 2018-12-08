@@ -178,11 +178,10 @@ class AutoImplementASTTransformation implements ASTTransformation {
         ClassNode typImplType = typ.name.startsWith("$interfase.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
-        if (jsonPropertyAnnotation == null) {
+        if (jsonPropertyAnnotation == null && !interfase.compileUnit.config.parameters) {
           String fieldJsonName = ((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
           jsonPropertyAnnotation.addMember('value', constX(fieldJsonName))
-          method.addAnnotation jsonPropertyAnnotation
         }
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
@@ -212,7 +211,9 @@ class AutoImplementASTTransformation implements ASTTransformation {
           typ,
           fieldName
         )
-        constructorParameter.addAnnotation(jsonPropertyAnnotation)
+        if (jsonPropertyAnnotation != null) {
+          constructorParameter.addAnnotation(jsonPropertyAnnotation)
+        }
         if (jsonAliasAnnotation != null) {
           constructorParameter.addAnnotation(jsonAliasAnnotation)
         }

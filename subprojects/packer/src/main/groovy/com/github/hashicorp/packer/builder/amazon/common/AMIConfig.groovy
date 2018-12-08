@@ -1,14 +1,16 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import groovy.transform.CompileStatic
 
+@AutoImplement
 @CompileStatic
-class AMIConfig extends InterpolableObject {
+interface AMIConfig extends InterpolableObject {
   InterpolableString amiName
 
   InterpolableString amiDescription
@@ -56,9 +58,4 @@ class AMIConfig extends InterpolableObject {
   InterpolableStringArray snapshotUsers
 
   InterpolableStringArray snapshotGroups
-
-  @Override
-  protected void doInterpolate() {
-
-  }
 }

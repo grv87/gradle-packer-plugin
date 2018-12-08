@@ -19,16 +19,11 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.types.InterpolableValue
-
 import static Context.BUILD_NAME_VARIABLE_NAME
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import com.github.hashicorp.packer.engine.annotations.ComputedNested
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableLong
 import org.gradle.api.Project
 import java.nio.file.Path
 import groovy.transform.CompileDynamic
@@ -38,20 +33,16 @@ import org.gradle.api.provider.Provider
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.hashicorp.packer.engine.types.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 
 @CompileStatic
 // REVIEWED
-class Template extends InterpolableObject {
+class Template implements InterpolableObject {
   // TODO
   Path path
 
@@ -193,31 +184,9 @@ class Template extends InterpolableObject {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  // @PackageScope
-  static final ObjectMapper MAPPER = new ObjectMapper()
-  static {
-    MAPPER.registerModule(new AfterburnerModule())
-    MAPPER.registerModule(new GuavaModule())
-    MAPPER.registerModule(new Jdk8Module())
-    // Annotations replaced this
-    // MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
-    MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
-    MAPPER.registerModule(InterpolableValue.SERIALIZER_MODULE)
-    /*
-     * TODO:
-     * 1. All classes
-     * 2. Mutable and immutable versions
-     */
-    SimpleModule immutableModule = new SimpleModule()
-    immutableModule.addAbstractTypeMapping(InterpolableBoolean, InterpolableBoolean.ImmutableRaw)
-    immutableModule.addAbstractTypeMapping(InterpolableString, InterpolableString.ImmutableRaw)
-    immutableModule.addAbstractTypeMapping(InterpolableLong, InterpolableLong.ImmutableRaw)
-    MAPPER.registerModule(immutableModule);
-  }
-
   static Template readFromFile(File file) {
     Template template = (Template)file.withInputStream { InputStream inputStream ->
-      MAPPER.readValue(inputStream, Template)
+      ObjectMapperProvider.readValue(inputStream, Template)
     }
     template.path = file.toPath()
     template

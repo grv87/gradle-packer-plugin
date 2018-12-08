@@ -10,6 +10,9 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3[' // TODO: Databind is required only for JsonDeserialize annotation for AutoImplement. There are other ways - see InterpolableValue. Need to sync these approaches
+  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: '[2.9, 3['
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: '[2.9, 3['
+  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
   implementation group: 'com.samskivert', name: 'jmustache', version: '[1, 2['
   implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '[3, 4['
   api group: 'com.google.guava', name: 'guava', version: '26.0-jre'

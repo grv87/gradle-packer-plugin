@@ -4,5 +4,16 @@
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="packer_functionalTest" target="1.8" />
+      <module name="packer_integTest" target="1.8" />
+      <module name="packer_main" target="1.8" />
+      <module name="packer_test" target="1.8" />
+      <module name="plugin_compatTest" target="1.8" />
+      <module name="plugin_functionalTest" target="1.8" />
+      <module name="plugin_gradleTest" target="1.8" />
+      <module name="plugin_main" target="1.8" />
+      <module name="plugin_test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

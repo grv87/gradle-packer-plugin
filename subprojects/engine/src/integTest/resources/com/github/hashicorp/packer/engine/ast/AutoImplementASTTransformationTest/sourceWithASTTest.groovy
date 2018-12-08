@@ -37,6 +37,7 @@ import org.gradle.api.tasks.Input
   /*List<ASTNode> expected = new AstBuilder().buildFromString(Resources.toString(Resources.getResource('com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/expectedAST.groovy'), Charsets.UTF_8))
   println(((ClassNode)node).innerClasses)*/
   CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
+  compilerConfiguration.parameters = true
   compilerConfiguration.debug = true
   ErrorCollector errorCollector = new ErrorCollector(compilerConfiguration)
   GroovyClassLoader groovyClassLoader = new GroovyClassLoader()
