@@ -27,7 +27,7 @@ abstract class Minimal implements InterpolableObject<Minimal> {
     }
 
     MinimalMutableImpl(InterpolableLong singleField) {
-      super(singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MODULE_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE))
+      super(singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE))
     }
   }
 
@@ -40,7 +40,7 @@ abstract class Minimal implements InterpolableObject<Minimal> {
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MODULE_REGISTRY.newInstance(InterpolableLong, Mutability.IMMUTABLE),
+        singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
 

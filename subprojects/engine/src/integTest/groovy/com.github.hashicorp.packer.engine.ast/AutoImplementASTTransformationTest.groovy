@@ -61,7 +61,7 @@ class AutoImplementASTTransformationTest {
   @Parameters
   @TestCaseName('testASTMatch[{index}]: {0} at {3}')
   void testASTMatch(String testName, String source, URL expectedUrl, Boolean parameters, CompilePhase compilePhase) {
-    String sourceWithASTTest = source.replaceFirst('// declaration', AST_TEST_TEMPLATE.make(
+    String sourceWithASTTest = source.replaceFirst('^// declaration$', AST_TEST_TEMPLATE.make(
       compilePhase: compilePhase/*.name()*/.inspect(),
       expectedUrl: expectedUrl.inspect()
     ).toString())
@@ -70,7 +70,7 @@ class AutoImplementASTTransformationTest {
 
   private static Object[] parametersForTestErroneousSource() {
     Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/erroneous/(\\S+)/source\\.groovy$'
+      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/erroneous/(\\S+)/source\\.groovy\\z'
       if (m) {
         String testName = m[0][1]
         [testName, Resources.toString(it.url(), Charsets.UTF_8), Resources.readLines(Paths.get(it.url().toURI()).parent.resolve('errorMessages.txt').toUri().toURL(), Charsets.UTF_8)].toArray(new Object[3])
@@ -85,7 +85,7 @@ class AutoImplementASTTransformationTest {
   private static Object[] parametersForTestCompilation() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy$'
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy\\z'
         if (m) {
           String testName = m[0][1]
           [testName, Resources.toString(it.url(), Charsets.UTF_8)]
@@ -106,7 +106,7 @@ class AutoImplementASTTransformationTest {
   private static Object[] parametersForTestASTMatch() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy$'
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy\\z'
         if (m) {
           String testName = m[0][1]
           [testName, it.url()]

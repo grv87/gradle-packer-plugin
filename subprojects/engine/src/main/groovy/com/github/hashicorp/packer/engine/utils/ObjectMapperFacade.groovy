@@ -2,12 +2,14 @@ package com.github.hashicorp.packer.engine.utils
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.JsonEncoding
+import com.fasterxml.jackson.core.JsonGenerationException
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
@@ -18,12 +20,11 @@ import groovy.transform.Synchronized
 @CompileStatic
 final class ObjectMapperFacade {
   private static final Set<ModuleProvider> CUSTOM_MODULE_PROVIDER_REGISTRY = new HashSet()
-  private static final Map<Class<? extends InterpolableObject>, Map<Mutability, Class<? extends InterpolableObject>>> ABSTRACT_TYPE_MAPPING_REGISTRY = [:]
   private static Map<Mutability, ObjectMapperFacade> facades = new HashMap<>(2)
-  static final AbstractTypeMappingRegistry ABSTRACT_TYPE_MODULE_REGISTRY = new AbstractTypeMappingRegistry()
+  static final AbstractTypeMappingRegistry ABSTRACT_TYPE_MAPPING_REGISTRY = new AbstractTypeMappingRegistry()
 
   static {
-    registerCustomModuleProvider ABSTRACT_TYPE_MODULE_REGISTRY
+    registerCustomModuleProvider ABSTRACT_TYPE_MAPPING_REGISTRY
   }
 
   @Synchronized
@@ -120,5 +121,54 @@ final class ObjectMapperFacade {
   @SuppressWarnings('unchecked')
   <T> T readValue(InputStream src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
     objectMapper.readValue(src, valueType)
+  }
+
+  /**
+   * Method that can be used to serialize any Java value as
+   * JSON output, written to File provided.
+   */
+  void writeValue(File resultFile, Object value) throws IOException, JsonGenerationException, JsonMappingException {
+    objectMapper.writeValue resultFile, value
+  }
+
+  /**
+   * Method that can be used to serialize any Java value as
+   * JSON output, using output stream provided (using encoding
+   * {@link JsonEncoding#UTF8}).
+   *<p>
+   * Note: method does not close the underlying stream explicitly
+   * here; however, {@link com.fasterxml.jackson.core.JsonFactory} this mapper uses may choose
+   * to close the stream depending on its settings (by default,
+   * it will try to close it when {@link com.fasterxml.jackson.core.JsonGenerator} we construct
+   * is closed).
+   */
+  void writeValue(OutputStream out, Object value) throws IOException, JsonGenerationException, JsonMappingException {
+    objectMapper.writeValue out, value
+  }
+
+  /**
+   * Method that can be used to serialize any Java value as
+   * JSON output, using Writer provided.
+   *<p>
+   * Note: method does not close the underlying stream explicitly
+   * here; however, {@link com.fasterxml.jackson.core.JsonFactory} this mapper uses may choose
+   * to close the stream depending on its settings (by default,
+   * it will try to close it when {@link com.fasterxml.jackson.core.JsonGenerator} we construct
+   * is closed).
+   */
+  void writeValue(Writer w, Object value) throws IOException, JsonGenerationException, JsonMappingException {
+    objectMapper.writeValue w, value
+  }
+
+  /**
+   * Method that can be used to serialize any Java value as
+   * a String. Functionally equivalent to calling
+   * {@link #writeValue(Writer,Object)} with {@link java.io.StringWriter}
+   * and constructing String, but more efficient.
+   *<p>
+   * Note: prior to version 2.1, throws clause included {@link IOException}; 2.1 removed it.
+   */
+  String writeValueAsString(Object value) throws JsonProcessingException {
+    objectMapper.writeValueAsString(value)
   }
 }

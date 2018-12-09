@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import groovy.transform.Synchronized
 
 @CompileStatic
@@ -11,6 +12,9 @@ class AbstractTypeMappingRegistry implements ModuleProvider {
   @SuppressWarnings('UnstableApiUsage')
   private final Map<Class<? extends InterpolableObject>, Map<Mutability, Class<? extends InterpolableObject>>> abstractTypeMappingRegistry = [:]
   private final Map<Mutability, SimpleModule> modules = [:]
+
+  @PackageScope
+  AbstractTypeMappingRegistry() {}
 
   @Synchronized
   <T extends InterpolableObject> void registerAbstractTypeMapping(Class<T> abstractClass, Class<? extends T> mutableClass, Class<? extends T> immutableClass) {

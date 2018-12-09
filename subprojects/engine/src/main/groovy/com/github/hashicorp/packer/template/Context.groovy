@@ -375,9 +375,9 @@ final class Context {
     }
 
     private final Map<Pattern, Map<String, ?>> parameterizedFunctions = ImmutableMap.copyOf(/*(Map<Pattern, Map<String, ?>>)*/[
-      (~/^env\s+`(\S+)`$/): env,
-      (~/^user\s+`(\S+)`$/): userVariablesValues,
-      (~/^\.(\S+)$/): templateVariables,
+      (~/\Aenv\s+`(\S+)`\z/): env,
+      (~/\Auser\s+`(\S+)`\z/): userVariablesValues,
+      (~/\A\.(\S+)\z/): templateVariables,
     ])
 
     // TODO: mark string as mutable if timestamp or uuid is used

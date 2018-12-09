@@ -82,7 +82,7 @@ class File extends Provisioner<Configuration> {
       isDirectory ? this.outputFile : null
     }
 
-    private static final Pattern DIR_PATTERN = ~/(\/\\)$/
+    private static final Pattern DIR_PATTERN = ~/[\/\\]\z/
 
     @Override
     protected void doInterpolate() {

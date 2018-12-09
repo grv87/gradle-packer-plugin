@@ -1,4 +1,5 @@
 import static org.codehaus.groovy.control.CompilePhase.*
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.macro.matcher.ASTMatcher
 import com.google.common.base.Charsets
@@ -18,6 +19,6 @@ import groovy.transform.ASTTest
 
   expectedClasses = expected.findAll { ASTNode e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }
   actualClasses = node.module.classes.findAll { ASTNode e -> ClassNode.isInstance(e) && !InnerClassNode.isInstance(e) }
-  actualClasses*.annotations*.removeAll { AnnotationNode a -> WideningCategories.implementsInterfaceOrSubclassOf(a.classNode, ClassHelper.make(ASTTest)) }
+  actualClasses*.annotations*.removeAll { AnnotationNode a -> WideningCategories.implementsInterfaceOrSubclassOf(a.classNode, ClassHelper.make(ASTTest)) || WideningCategories.implementsInterfaceOrSubclassOf(a.classNode, ClassHelper.make(AutoImplement)) }
   assert ASTMatcher.matches(expectedClasses, actualClasses)
 })
