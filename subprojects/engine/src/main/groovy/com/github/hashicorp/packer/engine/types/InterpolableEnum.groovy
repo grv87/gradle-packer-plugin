@@ -17,7 +17,8 @@ interface InterpolableEnum<
     InterpolatedClass extends Interpolated<E, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
     AlreadyInterpolatedClass extends AlreadyInterpolated<E, ThisInterface> & ThisInterface
   > extends InterpolableValue.ImmutableRaw<Object, E, InterpolableEnum, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableEnum<E, ThisInterface> {
-    private static final Utils<E> UTILS = new Utils<E>()
+    @SuppressWarnings('UnstableApiUsage')
+    private final Class<E> enumClass = (Class<E>)new TypeToken<E>(this.class) { }.rawType
 
     ImmutableRaw() {
       super()
@@ -29,7 +30,7 @@ interface InterpolableEnum<
 
     @JsonCreator
     ImmutableRaw(String raw) {
-      super(UTILS.tryCastStringToEnum(raw))
+      super(tryCastStringToEnum((Class<E>)new TypeToken<E>(this.class) { }.rawType, raw))
     }
 
     protected final E doInterpolatePrimitive(Context context, E raw) {
@@ -37,7 +38,17 @@ interface InterpolableEnum<
     }
 
     protected final E doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
-      UTILS.doInterpolatePrimitive context, raw
+      Enum.valueOf enumClass, raw.interpolate(context).toUpperCase()
+    }
+
+    private static Object tryCastStringToEnum(Class<? extends Enum> enumClass, String raw) {
+      String rawValueUpperCase = raw.toUpperCase()
+      for (/*E*/Enum enumConstant : enumClass.enumConstants) {
+        if (enumConstant.name() == rawValueUpperCase) {
+          return enumConstant
+        }
+      }
+      return new SimpleInterpolableString(raw)
     }
   }
 
@@ -47,7 +58,8 @@ interface InterpolableEnum<
     InterpolatedClass extends Interpolated<E, ThisInterface, AlreadyInterpolatedClass> & ThisInterface,
     AlreadyInterpolatedClass extends AlreadyInterpolated<E, ThisInterface> & ThisInterface
   > extends InterpolableValue.Raw<Object, E, InterpolableEnum, InterpolatedClass, AlreadyInterpolatedClass> implements InterpolableEnum<E, ThisInterface> {
-    private static final Utils<E> UTILS = new Utils<E>()
+    @SuppressWarnings('UnstableApiUsage')
+    private final Class<E> enumClass = (Class<E>)new TypeToken<E>(this.class) { }.rawType
 
     Raw() {
       super()
@@ -59,7 +71,7 @@ interface InterpolableEnum<
 
     @JsonCreator
     Raw(String raw) {
-      super(UTILS.tryCastStringToEnum(raw))
+      super(tryCastStringToEnum((Class<E>)new TypeToken<E>(this.class) { }.rawType, raw))
     }
 
     protected final E doInterpolatePrimitive(Context context, E raw) {
@@ -67,7 +79,17 @@ interface InterpolableEnum<
     }
 
     protected final E doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
-      UTILS.doInterpolatePrimitive context, raw
+      Enum.valueOf enumClass, raw.interpolate(context).toUpperCase()
+    }
+
+    private static Object tryCastStringToEnum(Class<? extends Enum> enumClass, String raw) {
+      String rawValueUpperCase = raw.toUpperCase()
+      for (/*E*/Enum enumConstant : enumClass.enumConstants) {
+        if (enumConstant.name() == rawValueUpperCase) {
+          return enumConstant
+        }
+      }
+      return new SimpleInterpolableString(raw)
     }
   }
 
@@ -83,23 +105,4 @@ interface InterpolableEnum<
     E extends Enum,
     ThisInterface extends InterpolableEnum<E, ThisInterface>
   > extends InterpolableValue.AlreadyInterpolated<Object, E, InterpolableEnum> implements InterpolableEnum<E, ThisInterface> { }
-
-  private final static class Utils<E extends Enum> {
-    @SuppressWarnings('UnstableApiUsage')
-    private static final Class<E> ENUM_CLASS = (Class<E>)new TypeToken<E>(this.class) { }.rawType
-
-    E doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
-      Enum.valueOf ENUM_CLASS, raw.interpolate(context).toUpperCase()
-    }
-
-    Object tryCastStringToEnum(String raw) {
-      String rawValueUpperCase = raw.toUpperCase()
-      for (E enumConstant : ENUM_CLASS.enumConstants) {
-        if (enumConstant.name() == rawValueUpperCase) {
-          return enumConstant
-        }
-      }
-      return new SimpleInterpolableString(raw)
-    }
-  }
 }

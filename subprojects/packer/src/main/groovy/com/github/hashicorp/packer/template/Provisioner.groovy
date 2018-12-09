@@ -19,10 +19,9 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
 import groovy.transform.CompileStatic
@@ -41,7 +40,7 @@ import java.lang.reflect.Field
 )
 @CompileStatic
 abstract class Provisioner<P extends Configuration> extends InterpolableObject {
-  final static Class<P> CONFIGURATION_CLASS = (Class<P>)new TypeToken<P>(this.class) { }.rawType
+  final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   protected Provisioner() {
   }
@@ -82,7 +81,7 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
       overrideConfiguration.interpolate(context)
-      Class</*? extends Configuration*/ P> clazz = CONFIGURATION_CLASS
+      Class</*? extends Configuration*/ P> clazz = configurationClass
       while (true) {
         clazz.fields.each { Field field ->
           Object value = field.get(overrideConfiguration)
@@ -112,6 +111,9 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     }
   }
 
-  private static final class ProvisionerSubtypeRegistry extends SubtypeRegistry<Provisioner> { }
-  protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new ProvisionerSubtypeRegistry()
+  protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new SubtypeRegistry<Provisioner>()
+
+  static {
+    SUBTYPE_REGISTRY.registerRegistry()
+  }
 }

@@ -80,6 +80,9 @@ abstract class Builder extends InterpolableObject {
     }
   }
 
-  private static final class BuilderSubtypeRegistry extends SubtypeRegistry<Builder> { }
-  protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new BuilderSubtypeRegistry()
+  protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
+
+  static {
+    SUBTYPE_REGISTRY.registerRegistry()
+  }
 }

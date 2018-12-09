@@ -64,8 +64,8 @@ plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('in
 plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['integTest'].implementationConfigurationName)
 
 dependencies {
-  testImplementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3, 4['
-  testImplementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
+  /*integTestImplementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3, 4['
+  integTestImplementation group: 'commons-io', name: 'commons-io', version: '[2, 3['*/
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
 }
 

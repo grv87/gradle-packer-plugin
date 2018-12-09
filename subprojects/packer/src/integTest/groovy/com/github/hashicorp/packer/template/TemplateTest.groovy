@@ -39,19 +39,28 @@ class TemplateTest {
   @Parameters
   @TestCaseName('{1}')
   void testParser(final File templateFile, final String ignored) {
-    PackerBasePlugin.registerBuiltInPackerPlugins()
-    Template template = Template.MAPPER.readValue(templateFile, Template)
+    Template template = Template.readFromFile(templateFile)
     assert Template.isInstance(template)
 
-    Writer writer = new StringWriter()
-    Template.MAPPER.writeValue(writer, template)
-    assert writer.toString().length() > 0
+    new StringWriter().withWriter { Writer writer ->
+      template.writeValue(writer)
 
-    Template template2 = Template.MAPPER.readValue(writer.toString(), Template)
-    assert Template.isInstance(template2)
+      String string = writer.toString()
+
+      assert string.length() > 0
+
+      Template template2 = Template.readValue(string)
+      assert Template.isInstance(template2)
+    }
   }
 
-  static Object[] parametersForTestParser() {
-    ClassPath.from(TemplateTest.classLoader).resources.findAll { ClassPath.ResourceInfo it -> it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json') }.collect { [/* TODO new File(*/it.url().toURI().toFile(), getBaseName(it.url().path)].toArray() }.toArray(new Object[0])
+  private static Object[] parametersForTestParser() {
+    Object[] result = ClassPath.from(this.classLoader).resources.findAll { ClassPath.ResourceInfo it ->
+      it.resourceName.startsWith('org/fidata/gradle/packer') && it.resourceName.endsWith('.json')
+    }.collect { ClassPath.ResourceInfo it ->
+      [new File(it.url().toURI()), getBaseName(it.url().path)].toArray(new Object[2])
+    }.toArray(new Object[0])
+    assert result.length > 0
+    result
   }
 }

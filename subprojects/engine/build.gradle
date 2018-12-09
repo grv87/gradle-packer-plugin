@@ -53,6 +53,7 @@ dependencies {
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
   // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+  integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   integTestImplementation sourceSets.testFixtures.output
 }
 
@@ -68,6 +69,12 @@ tasks.register('integTest', Test) {
 
 tasks.named('codenarcMain').configure {
   disabledRules.add 'ClassJavadoc' // TODO
+}
+
+tasks.register('codenarcIntegTestResources', CodeNarc) {
+  for (File srcDir in sourceSets.integTest.resources.srcDirs) {
+    source fileTree(dir: srcDir, includes: ['**/*.groovy'])
+  }
 }
 
 task('writeClasspath').doLast {

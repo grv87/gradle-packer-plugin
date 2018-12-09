@@ -11,22 +11,22 @@ import groovy.transform.Synchronized
 @CompileStatic
 class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
   @SuppressWarnings('UnstableApiUsage')
-  private static final Class<T> T_CLASS = (Class<T>)new TypeToken<T>(this.class) { }.rawType
-  private final Map<String, Class<? extends T>> typeRegistry = [:]
+  private final Class<T> tClass = (Class<T>)new TypeToken<T>(this.class) { }.rawType
+  private final Map<String, Class<? extends T>> subtypeRegistry = [:]
   private SimpleModule module = null
 
   @Synchronized
   void registerSubtype(String name, Class<? extends T> clazz) {
-    if (typeRegistry.containsKey(name)) {
-      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [T_CLASS.simpleName, name]))
+    if (subtypeRegistry.containsKey(name)) {
+      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [tClass.simpleName, name]))
     }
     module = null
-    typeRegistry[name] = clazz
+    subtypeRegistry[name] = clazz
   }
 
   @Synchronized
   T newInstance(String name) {
-    typeRegistry[name].getConstructor().newInstance()
+    subtypeRegistry[name].getConstructor().newInstance()
   }
 
   @Override
@@ -34,14 +34,14 @@ class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
   Module getModule(Mutability mutability) {
     if (this.@module == null) {
       this.@module = new SimpleModule()
-      typeRegistry.each { Map.Entry<String, Class<? extends T>> entry ->
+      subtypeRegistry.each { Map.Entry<String, Class<? extends T>> entry ->
         this.@module.registerSubtypes(new NamedType(entry.value, entry.key))
       }
     }
     this.@module
   }
 
-  protected static void registerRegistry(SubtypeRegistry<T> typeRegistry) {
-    ObjectMapperFacade.registerCustomModuleProvider typeRegistry
+  void registerRegistry() {
+    ObjectMapperFacade.registerCustomModuleProvider this
   }
 }

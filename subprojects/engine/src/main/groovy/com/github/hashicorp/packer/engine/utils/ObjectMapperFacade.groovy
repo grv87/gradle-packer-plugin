@@ -34,14 +34,10 @@ final class ObjectMapperFacade {
     CUSTOM_MODULE_PROVIDER_REGISTRY.add moduleProvider
   }
 
-  private static final Set<Module> getCustomModules(Mutability mutability) {
-    CUSTOM_MODULE_PROVIDER_REGISTRY*.getModule(mutability).toSet()
-  }
-
   @Synchronized
   static final ObjectMapperFacade get(Mutability mutability) {
     ObjectMapperFacade facade = facades[mutability]
-    Set<Module> customModules = getCustomModules(mutability)
+    Set<Module> customModules = CUSTOM_MODULE_PROVIDER_REGISTRY*.getModule(mutability).toSet()
     if (facade != null && facade.@customModules == customModules) {
       return facade
     }

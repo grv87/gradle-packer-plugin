@@ -150,16 +150,16 @@ interface BlockDevice extends InterpolableObject<BlockDevice> {
       @JsonProperty('volume_size') InterpolableLong volumeSize,
       @JsonProperty('kms_key_id') InterpolableString kmsKeyId
     ) {
-      this.@deleteOnTermination = deleteOnTermination ?: new InterpolableBoolean.ImmutableRaw()
-      this.@deviceName = deviceName ?: new InterpolableString.ImmutableRaw()
-      this.@encrypted = encrypted ?: new InterpolableBoolean.ImmutableRaw()
-      this.@iops = iops ?: new InterpolableLong.ImmutableRaw()
-      this.@noDevice = noDevice ?: new InterpolableBoolean.ImmutableRaw()
-      this.@snapshotId = snapshotId ?: new InterpolableString.ImmutableRaw()
-      this.@virtualName = virtualName ?: new InterpolableString.ImmutableRaw()
-      this.@volumeType = volumeType ?: new /*InterpolableVolumeType*/ InterpolableString.ImmutableRaw()
-      this.@volumeSize = volumeSize ?: new InterpolableLong.ImmutableRaw()
-      this.@kmsKeyId = kmsKeyId ?: new InterpolableString.ImmutableRaw()
+      this.@deleteOnTermination = deleteOnTermination != null ? deleteOnTermination : new InterpolableBoolean.ImmutableRaw()
+      this.@deviceName = deviceName != null ? deviceName : new InterpolableString.ImmutableRaw()
+      this.@encrypted = encrypted != null ? encrypted : new InterpolableBoolean.ImmutableRaw()
+      this.@iops = iops != null ? iops : new InterpolableLong.ImmutableRaw()
+      this.@noDevice = noDevice != null ? noDevice : new InterpolableBoolean.ImmutableRaw()
+      this.@snapshotId = snapshotId != null ? snapshotId : new InterpolableString.ImmutableRaw()
+      this.@virtualName = virtualName != null ? virtualName : new InterpolableString.ImmutableRaw()
+      this.@volumeType = volumeType != null ? volumeType : new /*InterpolableVolumeType*/ InterpolableString.ImmutableRaw()
+      this.@volumeSize = volumeSize != null ? volumeSize : new InterpolableLong.ImmutableRaw()
+      this.@kmsKeyId = kmsKeyId != null ? kmsKeyId : new InterpolableString.ImmutableRaw()
     }
 
     private BlockDeviceImpl(Context context, BlockDevice from) {

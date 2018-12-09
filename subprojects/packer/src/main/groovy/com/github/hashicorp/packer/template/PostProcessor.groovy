@@ -98,8 +98,11 @@ abstract class PostProcessor extends InterpolableObject {
 
   protected abstract Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
-  private static final class PostProcessorSubtypeRegistry extends SubtypeRegistry<PostProcessor> { }
-  protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new PostProcessorSubtypeRegistry()
+  protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
+
+  static {
+    SUBTYPE_REGISTRY.registerRegistry()
+  }
 
   static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
@@ -312,7 +315,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(SUBTYPE_REGISTRY.newInstance(rawValue))
+      new PostProcessorDefinition(SUBTYPE_REGISTRY.newInstance(rawValue)) // TODO
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {

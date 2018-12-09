@@ -191,4 +191,16 @@ class Template implements InterpolableObject {
     template.path = file.toPath()
     template
   }
+
+  static Template readValue(String string, Mutability mutability = Mutability.IMMUTABLE) {
+    Template template = ObjectMapperFacade.get(mutability).readValue(string, Template)
+    template
+  }
+
+  void writeValue(Writer writer) {
+    /* TODO file.withInputStream { InputStream inputStream ->
+      ObjectMapperFacade.get(mutability).writeValue
+        .readValue(inputStream, Template)
+    }*/
+  }
 }

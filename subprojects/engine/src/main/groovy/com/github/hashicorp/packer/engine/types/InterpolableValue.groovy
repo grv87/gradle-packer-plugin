@@ -2,7 +2,6 @@ package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.Module
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
@@ -120,16 +119,16 @@ interface InterpolableValue<
     AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
   > extends Abstract<Source, Target, ThisInterface> implements Cloneable {
     @SuppressWarnings('UnstableApiUsage')
-    private static final Constructor<InterpolatedClass> INTERPOLATED_CLASS_CONSTRUCTOR = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Closure, Closure)
+    private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Closure, Closure)
 
     @Override
     final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INTERPOLATED_CLASS_CONSTRUCTOR.newInstance(this, context, defaultValueSupplier, ignoreIf, postProcess)
+      interpolatedClassConstructor.newInstance(this, context, defaultValueSupplier, ignoreIf, postProcess)
     }
 
     @Override
     final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      INTERPOLATED_CLASS_CONSTRUCTOR.newInstance(this, context, defaultValue, ignoreIf, postProcess)
+      interpolatedClassConstructor.newInstance(this, context, defaultValue, ignoreIf, postProcess)
     }
 
     @Override
@@ -269,9 +268,9 @@ interface InterpolableValue<
     RawClass extends */
   > extends AbstractInterpolated<Source, Target, ThisInterface> {
     @SuppressWarnings('UnstableApiUsage')
-    private static final Class<Target> TARGET = (Class<Target>)new TypeToken<Target>(this.class) { }.rawType
+    private final Class<Target> target = (Class<Target>)new TypeToken<Target>(this.class) { }.rawType
     @SuppressWarnings('UnstableApiUsage')
-    private static final Class<AlreadyInterpolatedClass> ALREADY_INTERPOLATED_CLASS = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
+    private final Class<AlreadyInterpolatedClass> alreadyInterpolatedClass = (Class<AlreadyInterpolatedClass>)new TypeToken<AlreadyInterpolatedClass>(this.class) { }.rawType
 
     /*
      * WORKAROUND:
@@ -352,7 +351,7 @@ interface InterpolableValue<
 
     // TOTEST
     Object writeReplace() {
-      ALREADY_INTERPOLATED_CLASS.getConstructor(TARGET).newInstance(interpolated)
+      alreadyInterpolatedClass.getConstructor(target).newInstance(interpolated)
     }
   }
 

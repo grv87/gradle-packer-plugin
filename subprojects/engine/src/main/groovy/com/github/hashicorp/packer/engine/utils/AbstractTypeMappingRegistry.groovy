@@ -18,7 +18,7 @@ class AbstractTypeMappingRegistry implements ModuleProvider {
       throw new IllegalArgumentException(sprintf('Abstract type mapping for type %s is already registered', [abstractClass.canonicalName]))
     }
     modules.clear()
-    abstractTypeMappingRegistry[abstractClass] = [Mutability.MUTABLE: mutableClass, Mutability.IMMUTABLE: immutableClass]
+    abstractTypeMappingRegistry[abstractClass] = [(Mutability.MUTABLE): mutableClass, (Mutability.IMMUTABLE): immutableClass]
 
   }
 
