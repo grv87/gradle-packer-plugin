@@ -1,11 +1,16 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.databind.Module
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
 import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationException
 import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
+import com.github.hashicorp.packer.engine.utils.ModuleProvider
+import com.github.hashicorp.packer.engine.utils.Mutability
+import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
@@ -100,6 +105,10 @@ interface InterpolableValue<
     @Override
     final ThisInterface interpolateValue(Map<String, ?> args) {
       interpolateValue(args, null)
+    }
+
+    static {
+      ObjectMapperFacade.registerCustomModuleProvider(new SerializerModuleProvider())
     }
   }
 
@@ -392,17 +401,26 @@ interface InterpolableValue<
     }
   }
 
-  public static final SimpleModule SERIALIZER_MODULE = {
-    SimpleModule result = new SimpleModule()
-    result.addSerializer(InterpolableValue, new JsonSerializer<InterpolableValue>() {
-      @Override
-      void serialize(InterpolableValue interpolableValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException/*, JsonProcessingException*/ {
-        Object raw = interpolableValue.raw
-        if (raw != null) {
-          jsonGenerator.writeObject(raw)
-        }
+  static final class Serializer extends JsonSerializer<InterpolableValue> {
+    private static final Serializer SERIALIZER = new Serializer()
+
+    private Serializer() {}
+
+    @Override
+    void serialize(InterpolableValue interpolableValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException/*, JsonProcessingException*/ {
+      Object raw = interpolableValue.raw
+      if (raw != null) {
+        jsonGenerator.writeObject(raw)
       }
-    })
-    result
-  }.call()
+    }
+  }
+
+  private static final class SerializerModuleProvider implements ModuleProvider {
+    @Override
+    Module getModule(Mutability mutability) {
+      SimpleModule serializerModule = new SimpleModule()
+      serializerModule.addSerializer(InterpolableValue, Serializer.SERIALIZER)
+      serializerModule
+    }
+  }
 }

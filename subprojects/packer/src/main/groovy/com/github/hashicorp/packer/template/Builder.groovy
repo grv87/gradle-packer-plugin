@@ -19,10 +19,11 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
+import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
+import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
@@ -79,7 +80,6 @@ abstract class Builder extends InterpolableObject {
     }
   }
 
-  static void registerSubtype(String type, Class<? extends Builder> clazz) {
-    ObjectMapperProvider.registerSubtypes(new NamedType(clazz, type))
-  }
+  private static final class BuilderSubtypeRegistry extends SubtypeRegistry<Builder> { }
+  protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new BuilderSubtypeRegistry()
 }

@@ -145,4 +145,8 @@ class File extends Provisioner<Configuration> {
     @InheritConstructors
     final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<Direction, InterpolableDirection> implements InterpolableDirection { }
   }
+
+  static {
+    SUBTYPE_REGISTRY.registerSubtype 'file', File
+  }
 }

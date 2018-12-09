@@ -19,9 +19,10 @@
  */
 package com.github.hashicorp.packer.template
 
+import com.github.hashicorp.packer.engine.utils.Mutability
+
 import static Context.BUILD_NAME_VARIABLE_NAME
-import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import com.github.hashicorp.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
@@ -31,7 +32,6 @@ import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedFo
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.types.InterpolableObject
 import org.gradle.api.tasks.Input
@@ -184,9 +184,9 @@ class Template implements InterpolableObject {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  static Template readFromFile(File file) {
+  static Template readFromFile(File file, Mutability mutability = Mutability.IMMUTABLE) {
     Template template = (Template)file.withInputStream { InputStream inputStream ->
-      ObjectMapperProvider.readValue(inputStream, Template)
+      ObjectMapperFacade.get(mutability).readValue(inputStream, Template)
     }
     template.path = file.toPath()
     template

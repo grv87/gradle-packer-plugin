@@ -51,8 +51,6 @@ class PackerBasePlugin implements Plugin<Project> {
   }
 
   void apply(Project project) {
-    registerBuiltInPackerPlugins() // TODO: 1) run only one and synchronized 2) required for settings too
-
     project.pluginManager.apply LifecycleBasePlugin
 
     for (Class taskClass : [PackerBuild, PackerValidate]) {
@@ -68,23 +66,5 @@ class PackerBasePlugin implements Plugin<Project> {
       }
     }
     project.extensions.create(PackerToolExtension.NAME, PackerToolExtension, project)
-  }
-
-  static void registerBuiltInPackerPlugins() {
-    [
-      'null': Null,
-    ].each { String key, Class<? extends Builder> value ->
-      Builder.registerSubtype key, value
-    }
-    [
-      'file': File,
-    ].each { String key, Class<? extends Provisioner> value ->
-      Provisioner.registerSubtype key, value
-    }
-    [
-      'manifest': Manifest,
-    ].each { String key, Class<? extends PostProcessor> value ->
-      PostProcessor.registerSubtype key, value
-    }
   }
 }

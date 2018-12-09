@@ -19,14 +19,15 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
+
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.engine.annotations.PostProcess
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
+import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
@@ -97,14 +98,10 @@ abstract class PostProcessor extends InterpolableObject {
 
   protected abstract Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
-  private static final Map<String, Class<PostProcessor>> SUBTYPES = [:]
+  private static final class PostProcessorSubtypeRegistry extends SubtypeRegistry<PostProcessor> { }
+  protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new PostProcessorSubtypeRegistry()
 
-  static void registerSubtype(String type, Class<PostProcessor> clazz) {
-    SUBTYPES.put type, clazz
-    ObjectMapperProvider.registerSubtypes(new NamedType(clazz, type))
-  }
-
-    static final class PostProcessorArrayDefinition extends InterpolableObject {
+  static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
     }
 
@@ -315,7 +312,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(SUBTYPES[rawValue].getConstructor().newInstance())
+      new PostProcessorDefinition(SUBTYPE_REGISTRY.newInstance(rawValue))
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {

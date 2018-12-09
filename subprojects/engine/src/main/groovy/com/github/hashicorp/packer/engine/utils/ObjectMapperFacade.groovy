@@ -4,46 +4,67 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.type.ResolvedType
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
+import com.github.hashicorp.packer.engine.types.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableValue
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
+import groovy.transform.Synchronized
 
-final class ObjectMapperProvider {
-  private static final ObjectMapper MAPPER = new ObjectMapper()
+final class ObjectMapperFacade {
+  private static final Set<ModuleProvider> CUSTOM_MODULE_PROVIDER_REGISTRY = new HashSet()
+  private static final Map<Class<? extends InterpolableObject>, Map<Mutability, Class<? extends InterpolableObject>>> ABSTRACT_TYPE_MAPPING_REGISTRY = [:]
+  private static Map<Mutability, ObjectMapperFacade> facades = new HashMap<>(2)
+  static final AbstractTypeMappingRegistry ABSTRACT_TYPE_MODULE_REGISTRY = new AbstractTypeMappingRegistry()
+
   static {
-    MAPPER.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
-    MAPPER.registerModule(new GuavaModule())
-    MAPPER.registerModule(new AfterburnerModule())
-    MAPPER.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
-    MAPPER.serializationInclusion = JsonInclude.Include.NON_NULL
-    MAPPER.registerModule(InterpolableValue.SERIALIZER_MODULE)
-    /*
-     * TODO:
-     * 1. All classes
-     * 2. Mutable and immutable versions
-     */
-    SimpleModule immutableModule = new SimpleModule()
-    immutableModule.addAbstractTypeMapping(InterpolableBoolean, InterpolableBoolean.ImmutableRaw)
-    immutableModule.addAbstractTypeMapping(InterpolableString, InterpolableString.ImmutableRaw)
-    immutableModule.addAbstractTypeMapping(InterpolableLong, InterpolableLong.ImmutableRaw)
-    MAPPER.registerModule(immutableModule);
+    registerCustomModuleProvider ABSTRACT_TYPE_MODULE_REGISTRY
   }
-  
-  static void registerSubtype(String type, Class<?> clazz) {
-    MAPPER.registerSubtypes(new NamedType(clazz, type))
+
+  @Synchronized
+  static void registerCustomModuleProvider(ModuleProvider moduleProvider) {
+    facades.clear()
+    CUSTOM_MODULE_PROVIDER_REGISTRY.add moduleProvider
+  }
+
+  private static final Set<Module> getCustomModules(Mutability mutability) {
+    CUSTOM_MODULE_PROVIDER_REGISTRY*.getModule(mutability).toSet()
+  }
+
+  @Synchronized
+  static final ObjectMapperFacade get(Mutability mutability) {
+    ObjectMapperFacade facade = facades[mutability]
+    Set<Module> customModules = getCustomModules(mutability)
+    if (facade != null && facade.@customModules == customModules) {
+      return facade
+    }
+    ObjectMapper objectMapper = new ObjectMapper()
+    objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
+    objectMapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+    objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
+    objectMapper.registerModule(new GuavaModule())
+    objectMapper.registerModule(new AfterburnerModule())
+    facade = new ObjectMapperFacade(objectMapper, customModules)
+    facades[mutability] = facade
+    facade
+  }
+
+  private final ObjectMapper objectMapper
+  private final Set<Module> customModules
+
+  private ObjectMapperFacade(ObjectMapper objectMapper, Set<Module> customModules) {
+    this.@objectMapper = objectMapper
+    this.@customModules = customModules
+    customModules.each { Module customModule ->
+      objectMapper.registerModule customModule
+    }
   }
 
   /**
@@ -59,8 +80,8 @@ final class ObjectMapperProvider {
    *   expected for result type (or has other mismatch issues)
    */
   @SuppressWarnings('unchecked')
-  static <T> T readValue(File src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
-    MAPPER.readValue(src, valueType)
+  <T> T readValue(File src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
+    objectMapper.readValue(src, valueType)
   }
 
   /**
@@ -76,8 +97,8 @@ final class ObjectMapperProvider {
    *   expected for result type (or has other mismatch issues)
    */
   @SuppressWarnings('unchecked')
-  static <T> T readValue(URL src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
-    MAPPER.readValue(src, valueType)
+  <T> T readValue(URL src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
+    objectMapper.readValue(src, valueType)
   }
 
   /**
@@ -93,22 +114,17 @@ final class ObjectMapperProvider {
    *   expected for result type (or has other mismatch issues)
    */
   @SuppressWarnings('unchecked')
-  static <T> T readValue(String content, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
-    MAPPER.readValue(content, valueType)
+  <T> T readValue(String content, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
+    objectMapper.readValue(content, valueType)
   }
 
   @SuppressWarnings('unchecked')
-  static <T> T readValue(Reader src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
-    MAPPER.readValue(src, valueType)
+  <T> T readValue(Reader src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
+    objectMapper.readValue(src, valueType)
   }
 
   @SuppressWarnings('unchecked')
-  static <T> T readValue(InputStream src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
-    MAPPER.readValue(src, valueType)
-  }
-
-  // Suppress default constructor for noninstantiability
-  private ObjectMapperProvider() {
-    throw new UnsupportedOperationException()
+  <T> T readValue(InputStream src, Class<T> valueType) throws IOException, JsonParseException, JsonMappingException {
+    objectMapper.readValue(src, valueType)
   }
 }

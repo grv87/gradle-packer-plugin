@@ -31,7 +31,7 @@ dependencies {
 configurations.named('implementation').configure { exclude(group: 'org.slf4j', module: 'slf4j-api') }
 
 tasks.withType(GroovyCompile).named('compileGroovy').configure { GroovyCompile compileGroovy ->
-  compileGroovy.configurationScript = file('config/groovyc.groovy')
+  compileGroovy.groovyOptions.configurationScript = file('config/groovyc.groovy')
 
 }
 

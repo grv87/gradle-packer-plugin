@@ -19,11 +19,12 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperProvider
+import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
+import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -111,7 +112,6 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     }
   }
 
-  static void registerSubtype(String type, Class<? extends Provisioner> clazz) {
-    ObjectMapperProvider.registerSubtypes(new NamedType(clazz, type))
-  }
+  private static final class ProvisionerSubtypeRegistry extends SubtypeRegistry<Provisioner> { }
+  protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new ProvisionerSubtypeRegistry()
 }

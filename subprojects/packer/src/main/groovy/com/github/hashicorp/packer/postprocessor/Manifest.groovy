@@ -59,4 +59,8 @@ class Manifest extends PostProcessor {
       com_github_hashicorp_packer_packer_Artifact__string = "$context.buildName-$priorArtifact.id"
     }
   }
+
+  static {
+    SUBTYPE_REGISTRY.registerSubtype 'manifest', Manifest
+  }
 }

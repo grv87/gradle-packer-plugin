@@ -24,6 +24,7 @@ import static org.codehaus.groovy.ast.ClassHelper.make
 import static org.codehaus.groovy.ast.ClassHelper.makeCached
 import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
 import static org.codehaus.groovy.ast.ClassNode.ACC_PUBLIC
+import static org.codehaus.groovy.ast.ClassNode.ACC_ABSTRACT
 import static org.codehaus.groovy.ast.ClassNode.ACC_PRIVATE
 import static org.codehaus.groovy.ast.ClassNode.ACC_STATIC
 import static org.codehaus.groovy.ast.ClassNode.ACC_FINAL
@@ -102,12 +103,12 @@ class AutoImplementASTTransformation implements ASTTransformation {
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
     AnnotationNode annotationNode = (AnnotationNode)astNodes[0]
     ClassNode interfase = (ClassNode)astNodes[1]
-    if (!interfase.interface) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'interfaces only'
+    if (interfase.interface || !(interfase.modifiers & ACC_ABSTRACT)) {
+      addErrorOnAnnotation sourceUnit, annotationNode, 'abstract classes only'
       return
     }
     if (!implementsInterfaceOrSubclassOf(interfase, INTERPOLABLE_OBJECT_CLASS)) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'interfaces extending InterpolableObject', interfase.interfaces
+      addErrorOnAnnotation sourceUnit, annotationNode, 'abstract classes implementing InterpolableObject', interfase.interfaces
       return
     }
     if (!getAnnotation(interfase, COMPILE_STATIC_CLASS)) {

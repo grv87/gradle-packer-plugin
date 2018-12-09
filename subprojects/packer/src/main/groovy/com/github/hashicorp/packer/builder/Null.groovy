@@ -15,4 +15,8 @@ class Null extends Builder {
     super.doInterpolate()
     commConfig.interpolate context
   }
+
+  static {
+    SUBTYPE_REGISTRY.registerSubtype 'null', Null
+  }
 }
