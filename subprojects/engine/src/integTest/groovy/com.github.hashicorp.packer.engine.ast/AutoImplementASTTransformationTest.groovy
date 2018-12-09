@@ -1,6 +1,9 @@
 package com.github.hashicorp.packer.engine.ast
 
 import static groovy.test.GroovyAssert.shouldFail
+import static groovy.test.GroovyAssertExt.assertScript
+import org.codehaus.groovy.control.CompilerConfiguration
+import java.nio.file.Path
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
 import groovy.text.StreamingTemplateEngine
@@ -9,7 +12,6 @@ import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import java.util.regex.Matcher
-import static groovy.test.GroovyAssert.assertScript
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
 import junitparams.naming.TestCaseName
@@ -17,6 +19,7 @@ import org.junit.runner.RunWith
 import java.nio.file.Paths
 import com.google.common.reflect.ClassPath
 import org.junit.Test
+import com.google.common.collect.ImmutableMap
 
 @RunWith(JUnitParamsRunner)
 // @CompileStatic
@@ -25,18 +28,31 @@ class AutoImplementASTTransformationTest {
   @Parameters
   @TestCaseName('testErroneousSource[{index}]: {0}')
   void testErroneousSource(String testName, String source, List<String> errorMessages) {
-    Throwable throwable = shouldFail(source)
+    Throwable throwable = shouldFail(MultipleCompilationErrorsException, source)
 
     assert errorMessages == ((MultipleCompilationErrorsException)throwable).errorCollector.errors.collect {
       ((SyntaxErrorMessage)it).cause.originalMessage
     }
   }
 
+  private static CompilerConfiguration getCompilerConfiguration(Boolean parameters) {
+    CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
+    compilerConfiguration.sourceEncoding = Charsets.UTF_8.name()
+    compilerConfiguration.parameters = parameters
+    compilerConfiguration.debug = true
+    compilerConfiguration
+  }
+
+  private static final Map<Boolean, CompilerConfiguration> COMPILER_CONFIGURATIONS = ImmutableMap.of(
+    Boolean.FALSE, getCompilerConfiguration(Boolean.FALSE),
+    Boolean.TRUE, getCompilerConfiguration(Boolean.TRUE),
+  )
+
   @Test
   @Parameters
   @TestCaseName('testCompilation[{index}]: {0}, parameters = {2}')
   void testCompilation(String testName, String source, Boolean parameters) {
-    assertScript source
+    assertScript source, COMPILER_CONFIGURATIONS[parameters]
   }
 
   private static final Template AST_TEST_TEMPLATE = new StreamingTemplateEngine().createTemplate(Resources.toString(Resources.getResource(this, 'ASTTest.groovy.template'), Charsets.UTF_8))
@@ -46,16 +62,15 @@ class AutoImplementASTTransformationTest {
   @TestCaseName('testASTMatch[{index}]: {0} at {3}')
   void testASTMatch(String testName, String source, URL expectedUrl, Boolean parameters, CompilePhase compilePhase) {
     String sourceWithASTTest = source.replaceFirst('// declaration', AST_TEST_TEMPLATE.make(
-      compilePhase: compilePhase.name(),
-      parameters: parameters.toString(),
+      compilePhase: compilePhase/*.name()*/.inspect(),
       expectedUrl: expectedUrl.inspect()
     ).toString())
-    assertScript sourceWithASTTest
+    assertScript source, COMPILER_CONFIGURATIONS[parameters]
   }
 
   private static Object[] parametersForTestErroneousSource() {
     Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/erroneous/(\\S+)/source.groovy$'
+      Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/erroneous/(\\S+)/source\\.groovy$'
       if (m) {
         String testName = m[0][1]
         [testName, Resources.toString(it.url(), Charsets.UTF_8), Resources.readLines(Paths.get(it.url().toURI()).parent.resolve('errorMessages.txt').toUri().toURL(), Charsets.UTF_8)].toArray(new Object[3])
@@ -70,7 +85,7 @@ class AutoImplementASTTransformationTest {
   private static Object[] parametersForTestCompilation() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source.groovy$'
+        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy$'
         if (m) {
           String testName = m[0][1]
           [testName, Resources.toString(it.url(), Charsets.UTF_8)]
@@ -91,7 +106,7 @@ class AutoImplementASTTransformationTest {
   private static Object[] parametersForTestASTMatch() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source.groovy$'
+        Matcher m = it.resourceName =~ '^com/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy$'
         if (m) {
           String testName = m[0][1]
           [testName, it.url()]
@@ -100,9 +115,10 @@ class AutoImplementASTTransformationTest {
         }
       }.collectMany { it ->
         def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
+        Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
         [
-          newIt + [Paths.get(it[1].toURI()).parent.resolve('expected/withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
-          newIt + [Paths.get(it[1].toURI()).parent.resolve('expected/withParameters.groovy').toUri().toURL(), Boolean.TRUE],
+          newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
+          newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
         ]
       },
       [

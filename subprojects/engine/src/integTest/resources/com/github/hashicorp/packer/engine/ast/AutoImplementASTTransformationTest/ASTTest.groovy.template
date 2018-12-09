@@ -1,5 +1,5 @@
 import static org.codehaus.groovy.control.CompilePhase.*
-import org.codehaus.groovy.ast.builder.AstStringCompilerExt
+import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.macro.matcher.ASTMatcher
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
@@ -9,16 +9,10 @@ import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.InnerClassNode
 import org.codehaus.groovy.ast.tools.WideningCategories
-import org.codehaus.groovy.control.CompilerConfiguration
 import groovy.transform.ASTTest
 
 @ASTTest(phase = $compilePhase, value = {
-  CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
-  compilerConfiguration.sourceEncoding = Charsets.UTF_8.name()
-  compilerConfiguration.parameters = $parameters
-  compilerConfiguration.debug = true
-
-  expected = AstStringCompilerExt.compile(Resources.toString(Resources.getResource($expectedUrl), Charsets.UTF_8), $compilePhase, compilerConfiguration)
+  expected = new AstBuilder().buildFromString($compilePhase, Resources.toString(Resources.getResource($expectedUrl), Charsets.UTF_8))
   // AstAssert.assertSyntaxTree(, )
   assert ASTMatcher.matches(expected.findAll { ASTNode e -> InnerClassNode.isInstance(e) }, node.module.classes.findAll { s -> InnerClassNode.isInstance(s) })
 

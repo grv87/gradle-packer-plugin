@@ -28,8 +28,8 @@ import org.junit.Assert
 class AstAssert {
 
     /**
-    * Support for new assertion types can be added by adding a Map<String, Closure> entry. 
-    */ 
+     * Support for new assertion types can be added by adding a Map<String, Closure> entry.
+     */
     private static Map<Object, Closure> ASSERTION_MAP = [
             BlockStatement : { expected, actual, path ->
                 assertSyntaxTree(expected.statements, actual.statements, "${ path }.statements") 

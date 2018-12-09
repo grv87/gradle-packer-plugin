@@ -71,12 +71,24 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
   > extends InterpolableValue.Interpolated<Object, URI, InterpolableURI, AlreadyInterpolatedClass> implements InterpolableURI<ThisInterface> {
     @ComputedInternal
     URI getFileURI() {
-      interpolated?.scheme == 'file' ? interpolated : null
+      /*
+       * WORKAROUND:
+       * Without equals we got compilation error:
+       * [Static type checking] - Cannot find matching method org.codehaus.groovy.runtime.ScriptBytecodeAdapter#compareEquals(java.lang.String, java.lang.String). Please check if the declared type is correct and if the method exists.
+       * <grv87 2018-12-09>
+       */
+      'file'.equals(interpolated?.scheme) ? interpolated : null
     }
 
     @ComputedInternal
     URI getNonFileURI() {
-      interpolated?.scheme != 'file' ? interpolated : null
+      /*
+       * WORKAROUND:
+       * Without equals we got compilation error:
+       * [Static type checking] - Cannot find matching method org.codehaus.groovy.runtime.ScriptBytecodeAdapter#compareEquals(java.lang.String, java.lang.String). Please check if the declared type is correct and if the method exists.
+       * <grv87 2018-12-09>
+       */
+      !'file'.equals(interpolated?.scheme) ? interpolated : null
     }
   }
 
@@ -86,12 +98,24 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
   > extends InterpolableValue.AlreadyInterpolated<Object, URI, InterpolableURI> implements InterpolableURI<ThisInterface> {
     @ComputedInternal
     URI getFileURI() {
-      interpolated?.scheme == 'file' ? interpolated : null
+      /*
+       * WORKAROUND:
+       * Without equals we got compilation error:
+       * [Static type checking] - Cannot find matching method org.codehaus.groovy.runtime.ScriptBytecodeAdapter#compareEquals(java.lang.String, java.lang.String). Please check if the declared type is correct and if the method exists.
+       * <grv87 2018-12-09>
+       */
+      'file'.equals(interpolated?.scheme) ? interpolated : null
     }
 
     @ComputedInternal
     URI getNonFileURI() {
-      interpolated?.scheme != 'file' ? interpolated : null
+      /*
+       * WORKAROUND:
+       * Without equals we got compilation error:
+       * [Static type checking] - Cannot find matching method org.codehaus.groovy.runtime.ScriptBytecodeAdapter#compareEquals(java.lang.String, java.lang.String). Please check if the declared type is correct and if the method exists.
+       * <grv87 2018-12-09>
+       */
+      !'file'.equals(interpolated?.scheme) ? interpolated : null
     }
   }
 }

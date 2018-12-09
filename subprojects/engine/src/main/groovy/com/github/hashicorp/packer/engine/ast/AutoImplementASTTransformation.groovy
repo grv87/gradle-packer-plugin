@@ -71,8 +71,8 @@ import org.gradle.api.tasks.Optional
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-@CompileStatic
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
+@CompileStatic
 class AutoImplementASTTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/^get/
   private static final ConstantExpression NULL = constX(null)
@@ -174,7 +174,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
         /*
          * Due to https://issues.apache.org/jira/browse/GROOVY-8914 inner classes don't work anyway.
          * Maybe we should remove this code too
-          */
+         */
         String typImplClassName =  "$typ.name$DOLLAR${ isValue ? IMMUTABLE_RAW /* TODO: + Mutable version */ : "$typ.name$IMPL" }"
         ClassNode typImplType = typ.name.startsWith("$interfase.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 

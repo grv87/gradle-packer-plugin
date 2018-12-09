@@ -7,17 +7,15 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
+import groovy.transform.CompileStatic
 import groovy.transform.Synchronized
 
+@CompileStatic
 final class ObjectMapperFacade {
   private static final Set<ModuleProvider> CUSTOM_MODULE_PROVIDER_REGISTRY = new HashSet()
   private static final Map<Class<? extends InterpolableObject>, Map<Mutability, Class<? extends InterpolableObject>>> ABSTRACT_TYPE_MAPPING_REGISTRY = [:]
