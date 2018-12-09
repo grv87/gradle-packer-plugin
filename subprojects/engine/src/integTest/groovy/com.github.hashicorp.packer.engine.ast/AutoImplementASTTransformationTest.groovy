@@ -59,7 +59,7 @@ class AutoImplementASTTransformationTest {
 
   @Test
   @Parameters
-  @TestCaseName('testASTMatch[{index}]: {0} at {3}')
+  @TestCaseName('testASTMatch[{index}]: {0}, parameters = {3}, compilePhase = {4}')
   void testASTMatch(String testName, String source, URL expectedUrl, Boolean parameters, CompilePhase compilePhase) {
     String sourceWithASTTest = source.replaceFirst('^// declaration$', AST_TEST_TEMPLATE.make(
       compilePhase: compilePhase/*.name()*/.inspect(),
