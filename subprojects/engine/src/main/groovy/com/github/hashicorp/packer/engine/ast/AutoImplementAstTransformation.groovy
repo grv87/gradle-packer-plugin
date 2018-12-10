@@ -1,15 +1,5 @@
 package com.github.hashicorp.packer.engine.ast
 
-import com.google.common.collect.ImmutableList
-import org.codehaus.groovy.ast.expr.ClassExpression
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectories
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.varX
@@ -38,6 +28,16 @@ import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActual
 import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
 import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
 import static org.codehaus.groovy.ast.Parameter.EMPTY_ARRAY as EMPTY_PARAMETER_ARRAY
+import com.google.common.collect.ImmutableList
+import org.codehaus.groovy.ast.expr.ClassExpression
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import com.github.hashicorp.packer.engine.utils.Mutability
 import com.google.common.collect.ImmutableMap
 import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
@@ -134,8 +134,19 @@ class AutoImplementAstTransformation implements ASTTransformation {
   private static final ClassNode INPUT_FILES_CLASS = makeCached(InputFiles)
   private static final ClassNode INPUT_DIRECTORY_CLASS = makeCached(InputDirectory)
   private static final ClassNode OUTPUT_FILE_CLASS = makeCached(OutputFile)
+  private static final ClassNode OUTPUT_FILES_CLASS = makeCached(OutputFiles)
   private static final ClassNode OUTPUT_DIRECTORY_CLASS = makeCached(OutputDirectory)
-  private static final List<ClassNode> GRADLE_TASK_PROPERTIES_ANNOTATION_CLASSES = ImmutableList.of(INPUT_CLASS, INPUT_FILE_CLASS, INPUT_FILES_CLASS, INPUT_DIRECTORY_CLASS, OUTPUT_FILE_CLASS, OUTPUT_DIRECTORY_CLASS)
+  private static final ClassNode OUTPUT_DIRECTORIES_CLASS = makeCached(OutputDirectories)
+  private static final List<ClassNode> GRADLE_TASK_PROPERTIES_ANNOTATION_CLASSES = ImmutableList.of(
+    INPUT_CLASS,
+    INPUT_FILE_CLASS,
+    INPUT_FILES_CLASS,
+    INPUT_DIRECTORY_CLASS,
+    OUTPUT_FILE_CLASS,
+    OUTPUT_FILES_CLASS,
+    OUTPUT_DIRECTORY_CLASS,
+    OUTPUT_DIRECTORIES_CLASS
+  )
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
