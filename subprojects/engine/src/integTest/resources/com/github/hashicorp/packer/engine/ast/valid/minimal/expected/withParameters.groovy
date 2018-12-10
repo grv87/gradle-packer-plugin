@@ -28,15 +28,15 @@ class Minimal implements InterpolableObject<Minimal> {
     )
   }
 
-  static final class MinimalMutableImpl extends Minimal {
-    MinimalMutableImpl() {
+  static final class MinimalImpl extends Minimal {
+    MinimalImpl() {
       this(
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
-    MinimalMutableImpl(
+    MinimalImpl(
       InterpolableLong singleField
     ) {
       super(singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE))
@@ -66,6 +66,6 @@ class Minimal implements InterpolableObject<Minimal> {
   }
 
   static {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping Minimal, MinimalMutableImpl, MinimalImmutableImpl
+    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping Minimal, MinimalImpl, MinimalImmutableImpl
   }
 }

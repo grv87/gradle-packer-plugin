@@ -73,7 +73,7 @@ import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 @CompileStatic
-class AutoImplementASTTransformation implements ASTTransformation {
+class AutoImplementAstTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/\Aget/
   private static final ConstantExpression NULL = constX(null)
   private static final VariableExpression THIS_X = varX('this')
@@ -159,12 +159,17 @@ class AutoImplementASTTransformation implements ASTTransformation {
     Map<Mutability, List<Expression>> implClassConstructorArgs = Mutability.values().collectEntries { Mutability mutability ->
       [(mutability): []]
     }
-    List<Statement> abstractClassInterpolateConstructorStmts = []
+    List<Expression> abstractClassInterpolateConstructorArgs = []
+
+    boolean methodsFound = false
 
     abstractClass.methods.each { MethodNode method ->
       Matcher m = GETTER_PATTERN.matcher(method.name)
       if (m && method.modifiers & ACC_ABSTRACT && method.parameters.length == 0) { // TODO: + Test for method.code
+        methodsFound = true
+
         method.modifiers &= ~ACC_ABSTRACT
+        method.modifiers |= ACC_FINAL
 
         ClassNode typ = method.returnType
 
@@ -180,7 +185,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
           THIS_X,
           fieldNameConstant
         )
-        Expression fromFieldX = propX(
+        Expression fromFieldX = attrX(
           varX(FROM, abstractClassRef),
           fieldNameConstant
         )
@@ -195,10 +200,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null && !abstractClass.compileUnit.config.parameters) {
-          String fieldJsonName = ((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
-          jsonPropertyAnnotation.addMember(VALUE, constX(fieldJsonName))
-          method.addAnnotation jsonPropertyAnnotation
+          jsonPropertyAnnotation.addMember(VALUE, constX(ObjectMapperFacade.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
         }
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
@@ -269,12 +272,12 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
         // TODO: + list
         if (isValue) {
-          List<Expression> interpolateValueParams = [(Expression)CONTEXT_VAR_X]
+          List<Expression> interpolateValueArgs = [(Expression)CONTEXT_VAR_X]
 
           if (defaultAnnotation != null) {
             method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
-              interpolateValueParams.add defaultAnnotation.members[VALUE]
+              interpolateValueArgs.add defaultAnnotation.members[VALUE]
             } else {
               ClosureExpression defaultClosure = (ClosureExpression)defaultAnnotation.members[VALUE]
               List<Statement> statements = ((BlockStatement)defaultClosure.code).statements
@@ -293,10 +296,10 @@ class AutoImplementASTTransformation implements ASTTransformation {
                 addErrorOnDefaultClosure sourceUnit, firstS, 'have expression or return statement', firstS, 'If you can\'t express it this way, set dynamic member to true'
                 return
               }
-              interpolateValueParams.add defaultValueX
+              interpolateValueArgs.add defaultValueX
             }
           } else if (ignoreIfAnnotation != null || postProcessAnnotation != null) {
-            interpolateValueParams.add castX(
+            interpolateValueArgs.add castX(
               targetClass,
               NULL
             )
@@ -304,20 +307,19 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
           if (ignoreIfAnnotation != null) {
             method.annotations.remove(ignoreIfAnnotation)
-            interpolateValueParams.add ignoreIfAnnotation.members[VALUE]
+            interpolateValueArgs.add ignoreIfAnnotation.members[VALUE]
             method.addAnnotation(new AnnotationNode(OPTIONAL_CLASS))
           } else if (postProcessAnnotation != null) {
-            interpolateValueParams.add NULL
+            interpolateValueArgs.add NULL
           }
 
           if (postProcessAnnotation != null) {
             method.annotations.remove(postProcessAnnotation)
-            interpolateValueParams.add postProcessAnnotation.members[VALUE]
+            interpolateValueArgs.add postProcessAnnotation.members[VALUE]
           }
 
-          abstractClassInterpolateConstructorStmts.add assignS(
-            thisFieldX,
-            callX(fromFieldX, INTERPOLATE_VALUE, args(interpolateValueParams))
+          abstractClassInterpolateConstructorArgs.add callX(
+            fromFieldX, INTERPOLATE_VALUE, args(interpolateValueArgs)
           )
         } else {
           if (defaultAnnotation != null) {
@@ -333,16 +335,20 @@ class AutoImplementASTTransformation implements ASTTransformation {
             return
           }
 
-          abstractClassInterpolateConstructorStmts.add assignS(
-            thisFieldX,
-            callX(
-              fromFieldX,
-              INTERPOLATE,
-              args(CONTEXT_VAR_X)
+          abstractClassInterpolateConstructorArgs.add callX(
+            fromFieldX,
+            INTERPOLATE,
+            args(
+              CONTEXT_VAR_X
             )
           )
         }
       }
+    }
+
+    if (!methodsFound) {
+      addErrorOnAnnotation sourceUnit, annotationNode, 'classes that have at least one method to implement'
+      return
     }
 
     abstractClass.addConstructor(
@@ -366,7 +372,9 @@ class AutoImplementASTTransformation implements ASTTransformation {
       EMPTY_CLASS_NODE_ARRAY,
       block(
         null,
-        abstractClassInterpolateConstructorStmts
+        ctorThisS(
+          args(abstractClassInterpolateConstructorArgs)
+        )
       ) // TODO: need to call super() ?
     )
 
@@ -391,8 +399,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
       )
     ).addAnnotation(OVERRIDE_ANNOTATION)
 
-    /*abstractClass.objectInitializerStatements.add stmt(
-      callX(
+    abstractClass.addStaticInitializerStatements([(Statement)block(
+      stmt(callX(
         ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
         'registerAbstractTypeMapping',
         args(
@@ -400,8 +408,8 @@ class AutoImplementASTTransformation implements ASTTransformation {
           classX(implClassRefs[Mutability.MUTABLE]),
           classX(implClassRefs[Mutability.IMMUTABLE])
         )
-      )
-    )*/
+      ))
+    )], false)
 
     implClasses.each { Map.Entry<Mutability, ClassNode> entry ->
       entry.value.addConstructor(

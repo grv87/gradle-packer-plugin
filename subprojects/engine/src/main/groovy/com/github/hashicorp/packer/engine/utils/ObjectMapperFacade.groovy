@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.utils
 
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonEncoding
@@ -19,6 +20,7 @@ import groovy.transform.Synchronized
 
 @CompileStatic
 final class ObjectMapperFacade {
+  public static final PropertyNamingStrategyBase PROPERTY_NAMING_STRATEGY = (PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE
   private static final Set<ModuleProvider> CUSTOM_MODULE_PROVIDER_REGISTRY = new HashSet()
   private static Map<Mutability, ObjectMapperFacade> facades = new HashMap<>(2)
   static final AbstractTypeMappingRegistry ABSTRACT_TYPE_MAPPING_REGISTRY = new AbstractTypeMappingRegistry()
@@ -42,7 +44,7 @@ final class ObjectMapperFacade {
     }
     ObjectMapper objectMapper = new ObjectMapper()
     objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
-    objectMapper.propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+    objectMapper.propertyNamingStrategy = PROPERTY_NAMING_STRATEGY
     objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
     objectMapper.registerModule(new GuavaModule())
     objectMapper.registerModule(new AfterburnerModule())

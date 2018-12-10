@@ -228,8 +228,8 @@ class AstAssert {
                 assertSyntaxTree([expected.expression], [actual.expression], "${ path }.expression")
             },
             StaticMethodCallExpression : { expected, actual, path ->
-                Assert.assertEquals("$path: Wrong method", expected.method, actual.method)
                 assertNameOnly expected, actual, path, 'ownerType'
+                Assert.assertEquals("$path: Wrong method", expected.method, actual.method)
                 assertSyntaxTree([expected.arguments], [actual.arguments], "${ path }.arguments")
             },
             ForStatement : { expected, actual, path ->

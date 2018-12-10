@@ -1,7 +1,7 @@
 package com.github.hashicorp.packer.engine.ast
 
 import static groovy.test.GroovyAssert.shouldFail
-import static groovy.test.GroovyAssertExt.assertScript
+import java.util.regex.Pattern
 import org.codehaus.groovy.control.CompilerConfiguration
 import java.nio.file.Path
 import com.google.common.base.Charsets
@@ -23,7 +23,10 @@ import com.google.common.collect.ImmutableMap
 
 @RunWith(JUnitParamsRunner)
 // @CompileStatic
-class AutoImplementASTTransformationTest {
+class AutoImplementAstTransformationTest {
+
+  public static final Pattern DECLARATION_PATTERN = Pattern.compile('^// declaration$', Pattern.MULTILINE)
+
   @Test
   @Parameters
   @TestCaseName('testErroneousSource[{index}]: {0}')
@@ -52,7 +55,8 @@ class AutoImplementASTTransformationTest {
   @Parameters
   @TestCaseName('testCompilation[{index}]: {0}, parameters = {2}')
   void testCompilation(String testName, String source, Boolean parameters) {
-    assertScript source, COMPILER_CONFIGURATIONS[parameters]
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    groovyClassLoader.parseClass(source)
   }
 
   private static final Template AST_TEST_TEMPLATE = new StreamingTemplateEngine().createTemplate(Resources.toString(Resources.getResource(this, 'ASTTest.groovy.template'), Charsets.UTF_8))
@@ -61,11 +65,12 @@ class AutoImplementASTTransformationTest {
   @Parameters
   @TestCaseName('testASTMatch[{index}]: {0}, parameters = {3}, compilePhase = {4}')
   void testASTMatch(String testName, String source, URL expectedUrl, Boolean parameters, CompilePhase compilePhase) {
-    String sourceWithASTTest = source.replaceFirst('^// declaration$', AST_TEST_TEMPLATE.make(
-      compilePhase: compilePhase/*.name()*/.inspect(),
-      expectedUrl: expectedUrl.inspect()
+    String sourceWithASTTest = source.replaceFirst(DECLARATION_PATTERN, AST_TEST_TEMPLATE.make(
+      compilePhase: compilePhase.inspect(),
+      expectedUrl: expectedUrl.toString().inspect(),
     ).toString())
-    assertScript source, COMPILER_CONFIGURATIONS[parameters]
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    groovyClassLoader.parseClass(sourceWithASTTest)
   }
 
   private static Object[] parametersForTestErroneousSource() {
@@ -102,36 +107,32 @@ class AutoImplementASTTransformationTest {
     result
   }
 
-
   private static Object[] parametersForTestASTMatch() {
-    def a = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
-      if (m) {
-        String testName = m[0][1]
-        [testName, it.url()]
-      } else {
-        null
-      }
-    }
-    def b = a.collectMany { it ->
-      def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
-      Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
+    Object[] result = GroovyCollections.combinations([
+      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
+        if (m) {
+          String testName = m[0][1]
+          [testName, it.url()]
+        } else {
+          null
+        }
+      }.collectMany { it ->
+        def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
+        Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
+        [
+          newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
+          newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
+        ]
+      },
       [
-        newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
-        newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
-      ]
-    }
-    def c = [
-      CompilePhase.SEMANTIC_ANALYSIS,
-      CompilePhase.CANONICALIZATION,
-      CompilePhase.INSTRUCTION_SELECTION,
-      CompilePhase.CLASS_GENERATION,
-    ]
-    def d = GroovyCollections.combinations([
-      b,
-      c,
-    ])
-    Object[] result = d.collect { it.flatten().toArray(new Object[5]) }.toArray()
+        CompilePhase.SEMANTIC_ANALYSIS,
+        /* TODO
+        CompilePhase.CANONICALIZATION,
+        CompilePhase.INSTRUCTION_SELECTION,
+        CompilePhase.CLASS_GENERATION,*/
+      ],
+    ]).collect { it.flatten().toArray(new Object[5]) }.toArray()
     assert result.length > 0
     result
   }

@@ -52,6 +52,7 @@ plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.n
 dependencies {
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
+  testFixturesImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   integTestImplementation sourceSets.testFixtures.output
