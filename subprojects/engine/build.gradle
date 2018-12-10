@@ -32,17 +32,12 @@ afterEvaluate {
 }
 
 sourceSets {
-  testFixtures {
-    groovy.srcDirs = ['src/testFixtures/groovy']
-  }
   integTest {
     groovy.srcDirs = ['src/integTest/groovy']
     resources.srcDirs = ['src/integTest/resources']
   }
 }
 
-plugins.getPlugin('org.fidata.base.jvm').addJUnitDependency sourceSets.named('testFixtures')
-plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.named(sourceSets['testFixtures'].implementationConfigurationName)
 sourceSets.named('integTest').configure {
   plugins.getPlugin('org.fidata.base.jvm').configureIntegrationTestSourceSetClasspath it
 }
@@ -52,10 +47,8 @@ plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.n
 dependencies {
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
   testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '[1, 2['
-  testFixturesImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
-  integTestImplementation sourceSets.testFixtures.output
 }
 
 tasks.register('integTest', Test) {

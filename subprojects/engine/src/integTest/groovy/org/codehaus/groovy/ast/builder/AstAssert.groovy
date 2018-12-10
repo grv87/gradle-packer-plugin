@@ -98,7 +98,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'superClass'
                 assertNamesOnly expected, actual, path, 'interfaces'
                 assertNamesOnly expected, actual, path, 'mixins'
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree(expected.genericsTypes, actual.genericsTypes, "${ path }.genericsTypes")
                 assertSyntaxTree(expected.fields, actual.fields, "${ path }.fields")
                 assertSyntaxTree(expected.declaredConstructors, actual.declaredConstructors, "${ path }.declaredConstructors")
@@ -126,7 +126,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'type'
                 assertSyntaxTree([expected.defaultValue], [actual.defaultValue], "${ path }.defaultValue")
                 Assert.assertEquals("$path: Wrong parameter name", expected.name, actual.name)
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
             },
             ConstructorCallExpression : { expected, actual, path ->
                 assertNameOnly expected, actual, path, 'type'
@@ -165,7 +165,7 @@ class AstAssert {
                 Assert.assertEquals("$path: Wrong modifiers", expected.modifiers, actual.modifiers)
                 assertNameOnly expected, actual, path, 'type'
                 assertSyntaxTree([expected.initialValueExpression], [actual.initialValueExpression], "${ path }.initialValueExpression")
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
             },
             MapExpression : { expected, actual, path ->
                 assertSyntaxTree(expected.mapEntryExpressions, actual.mapEntryExpressions, "${ path }.mapEntryExpressions")
@@ -260,7 +260,7 @@ class AstAssert {
             PropertyNode : { expected, actual, path ->
                 Assert.assertEquals("$path: Wrong name", expected.name, actual.name)
                 Assert.assertEquals("$path: Wrong modifiers", expected.modifiers, actual.modifiers)
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree([expected.field], [actual.field], "${ path }.field")
                 assertSyntaxTree([expected.getterBlock], [actual.getterBlock], "${ path }.getterBlock")
                 assertSyntaxTree([expected.setterBlock], [actual.setterBlock], "${ path }.setterBlock")
@@ -273,7 +273,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'declaringClass'
                 Assert.assertEquals("$path: Wrong name", expected.name, actual.name)
                 Assert.assertEquals("$path: Wrong modifiers", expected.modifiers, actual.modifiers)
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree(expected.parameters, actual.parameters, "${ path }.parameters")
                 assertNamesOnly expected, actual, path, 'exceptions'
                 assertNameOnly expected, actual, path, 'returnType'
@@ -283,7 +283,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'declaringClass'
                 Assert.assertEquals("$path: Wrong name", expected.name, actual.name)
                 Assert.assertEquals("$path: Wrong modifiers", expected.modifiers, actual.modifiers)
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree(expected.parameters, actual.parameters, "${ path }.parameters")
                 assertNamesOnly expected, actual, path, 'exceptions'
                 assertSyntaxTree([expected.code], [actual.code], "${ path }.code")
@@ -291,7 +291,7 @@ class AstAssert {
             ImportNode : { expected, actual, path ->
                 assertNameOnly expected, actual, path, 'type'
                 Assert.assertEquals("$path: Wrong alias", expected.alias, actual.alias)
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
             },
             RegexExpression : { expected, actual, path ->
                 assertNameOnly expected, actual, path, 'type'
@@ -322,7 +322,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'superClass'
                 assertNamesOnly expected, actual, path, 'interfaces'
                 assertNamesOnly expected, actual, path, 'mixins'
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree(expected.genericsTypes, actual.genericsTypes, "${ path }.genericsTypes")
                 assertSyntaxTree(expected.fields, actual.fields, "${ path }.fields")
                 assertSyntaxTree(expected.declaredConstructors, actual.declaredConstructors, "${ path }.declaredConstructors")
@@ -336,7 +336,7 @@ class AstAssert {
                 assertNameOnly expected, actual, path, 'superClass'
                 assertNamesOnly expected, actual, path, 'interfaces'
                 assertNamesOnly expected, actual, path, 'mixins'
-                assertAnnotations expected, actual, path
+                assertSyntaxTree(expected.annotations, actual.annotations, "${ path }.annotations")
                 assertSyntaxTree(expected.genericsTypes, actual.genericsTypes, "${ path }.genericsTypes")
                 assertSyntaxTree(expected.fields, actual.fields, "${ path }.fields")
                 assertSyntaxTree(expected.declaredConstructors, actual.declaredConstructors, "${ path }.declaredConstructors")
@@ -459,30 +459,6 @@ class AstAssert {
           Assert.fail("$itemPath: Wrong item. \nExpected $expectedItem \nReceived $actualItem")
         }
         Assert.assertEquals("$itemPath: Wrong name", expectedItem.name, actualItem.name)
-      }
-    }
-
-    private static void assertAnnotations(expected, actual, path) {
-      def expectedAnnotations = expected.annotations
-      def actualAnnotations = actual.annotations
-
-      if (expectedAnnotations == null && actualAnnotations == null) return
-
-      def annotationsPath = "${ path }.annotations"
-
-      if (expectedAnnotations == null || actualAnnotations == null || expectedAnnotations?.size() != actualAnnotations?.size()) {
-        Assert.fail("$path: Wrong # annotations. \nExpected ${ expectedAnnotations*.classNode*.name } \nReceived ${ actualAnnotations*.classNode*.name }")
-      }
-      expectedAnnotations.each { expectedItem ->
-        def expectedClassName = expectedItem.classNode.name
-        def itemPath = "$annotationsPath[$expectedClassName]"
-
-        def actualItem = actualAnnotations.find { it.classNode.name == expectedClassName }
-
-        if (actualItem == null) {
-          Assert.fail("$path: Wrong types of annotations. \nExpected ${ expectedAnnotations*.classNode*.name } \nReceived ${ actualAnnotations*.classNode*.name }")
-        }
-        assertSyntaxTree([expectedItem], [actualItem], itemPath)
       }
     }
 }

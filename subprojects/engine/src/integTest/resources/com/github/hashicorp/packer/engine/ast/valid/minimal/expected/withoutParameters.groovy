@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 
 @CompileStatic
-class Minimal implements InterpolableObject<Minimal> {
+class MinimalTest implements InterpolableObject<MinimalTest> {
   private final InterpolableLong singleField
 
   @Input
@@ -17,43 +17,45 @@ class Minimal implements InterpolableObject<Minimal> {
     this.@singleField
   }
 
-  private Minimal(
+  private MinimalTest(
     InterpolableLong singleField
   ) {
     this.@singleField = singleField
   }
 
-  private Minimal(Context context, Minimal from) {
+  private MinimalTest(Context context, MinimalTest from) {
     this(
       from.@singleField.interpolateValue(context, 1L),
     )
   }
 
-  static final class MinimalImpl extends Minimal {
-    MinimalImpl() {
+  static final class MinimalTestImpl extends MinimalTest {
+    MinimalTestImpl() {
       this(
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
-    MinimalImpl(
+    MinimalTestImpl(
       @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
-      super(singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE))
+      super(
+        singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE),
+      )
     }
   }
 
-  static final class MinimalImmutableImpl extends Minimal {
-    MinimalImmutableImpl() {
+  static final class MinimalTestImmutableImpl extends MinimalTest {
+    MinimalTestImmutableImpl() {
       this(
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
-    MinimalImmutableImpl(
+    MinimalTestImmutableImpl(
       @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
@@ -64,11 +66,11 @@ class Minimal implements InterpolableObject<Minimal> {
   }
 
   @Override
-  final Minimal interpolate(Context context) {
-    return new Minimal(context, this)
+  final MinimalTest interpolate(Context context) {
+    return new MinimalTest(context, this)
   }
 
   static {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping Minimal, MinimalImpl, MinimalImmutableImpl
+    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping MinimalTest, MinimalTestImpl, MinimalTestImmutableImpl
   }
 }

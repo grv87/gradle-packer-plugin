@@ -1,5 +1,14 @@
 package com.github.hashicorp.packer.engine.ast
 
+import com.google.common.collect.ImmutableList
+import org.codehaus.groovy.ast.expr.ClassExpression
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
@@ -39,7 +48,6 @@ import org.codehaus.groovy.transform.sc.StaticCompileTransformation
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
 import com.github.hashicorp.packer.engine.annotations.PostProcess
@@ -93,35 +101,56 @@ class AutoImplementAstTransformation implements ASTTransformation {
   private static final ClassNode OPTIONAL_CLASS = makeCached(Optional)
   private static final String CONTEXT = 'context'
   private static final ClassNode CONTEXT_CLASS = makeCached(Context)
-  private static final Parameter CONTEXT_PARAM = param(CONTEXT_CLASS, CONTEXT)
+  private static final Parameter CONTEXT_PARAM = param(
+    CONTEXT_CLASS,
+    CONTEXT
+  )
   private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT_PARAM)
-  private static final String IMMUTABLE_RAW = 'ImmutableRaw'
   private static final Map<Mutability, String> IMPL = ImmutableMap.of(
     Mutability.MUTABLE, 'Impl',
     Mutability.IMMUTABLE, 'ImmutableImpl',
   )
-  private static final ClassNode OBJECT_MAPPER_FACADE = makeCached(ObjectMapperFacade)
-  private static final String ABSTRACT_TYPE_MAPPING_REGISTRY = 'ABSTRACT_TYPE_MAPPING_REGISTRY'
+  private static final ClassNode OBJECT_MAPPER_FACADE_CLASS = makeCached(ObjectMapperFacade)
+  private static final ClassExpression OBJECT_MAPPER_FACADE_CLASS_X = classX(OBJECT_MAPPER_FACADE_CLASS)
+  private static final ConstantExpression ABSTRACT_TYPE_MAPPING_REGISTRY_CONST_X = constX('ABSTRACT_TYPE_MAPPING_REGISTRY')
+  private static final Expression ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X = propX(
+    OBJECT_MAPPER_FACADE_CLASS_X,
+    ABSTRACT_TYPE_MAPPING_REGISTRY_CONST_X
+  )
+  private static final String REGISTER_ABSTRACT_TYPE_MAPPING = 'registerAbstractTypeMapping'
   private static final String INTERPOLATE = 'interpolate'
-  private static final Expression ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X = propX(classX(OBJECT_MAPPER_FACADE), constX(ABSTRACT_TYPE_MAPPING_REGISTRY))
   private static final String INTERPOLATE_VALUE = 'interpolateValue'
   private static final String VALUE = 'value'
   private static final ClassNode MUTABILITY_CLASS = makeCached(Mutability)
+  private static final ClassExpression MUTABILITY_CLASS_X = classX(MUTABILITY_CLASS)
+  private static final String DYNAMIC = 'dynamic'
+  private static final String NEW_INSTANCE = 'newInstance'
+  private static final String TARGET = 'Target'
+  private static final int PUBLIC_FINAL = ACC_PUBLIC | ACC_FINAL
+  private static final int PRIVATE_FINAL = ACC_PRIVATE | ACC_FINAL
+  private static final int PUBLIC_STATIC_FINAL = ACC_PUBLIC | ACC_STATIC | ACC_FINAL
+  private static final ClassNode INPUT_CLASS = makeCached(Input)
+  private static final ClassNode INPUT_FILE_CLASS = makeCached(InputFile)
+  private static final ClassNode INPUT_FILES_CLASS = makeCached(InputFiles)
+  private static final ClassNode INPUT_DIRECTORY_CLASS = makeCached(InputDirectory)
+  private static final ClassNode OUTPUT_FILE_CLASS = makeCached(OutputFile)
+  private static final ClassNode OUTPUT_DIRECTORY_CLASS = makeCached(OutputDirectory)
+  private static final List<ClassNode> GRADLE_TASK_PROPERTIES_ANNOTATION_CLASSES = ImmutableList.of(INPUT_CLASS, INPUT_FILE_CLASS, INPUT_FILES_CLASS, INPUT_DIRECTORY_CLASS, OUTPUT_FILE_CLASS, OUTPUT_DIRECTORY_CLASS)
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-    AnnotationNode annotationNode = (AnnotationNode)astNodes[0]
+    AnnotationNode autoImplementAnnotationNode = (AnnotationNode)astNodes[0]
     ClassNode abstractClass = (ClassNode)astNodes[1]
     if (abstractClass.interface || !(abstractClass.modifiers & ACC_ABSTRACT)) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'abstract classes only'
+      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'abstract classes only'
       return
     }
     if (!implementsInterfaceOrSubclassOf(abstractClass, INTERPOLABLE_OBJECT_CLASS)) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'abstract classes implementing InterpolableObject only', abstractClass.interfaces
+      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'abstract classes implementing InterpolableObject only', abstractClass.interfaces
       return
     }
     if (!getAnnotation(abstractClass, COMPILE_STATIC_CLASS)) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'statically compiled classes only'
+      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'statically compiled classes only'
       return
     }
 
@@ -142,7 +171,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
       [(entry.key), new InnerClassNode(
         abstractClassRef,
         entry.value,
-        ACC_PUBLIC | ACC_STATIC | ACC_FINAL,
+        PUBLIC_STATIC_FINAL,
         abstractClassRef,
         EMPTY_CLASS_NODE_ARRAY,
         [] as MixinNode[]
@@ -152,14 +181,14 @@ class AutoImplementAstTransformation implements ASTTransformation {
       [(entry.key), newClass(entry.value)]
     }
 
-    List<Parameter> abstractClassConstructorParams = []
-    List<Statement> abstractClassConstructorStmts = []
-    List<Expression> implClassDefaultConstructorArgs = []
-    List<Parameter> implClassConstructorParams = []
-    Map<Mutability, List<Expression>> implClassConstructorArgs = Mutability.values().collectEntries { Mutability mutability ->
+    List<Parameter> abstractClassCtorParams = []
+    List<Statement> abstractClassCtorStmts = []
+    List<Expression> implClassDefaultCtorArgs = []
+    List<Parameter> implClassCtorParams = []
+    Map<Mutability, List<Expression>> implClassCtorArgs = Mutability.values().collectEntries { Mutability mutability ->
       [(mutability): []]
     }
-    List<Expression> abstractClassInterpolateConstructorArgs = []
+    List<Expression> abstractClassInterpolateCtorArgs = []
 
     boolean methodsFound = false
 
@@ -176,18 +205,21 @@ class AutoImplementAstTransformation implements ASTTransformation {
         boolean isValue = implementsInterfaceOrSubclassOf(typ, INTERPOLABLE_VALUE_CLASS)
         ClassNode targetClass
         if (isValue) {
-          targetClass = findActualTypeByGenericsPlaceholderName('Target', makeDeclaringAndActualGenericsTypeMap(INTERPOLABLE_VALUE_CLASS, typ))
+          targetClass = findActualTypeByGenericsPlaceholderName(TARGET, makeDeclaringAndActualGenericsTypeMap(INTERPOLABLE_VALUE_CLASS, typ))
         }
 
         String fieldName = m.replaceFirst('').uncapitalize()
-        ConstantExpression fieldNameConstant = constX(fieldName)
+        ConstantExpression fieldNameConstX = constX(fieldName)
         Expression thisFieldX = attrX(
           THIS_X,
-          fieldNameConstant
+          fieldNameConstX
         )
         Expression fromFieldX = attrX(
-          varX(FROM, abstractClassRef),
-          fieldNameConstant
+          varX(
+            FROM,
+            abstractClassRef
+          ),
+          fieldNameConstX
         )
         VariableExpression fieldVarX = varX(fieldName)
 
@@ -211,7 +243,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
 
         abstractClass.addField(
           fieldName,
-          ACC_PRIVATE | ACC_FINAL,
+          PRIVATE_FINAL,
           typ,
           null
         )
@@ -220,44 +252,44 @@ class AutoImplementAstTransformation implements ASTTransformation {
           stmt(thisFieldX)
         )
 
-        abstractClassConstructorParams.add param(
+        abstractClassCtorParams.add param(
           typ,
           fieldName
         )
 
-        abstractClassConstructorStmts.add assignS(
+        abstractClassCtorStmts.add assignS(
           thisFieldX,
           fieldVarX
         )
 
-        implClassDefaultConstructorArgs.add castX(
+        implClassDefaultCtorArgs.add castX(
           typ,
           NULL
         )
 
-        Parameter implClassConstructorParam = param(
+        Parameter implClassCtorParam = param(
           typ,
           fieldName
         )
         if (jsonPropertyAnnotation != null) {
-          implClassConstructorParam.addAnnotation(jsonPropertyAnnotation)
+          implClassCtorParam.addAnnotation(jsonPropertyAnnotation)
         }
         if (jsonAliasAnnotation != null) {
-          implClassConstructorParam.addAnnotation(jsonAliasAnnotation)
+          implClassCtorParam.addAnnotation(jsonAliasAnnotation)
         }
-        implClassConstructorParams.add implClassConstructorParam
+        implClassCtorParams.add implClassCtorParam
 
         // TODO: + list
-        implClassConstructorArgs.each { Map.Entry<Mutability, List<Expression>> entry ->
+        implClassCtorArgs.each { Map.Entry<Mutability, List<Expression>> entry ->
           entry.value.add new ElvisOperatorExpression(
             fieldVarX,
             callX(
               ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-              'newInstance',
+              NEW_INSTANCE,
               args(
                 classX(typ),
                 propX(
-                  classX(MUTABILITY_CLASS),
+                  MUTABILITY_CLASS_X,
                   entry.key.name()
                 )
               )
@@ -276,7 +308,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
 
           if (defaultAnnotation != null) {
             method.annotations.remove(defaultAnnotation)
-            if (defaultAnnotation.members['dynamic']) {
+            if (defaultAnnotation.members[DYNAMIC]) {
               interpolateValueArgs.add defaultAnnotation.members[VALUE]
             } else {
               ClosureExpression defaultClosure = (ClosureExpression)defaultAnnotation.members[VALUE]
@@ -308,7 +340,21 @@ class AutoImplementAstTransformation implements ASTTransformation {
           if (ignoreIfAnnotation != null) {
             method.annotations.remove(ignoreIfAnnotation)
             interpolateValueArgs.add ignoreIfAnnotation.members[VALUE]
-            method.addAnnotation(new AnnotationNode(OPTIONAL_CLASS))
+
+            Integer lastGradleTaskPropertyAnnotationIndex = null
+            boolean hasOptionalAnnotation = false
+            method.annotations.eachWithIndex { AnnotationNode annotationNode, Integer i ->
+              if (GRADLE_TASK_PROPERTIES_ANNOTATION_CLASSES.any { ClassNode gradleTestPropertyAnnotationClass ->
+                implementsInterfaceOrSubclassOf(annotationNode.classNode, gradleTestPropertyAnnotationClass)
+              }) {
+                lastGradleTaskPropertyAnnotationIndex = i
+              } else if (implementsInterfaceOrSubclassOf(annotationNode.classNode, OPTIONAL_CLASS)) {
+                hasOptionalAnnotation = true
+              }
+            }
+            if (!hasOptionalAnnotation & lastGradleTaskPropertyAnnotationIndex != null) {
+              method.annotations.add lastGradleTaskPropertyAnnotationIndex + 1, new AnnotationNode(OPTIONAL_CLASS)
+            }
           } else if (postProcessAnnotation != null) {
             interpolateValueArgs.add NULL
           }
@@ -318,8 +364,10 @@ class AutoImplementAstTransformation implements ASTTransformation {
             interpolateValueArgs.add postProcessAnnotation.members[VALUE]
           }
 
-          abstractClassInterpolateConstructorArgs.add callX(
-            fromFieldX, INTERPOLATE_VALUE, args(interpolateValueArgs)
+          abstractClassInterpolateCtorArgs.add callX(
+            fromFieldX,
+            INTERPOLATE_VALUE,
+            args(interpolateValueArgs)
           )
         } else {
           if (defaultAnnotation != null) {
@@ -335,7 +383,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
             return
           }
 
-          abstractClassInterpolateConstructorArgs.add callX(
+          abstractClassInterpolateCtorArgs.add callX(
             fromFieldX,
             INTERPOLATE,
             args(
@@ -347,17 +395,17 @@ class AutoImplementAstTransformation implements ASTTransformation {
     }
 
     if (!methodsFound) {
-      addErrorOnAnnotation sourceUnit, annotationNode, 'classes that have at least one method to implement'
+      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'classes that have at least one method to implement'
       return
     }
 
     abstractClass.addConstructor(
       ACC_PRIVATE,
-      abstractClassConstructorParams.toArray(new Parameter[0]),
+      abstractClassCtorParams.toArray(new Parameter[0]),
       EMPTY_CLASS_NODE_ARRAY,
       block(
         null,
-        abstractClassConstructorStmts
+        abstractClassCtorStmts
       ) // TODO: need to call super() ?
     )
 
@@ -366,21 +414,22 @@ class AutoImplementAstTransformation implements ASTTransformation {
       [
         CONTEXT_PARAM,
         param(
-          abstractClassRef, FROM
+          abstractClassRef,
+          FROM
         )
       ].toArray(new Parameter[2]),
       EMPTY_CLASS_NODE_ARRAY,
       block(
         null,
         ctorThisS(
-          args(abstractClassInterpolateConstructorArgs)
+          args(abstractClassInterpolateCtorArgs)
         )
       ) // TODO: need to call super() ?
     )
 
     abstractClass.addMethod(
       INTERPOLATE,
-      ACC_PUBLIC | ACC_FINAL,
+      PUBLIC_FINAL,
       abstractClassRef,
       [
         CONTEXT_PARAM
@@ -402,7 +451,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     abstractClass.addStaticInitializerStatements([(Statement)block(
       stmt(callX(
         ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-        'registerAbstractTypeMapping',
+        REGISTER_ABSTRACT_TYPE_MAPPING,
         args(
           classX(abstractClassRef),
           classX(implClassRefs[Mutability.MUTABLE]),
@@ -418,19 +467,17 @@ class AutoImplementAstTransformation implements ASTTransformation {
         EMPTY_CLASS_NODE_ARRAY,
         block(
           null,
-          ctorThisS(
-            args(implClassDefaultConstructorArgs)
-          )
+          ctorThisS(args(implClassDefaultCtorArgs))
         )
       )
 
       entry.value.addConstructor(
         ACC_PUBLIC,
-        implClassConstructorParams.toArray(new Parameter[0]),
+        implClassCtorParams.toArray(new Parameter[0]),
         EMPTY_CLASS_NODE_ARRAY,
         block(
           null,
-          ctorSuperS(args(implClassConstructorArgs[entry.key]))
+          ctorSuperS(args(implClassCtorArgs[entry.key]))
         ) // TODO: need to call super() ?
       ).addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
 
