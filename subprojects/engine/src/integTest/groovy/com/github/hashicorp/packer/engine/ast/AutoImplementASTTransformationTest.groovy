@@ -70,7 +70,7 @@ class AutoImplementASTTransformationTest {
 
   private static Object[] parametersForTestErroneousSource() {
     Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/erroneous/(\\S+)/source\\.groovy\\z'
+      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/erroneous/(\\S+)/source\\.groovy\\z'
       if (m) {
         String testName = m[0][1]
         [testName, Resources.toString(it.url(), Charsets.UTF_8), Resources.readLines(Paths.get(it.url().toURI()).parent.resolve('errorMessages.txt').toUri().toURL(), Charsets.UTF_8)].toArray(new Object[3])
@@ -85,7 +85,7 @@ class AutoImplementASTTransformationTest {
   private static Object[] parametersForTestCompilation() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy\\z'
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
         if (m) {
           String testName = m[0][1]
           [testName, Resources.toString(it.url(), Charsets.UTF_8)]
@@ -97,37 +97,41 @@ class AutoImplementASTTransformationTest {
         Boolean.FALSE,
         Boolean.TRUE
       ],
-    ]).flatten().collect { it.toArray(new Object[3]) }.toArray()
+    ]).collect { it.flatten().toArray(new Object[3]) }.toArray()
     assert result.length > 0
     result
   }
 
 
   private static Object[] parametersForTestASTMatch() {
-    Object[] result = GroovyCollections.combinations([
-      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/AutoImplementASTTransformationTest/valid/(\\S+)/source\\.groovy\\z'
-        if (m) {
-          String testName = m[0][1]
-          [testName, it.url()]
-        } else {
-          null
-        }
-      }.collectMany { it ->
-        def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
-        Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
-        [
-          newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
-          newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
-        ]
-      },
+    def a = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
+      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
+      if (m) {
+        String testName = m[0][1]
+        [testName, it.url()]
+      } else {
+        null
+      }
+    }
+    def b = a.collectMany { it ->
+      def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
+      Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
       [
-        CompilePhase.SEMANTIC_ANALYSIS,
-        CompilePhase.CANONICALIZATION,
-        CompilePhase.INSTRUCTION_SELECTION,
-        CompilePhase.CLASS_GENERATION,
-      ],
-    ]).flatten().collect { it.toArray(new Object[5]) }.toArray()
+        newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
+        newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
+      ]
+    }
+    def c = [
+      CompilePhase.SEMANTIC_ANALYSIS,
+      CompilePhase.CANONICALIZATION,
+      CompilePhase.INSTRUCTION_SELECTION,
+      CompilePhase.CLASS_GENERATION,
+    ]
+    def d = GroovyCollections.combinations([
+      b,
+      c,
+    ])
+    Object[] result = d.collect { it.flatten().toArray(new Object[5]) }.toArray()
     assert result.length > 0
     result
   }

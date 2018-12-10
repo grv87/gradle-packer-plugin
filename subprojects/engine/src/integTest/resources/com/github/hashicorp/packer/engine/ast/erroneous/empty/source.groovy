@@ -4,5 +4,5 @@ import groovy.transform.CompileStatic
 
 @AutoImplement
 @CompileStatic
-abstract class Empty implements InterpolableObject<Minimal> {
+abstract class Empty implements InterpolableObject<Empty> {
 }

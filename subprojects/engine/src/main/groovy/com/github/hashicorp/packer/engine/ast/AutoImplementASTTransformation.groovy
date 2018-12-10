@@ -1,16 +1,13 @@
 package com.github.hashicorp.packer.engine.ast
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 
-import static org.codehaus.groovy.ast.tools.GeneralUtils.binX
-import static org.codehaus.groovy.ast.tools.GeneralUtils.boolX
+import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
+import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.varX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.constX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.classX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.attrX
-import static org.codehaus.groovy.ast.tools.GeneralUtils.NE
-import static org.codehaus.groovy.ast.tools.GeneralUtils.ternaryX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.castX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.assignS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.args
@@ -20,9 +17,6 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.propX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.param
 import static org.codehaus.groovy.ast.tools.GeneralUtils.callX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.returnS
-import static org.codehaus.groovy.ast.ClassHelper.OBJECT_TYPE
-import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY
-import static org.codehaus.groovy.ast.ClassHelper.make
 import static org.codehaus.groovy.ast.ClassHelper.makeCached
 import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
 import static org.codehaus.groovy.ast.ClassNode.ACC_PUBLIC
@@ -33,6 +27,11 @@ import static org.codehaus.groovy.ast.ClassNode.ACC_FINAL
 import static org.codehaus.groovy.ast.tools.GenericsUtils.newClass
 import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActualGenericsTypeMap
 import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
+import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
+import static org.codehaus.groovy.ast.Parameter.EMPTY_ARRAY as EMPTY_PARAMETER_ARRAY
+import com.github.hashicorp.packer.engine.utils.Mutability
+import com.google.common.collect.ImmutableMap
+import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.codehaus.groovy.syntax.SyntaxException
 import org.codehaus.groovy.ast.AnnotatedNode
@@ -51,7 +50,6 @@ import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
 import org.codehaus.groovy.ast.ClassNode
-import org.codehaus.groovy.ast.ConstructorNode
 import org.codehaus.groovy.ast.InnerClassNode
 import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.MixinNode
@@ -71,6 +69,7 @@ import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.gradle.api.tasks.Optional
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 @CompileStatic
@@ -97,9 +96,17 @@ class AutoImplementASTTransformation implements ASTTransformation {
   private static final Parameter CONTEXT_PARAM = param(CONTEXT_CLASS, CONTEXT)
   private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT_PARAM)
   private static final String IMMUTABLE_RAW = 'ImmutableRaw'
-  private static final String MUTABLE_IMPL = 'Impl'
-  private static final String IMMUTABLE_IMPL = "ImmutableImpl"
+  private static final Map<Mutability, String> IMPL = ImmutableMap.of(
+    Mutability.MUTABLE, 'Impl',
+    Mutability.IMMUTABLE, 'ImmutableImpl',
+  )
   private static final ClassNode OBJECT_MAPPER_FACADE = makeCached(ObjectMapperFacade)
+  private static final String ABSTRACT_TYPE_MAPPING_REGISTRY = 'ABSTRACT_TYPE_MAPPING_REGISTRY'
+  private static final String INTERPOLATE = 'interpolate'
+  private static final Expression ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X = propX(classX(OBJECT_MAPPER_FACADE), constX(ABSTRACT_TYPE_MAPPING_REGISTRY))
+  private static final String INTERPOLATE_VALUE = 'interpolateValue'
+  private static final String VALUE = 'value'
+  private static final ClassNode MUTABILITY_CLASS = makeCached(Mutability)
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
@@ -118,42 +125,45 @@ class AutoImplementASTTransformation implements ASTTransformation {
       return
     }
 
+    abstractClass.modifiers &= ~ACC_ABSTRACT
+
     String abstractClassName = abstractClass.nameWithoutPackage
     String abstractClassFullName = abstractClass.name
-    String mutableImplClassName = "$abstractClassName$MUTABLE_IMPL"
-    String mutableImplClassFullName = "$abstractClassFullName$DOLLAR$mutableImplClassName"
-    String immutableImplClassName = "$abstractClassName$IMMUTABLE_IMPL"
-    String immutableImplClassFullName = "$abstractClassFullName$DOLLAR$immutableImplClassName"
+    Map<Mutability, String> implClassNames = (Map<Mutability, String>)IMPL.collectEntries { Map.Entry<Mutability, String> entry ->
+      [(entry.key): "$abstractClassName$entry.value"]
+    }
+    Map<Mutability, String> implClassFullNames = (Map<Mutability, String>)implClassNames.collectEntries { Map.Entry<Mutability, String> entry ->
+      [(entry.key): "$abstractClassFullName$DOLLAR$entry.value"]
+    }
 
     ClassNode abstractClassRef = newClass(abstractClass)
 
-    ClassNode mutableImplClass = new InnerClassNode(
-      abstractClassRef,
-      mutableImplClassFullName,
-      ACC_PUBLIC | ACC_STATIC | ACC_FINAL,
-      abstractClassRef,
-      EMPTY_ARRAY,
-      [] as MixinNode[]
-    )
-    ClassNode mutableImplClassRef = newClass(mutableImplClass)
-    ClassNode immutableImplClass = new InnerClassNode(
-      abstractClassRef,
-      immutableImplClassFullName,
-      ACC_PUBLIC | ACC_STATIC | ACC_FINAL,
-      abstractClassRef,
-      EMPTY_ARRAY,
-      [] as MixinNode[]
-    )
-    ClassNode immutableImplClassRef = newClass(immutableImplClass)
+    Map<Mutability, ClassNode> implClasses = (Map<Mutability, ClassNode>)implClassFullNames.collectEntries { Map.Entry<Mutability, String> entry ->
+      [(entry.key), new InnerClassNode(
+        abstractClassRef,
+        entry.value,
+        ACC_PUBLIC | ACC_STATIC | ACC_FINAL,
+        abstractClassRef,
+        EMPTY_CLASS_NODE_ARRAY,
+        [] as MixinNode[]
+      )]
+    }
+    Map<Mutability, ClassNode> implClassRefs = (Map<Mutability, ClassNode>)implClasses.collectEntries { Map.Entry<Mutability, ClassNode> entry ->
+      [(entry.key), newClass(entry.value)]
+    }
 
-    List<Parameter> constructorParams = []
-
-    List<Statement> defaultConstructorStatements = []
-    List<Statement> interpolateConstructorStatements = []
+    List<Parameter> abstractClassConstructorParams = []
+    List<Statement> abstractClassConstructorStmts = []
+    List<Expression> implClassDefaultConstructorArgs = []
+    List<Parameter> implClassConstructorParams = []
+    Map<Mutability, List<Expression>> implClassConstructorArgs = Mutability.values().collectEntries { Mutability mutability ->
+      [(mutability): []]
+    }
+    List<Statement> abstractClassInterpolateConstructorStmts = []
 
     abstractClass.methods.each { MethodNode method ->
       Matcher m = GETTER_PATTERN.matcher(method.name)
-      if (m && method.parameters.length == 0 && method.modifiers & ACC_ABSTRACT) {
+      if (m && method.modifiers & ACC_ABSTRACT && method.parameters.length == 0) { // TODO: + Test for method.code
         method.modifiers &= ~ACC_ABSTRACT
 
         ClassNode typ = method.returnType
@@ -180,80 +190,93 @@ class AutoImplementASTTransformation implements ASTTransformation {
          * Due to https://issues.apache.org/jira/browse/GROOVY-8914 inner classes don't work anyway.
          * Maybe we should remove this code too
          */
-        String typImplClassName =  "$typ.name$DOLLAR${ isValue ? IMMUTABLE_RAW /* TODO: + Mutable version */ : "$typ.name$MUTABLE_IMPL" }"
-        ClassNode typImplType = typ.name.startsWith("$abstractClass.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
+        // String typImplClassName =  "$typ.name$DOLLAR${ isValue ? IMMUTABLE_RAW /* TODO: + Mutable version */ : "$typ.name$MUTABLE_IMPL" }"
+        // ClassNode typImplType = typ.name.startsWith("$abstractClass.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null && !abstractClass.compileUnit.config.parameters) {
           String fieldJsonName = ((PropertyNamingStrategy.PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE).translate(fieldName)
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
-          jsonPropertyAnnotation.addMember('value', constX(fieldJsonName))
+          jsonPropertyAnnotation.addMember(VALUE, constX(fieldJsonName))
+          method.addAnnotation jsonPropertyAnnotation
         }
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
         if (jsonAliasAnnotation != null) {
-          method.annotations.remove(jsonAliasAnnotation)
+          method.annotations.remove(jsonAliasAnnotation) // TODO: add test
         }
 
-        mutableImplClass.addField(
+        abstractClass.addField(
           fieldName,
           ACC_PRIVATE | ACC_FINAL,
           typ,
           null
         )
 
-        MethodNode methodImpl = mutableImplClass.addMethod(
-          method.name,
-          ACC_PUBLIC,
-          typ,
-          method.parameters,
-          method.exceptions,
-          // block(returnS(thisFieldX))
-          block(stmt(thisFieldX))
+        method.code = block(
+          stmt(thisFieldX)
         )
-        methodImpl.addAnnotation(OVERRIDE_ANNOTATION)
 
-        Parameter constructorParameter = param(
+        abstractClassConstructorParams.add param(
+          typ,
+          fieldName
+        )
+
+        abstractClassConstructorStmts.add assignS(
+          thisFieldX,
+          fieldVarX
+        )
+
+        implClassDefaultConstructorArgs.add castX(
+          typ,
+          NULL
+        )
+
+        Parameter implClassConstructorParam = param(
           typ,
           fieldName
         )
         if (jsonPropertyAnnotation != null) {
-          constructorParameter.addAnnotation(jsonPropertyAnnotation)
+          implClassConstructorParam.addAnnotation(jsonPropertyAnnotation)
         }
         if (jsonAliasAnnotation != null) {
-          constructorParameter.addAnnotation(jsonAliasAnnotation)
+          implClassConstructorParam.addAnnotation(jsonAliasAnnotation)
         }
-        constructorParams.add constructorParameter
+        implClassConstructorParams.add implClassConstructorParam
 
-        defaultConstructorStatements.add assignS(
-          thisFieldX,
-          ternaryX(
-            boolX(
-              binX(
-                fieldVarX,
-                NE,
-                NULL
-              )
-            ),
+        // TODO: + list
+        implClassConstructorArgs.each { Map.Entry<Mutability, List<Expression>> entry ->
+          entry.value.add new ElvisOperatorExpression(
             fieldVarX,
-            ctorX(typImplType)
+            callX(
+              ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
+              'newInstance',
+              args(
+                classX(typ),
+                propX(
+                  classX(MUTABILITY_CLASS),
+                  entry.key.name()
+                )
+              )
+            )
           )
-        )
+        }
 
         // TODO: + Context vars
         AnnotationNode defaultAnnotation = getAnnotation(method, DEFAULT_CLASS)
         AnnotationNode ignoreIfAnnotation = getAnnotation(method, IGNORE_IF_CLASS)
         AnnotationNode postProcessAnnotation = getAnnotation(method, POST_PROCESS_CLASS)
 
+        // TODO: + list
         if (isValue) {
           List<Expression> interpolateValueParams = [(Expression)CONTEXT_VAR_X]
 
           if (defaultAnnotation != null) {
             method.annotations.remove(defaultAnnotation)
             if (defaultAnnotation.members['dynamic']) {
-              interpolateValueParams.add defaultAnnotation.members['value']
+              interpolateValueParams.add defaultAnnotation.members[VALUE]
             } else {
-              ClosureExpression defaultClosure = (ClosureExpression)defaultAnnotation.members['value']
+              ClosureExpression defaultClosure = (ClosureExpression)defaultAnnotation.members[VALUE]
               List<Statement> statements = ((BlockStatement)defaultClosure.code).statements
               int countOfStatements = statements.size()
               if (countOfStatements != 1) {
@@ -281,7 +304,7 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
           if (ignoreIfAnnotation != null) {
             method.annotations.remove(ignoreIfAnnotation)
-            interpolateValueParams.add ignoreIfAnnotation.members['value']
+            interpolateValueParams.add ignoreIfAnnotation.members[VALUE]
             method.addAnnotation(new AnnotationNode(OPTIONAL_CLASS))
           } else if (postProcessAnnotation != null) {
             interpolateValueParams.add NULL
@@ -289,12 +312,12 @@ class AutoImplementASTTransformation implements ASTTransformation {
 
           if (postProcessAnnotation != null) {
             method.annotations.remove(postProcessAnnotation)
-            interpolateValueParams.add postProcessAnnotation.members['value']
+            interpolateValueParams.add postProcessAnnotation.members[VALUE]
           }
 
-          interpolateConstructorStatements.add assignS(
+          abstractClassInterpolateConstructorStmts.add assignS(
             thisFieldX,
-            callX(fromFieldX, 'interpolateValue', args(interpolateValueParams))
+            callX(fromFieldX, INTERPOLATE_VALUE, args(interpolateValueParams))
           )
         } else {
           if (defaultAnnotation != null) {
@@ -310,11 +333,11 @@ class AutoImplementASTTransformation implements ASTTransformation {
             return
           }
 
-          interpolateConstructorStatements.add assignS(
+          abstractClassInterpolateConstructorStmts.add assignS(
             thisFieldX,
             callX(
               fromFieldX,
-              'interpolate',
+              INTERPOLATE,
               args(CONTEXT_VAR_X)
             )
           )
@@ -322,18 +345,17 @@ class AutoImplementASTTransformation implements ASTTransformation {
       }
     }
 
-    ConstructorNode defaultConstructor = mutableImplClass.addConstructor(
-      ACC_PUBLIC,
-      constructorParams.toArray(new Parameter[0]),
-      EMPTY_ARRAY,
+    abstractClass.addConstructor(
+      ACC_PRIVATE,
+      abstractClassConstructorParams.toArray(new Parameter[0]),
+      EMPTY_CLASS_NODE_ARRAY,
       block(
         null,
-        defaultConstructorStatements
+        abstractClassConstructorStmts
       ) // TODO: need to call super() ?
     )
-    defaultConstructor.addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
 
-    mutableImplClass.addConstructor(
+    abstractClass.addConstructor(
       ACC_PRIVATE,
       [
         CONTEXT_PARAM,
@@ -341,49 +363,75 @@ class AutoImplementASTTransformation implements ASTTransformation {
           abstractClassRef, FROM
         )
       ].toArray(new Parameter[2]),
-      EMPTY_ARRAY,
+      EMPTY_CLASS_NODE_ARRAY,
       block(
         null,
-        interpolateConstructorStatements
+        abstractClassInterpolateConstructorStmts
       ) // TODO: need to call super() ?
     )
 
-    MethodNode interpolateMethodImpl = mutableImplClass.addMethod(
-      'interpolate',
-      ACC_PUBLIC,
+    abstractClass.addMethod(
+      INTERPOLATE,
+      ACC_PUBLIC | ACC_FINAL,
       abstractClassRef,
       [
         CONTEXT_PARAM
       ].toArray(new Parameter[1]),
-      EMPTY_ARRAY,
+      EMPTY_CLASS_NODE_ARRAY,
       block(
         returnS(
-          castX(
+          ctorX(
             abstractClassRef,
-            ctorX(
-              mutableImplClass,
-              args(
-                CONTEXT_VAR_X,
-                THIS_X
-              )
+            args(
+              CONTEXT_VAR_X,
+              THIS_X
             )
           )
         )
       )
-    )
-    interpolateMethodImpl.addAnnotation(OVERRIDE_ANNOTATION)
+    ).addAnnotation(OVERRIDE_ANNOTATION)
 
-    abstractClass.addObjectInitializerStatements(
-      stmt(callX(attrX(classX(OBJECT_MAPPER_FACADE), constX('ABSTRACT_TYPE_MAPPING_REGISTRY')),'registerAbstractTypeMapping', args(classX(abstractClassRef), classX(mutableImplClassRef), classX(immutableImplClassRef))))
-    )
+    /*abstractClass.objectInitializerStatements.add stmt(
+      callX(
+        ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
+        'registerAbstractTypeMapping',
+        args(
+          classX(abstractClassRef),
+          classX(implClassRefs[Mutability.MUTABLE]),
+          classX(implClassRefs[Mutability.IMMUTABLE])
+        )
+      )
+    )*/
 
-    new StaticCompileTransformation().visit([COMPILE_STATIC_ANNOTATION, mutableImplClass] as ASTNode[], sourceUnit)
-    new StaticCompileTransformation().visit([COMPILE_STATIC_ANNOTATION, immutableImplClass] as ASTNode[], sourceUnit)
+    implClasses.each { Map.Entry<Mutability, ClassNode> entry ->
+      entry.value.addConstructor(
+        ACC_PUBLIC,
+        EMPTY_PARAMETER_ARRAY,
+        EMPTY_CLASS_NODE_ARRAY,
+        block(
+          null,
+          ctorThisS(
+            args(implClassDefaultConstructorArgs)
+          )
+        )
+      )
 
-    // sourceUnit.AST.addClass(mutableImplClass)
-    // abstractClass.compileUnit.addClass(mutableImplClass)
-    abstractClass.module.addClass(mutableImplClass)
-    abstractClass.module.addClass(immutableImplClass)
+      entry.value.addConstructor(
+        ACC_PUBLIC,
+        implClassConstructorParams.toArray(new Parameter[0]),
+        EMPTY_CLASS_NODE_ARRAY,
+        block(
+          null,
+          ctorSuperS(args(implClassConstructorArgs[entry.key]))
+        ) // TODO: need to call super() ?
+      ).addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
+
+      new StaticCompileTransformation().visit([COMPILE_STATIC_ANNOTATION, entry.value] as ASTNode[], sourceUnit)
+
+      abstractClass.module.addClass(entry.value)
+      // sourceUnit.AST.addClass(mutableClass)
+      // abstractClass.compileUnit.addClass(mutableClass)
+    }
   }
 
   private static void addError(SourceUnit sourceUnit, ASTNode node, String message) {
