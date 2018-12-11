@@ -33,6 +33,11 @@ interface InterpolableValue<
 > extends InterpolableObject<ThisInterface> {
   Source getRaw()
 
+  /**
+   *
+   * @param raw
+   * @throws ReadOnlyPropertyException if this instance is read-only
+   */
   void setRaw(Source raw)
 
   ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
@@ -155,7 +160,7 @@ interface InterpolableValue<
     abstract AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> clone()
   }
 
-  protected abstract static class ImmutableRaw<
+  abstract static class ImmutableRaw<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
@@ -191,7 +196,7 @@ interface InterpolableValue<
     }
   }
 
-  protected abstract static class Raw<
+  abstract static class Raw<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
@@ -234,7 +239,7 @@ interface InterpolableValue<
   // equals is required for Gradle up-to-date checking
   // Doesn't work, don't know why
   // @EqualsAndHashCode(includes = ['interpolated'])
-  protected abstract static class AbstractInterpolated<
+  private abstract static class AbstractInterpolated<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
@@ -258,9 +263,14 @@ interface InterpolableValue<
       }
       false
     }
+
+    @Override
+    int hashCode() {
+      interpolated.hashCode()
+    }
   }
 
-  protected abstract static class Interpolated<
+  abstract static class Interpolated<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>,
@@ -279,7 +289,7 @@ interface InterpolableValue<
      * TODO: test on 2.5/3.0 and report an issue
      * <grv87 2018-11-22>
      */
-    private final /*RawValueClass*/ AbstractRaw interpolable
+    private final /*RawValueClass*/ AbstractRaw raw
 
     private final Context context
 
@@ -289,8 +299,8 @@ interface InterpolableValue<
 
     private final Closure<Target> postProcess
 
-    protected Interpolated(/*RawValueClass*/ AbstractRaw interpolable, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      this.@interpolable = interpolable.clone()
+    protected Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+      this.@raw = raw.clone()
       this.@context = context
       this.@defaultValue = defaultValue
       this.@ignoreIf = ignoreIf
@@ -299,13 +309,13 @@ interface InterpolableValue<
 
     @Override
     final Source getRaw() {
-      (Source)this.@interpolable.raw
+      (Source)this.@raw.raw
     }
 
     @Override
     @Synchronized
     final void setRaw(Source raw) {
-      this.@interpolable.raw = raw
+      this.@raw.raw = raw
     }
 
     private final Semaphore interpolationSemaphore = new Semaphore(1)
@@ -333,7 +343,7 @@ interface InterpolableValue<
             return null
           }
         }
-        Target result = (Target)interpolable.doInterpolatePrimitive(context)
+        Target result = (Target)raw.doInterpolatePrimitive(context)
         if (result != null) {
           if (postProcess) {
             result = (Target)postProcess.call(result)
@@ -355,7 +365,7 @@ interface InterpolableValue<
     }
   }
 
-  protected abstract static class AlreadyInterpolated<
+  abstract static class AlreadyInterpolated<
     Source,
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>

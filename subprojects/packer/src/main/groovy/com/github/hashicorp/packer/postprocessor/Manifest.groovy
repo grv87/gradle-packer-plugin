@@ -46,8 +46,8 @@ class Manifest extends PostProcessor {
   }
 
   @Override
-  protected Tuple2<Tuple2<com.github.hashicorp.packer.packer.Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
-    new Tuple2(new Tuple2(new Artifact(priorArtifact), true), null)
+  protected Tuple3<com.github.hashicorp.packer.packer.Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
+    new Tuple3(new Artifact(priorArtifact), true, null)
   }
 
   class Artifact implements com.github.hashicorp.packer.packer.Artifact {

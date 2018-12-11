@@ -20,23 +20,25 @@
 package com.github.hashicorp.packer.common
 
 import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class ShellLocal extends InterpolableObject {
-  List<String> inline
+  InterpolableStringArray inline
 
-  String inlineShebang
+  InterpolableString inlineShebang
 
-  String tempfileExtension
+  InterpolableString tempfileExtension
 
-  String script
+  InterpolableString script
 
-  List<String> scripts
+  InterpolableStringArray scripts
 
-  List<String> environmentVars
+  InterpolableStringArray environmentVars
 
-  List<String> executeCommand
+  InterpolableStringArray executeCommand
 
-  List<String> useLinuxPathing
+  InterpolableStringArray useLinuxPathing
 }

@@ -271,7 +271,7 @@ final class Context {
    * Fixed in Groovy 2.5.0-rc-3
    * <grv87 2018-11-10>
    */
-  @CompileDynamic
+  // TOTEST @CompileDynamic
   private final class InterpolationContext implements Map<String, Serializable> /* TODO: implements Mustache.CustomContext */ {
     @Override
     // @CompileStatic

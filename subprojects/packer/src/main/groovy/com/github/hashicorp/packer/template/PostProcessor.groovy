@@ -86,17 +86,17 @@ abstract class PostProcessor extends InterpolableObject {
    * Fixed in Groovy 2.5.0-rc-3
    * <grv87 2018-11-10>
    */
-  @CompileDynamic
-  final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
+  // TOTEST @CompileDynamic
+  final Tuple3<Artifact, Boolean, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
     if (!interpolated) {
       throw new IllegalStateException('') // TODO
     }
     // Stage 4
-    Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = doPostProcess(priorArtifact)
-    new Tuple2(new Tuple2(result.first.first, result.first.second || keepInputArtifacts.interpolatedValue), result.second)
+    Tuple3<Artifact, Boolean, List<Provider<Boolean>>> result = doPostProcess(priorArtifact)
+    new Tuple3(result.first, result.second || keepInputArtifacts.interpolatedValue, result.third)
   }
 
-  protected abstract Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
+  protected abstract Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
   protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
 
@@ -195,7 +195,7 @@ abstract class PostProcessor extends InterpolableObject {
      * depending on rawValue actual type
      */
     @CompileDynamic
-    final Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
+    final Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>>/*TODO: Groovy 2.5.0*/ postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO
       }
@@ -210,25 +210,25 @@ abstract class PostProcessor extends InterpolableObject {
      * Fixed in Groovy 2.5.0-rc-3
      * <grv87 2018-11-10>
      */
-    @CompileDynamic
-    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
+    // TOTEST @CompileDynamic
+    private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
       List<Artifact> artifacts = []
       Boolean keep = true
       List<Provider<Boolean>> upToDateWhen = []
       Artifact _priorArtifact = priorArtifact
-      rawValue.eachWithIndex {  PostProcessorDefinition postProcessorDefinition, Integer i ->
-        Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = postProcessorDefinition.postProcess(_priorArtifact)
-        _priorArtifact = result.first.first
-        boolean _keep = result.first.second
+      rawValue.eachWithIndex { PostProcessorDefinition postProcessorDefinition, Integer i ->
+        Tuple3<Artifact, Boolean, List<Provider<Boolean>>> result = postProcessorDefinition.postProcess(_priorArtifact)
+        _priorArtifact = result.first
+        boolean _keep = result.second
         keep = keep && _keep
         if (_keep) {
           artifacts.add _priorArtifact
         } else {
           artifacts = [_priorArtifact]
         }
-        upToDateWhen.addAll result.second
+        upToDateWhen.addAll result.third
       }
-      new Tuple2(new Tuple2(artifacts, keep), upToDateWhen)
+      new Tuple3(artifacts, keep, upToDateWhen)
     }
 
     /*
@@ -238,13 +238,13 @@ abstract class PostProcessor extends InterpolableObject {
      * Fixed in Groovy 2.5.0-rc-3
      * <grv87 2018-11-10>
      */
-    @CompileDynamic
-    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
-      Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> result = rawValue.postProcess(priorArtifact)
-      new Tuple2(new Tuple2([result.first.first], result.first.second), result.second)
+    // TOTEST @CompileDynamic
+    private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
+      Tuple3<Artifact, Boolean, List<Provider<Boolean>>> result = rawValue.postProcess(priorArtifact)
+      new Tuple3([result.first], result.second, result.third)
     }
 
-    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
+    private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
       throw new InvalidRawValueClassException(rawValue)
     }
   }
@@ -329,7 +329,7 @@ abstract class PostProcessor extends InterpolableObject {
      * depending on rawValue actual type
      */
     @CompileDynamic
-    final Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
+    final Tuple3<Artifact, Boolean, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
       if (!interpolated) {
         throw new IllegalStateException('') // TODO
       }
@@ -344,12 +344,12 @@ abstract class PostProcessor extends InterpolableObject {
      * Fixed in Groovy 2.5.0-rc-3
      * <grv87 2018-11-10>
      */
-    @CompileDynamic
-    private Tuple2<Tuple2<Artifact, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessor rawValue) {
+    // TOTEST @CompileDynamic
+    private Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessor rawValue) {
       rawValue.postProcess priorArtifact
     }
 
-    private Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
+    private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
       throw new InvalidRawValueClassException(rawValue)
     }
   }

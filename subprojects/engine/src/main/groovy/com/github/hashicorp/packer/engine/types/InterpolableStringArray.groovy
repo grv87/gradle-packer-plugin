@@ -41,7 +41,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
 
     @JsonCreator
     Raw(List<String> raw) {
-      super(ImmutableList.copyOf(raw))
+      super(new ArrayList(raw))
     }
 
     @JsonCreator

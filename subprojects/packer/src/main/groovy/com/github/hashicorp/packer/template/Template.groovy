@@ -150,7 +150,7 @@ class Template implements InterpolableObject {
    * Fixed in Groovy 2.5.0-rc-3
    * <grv87 2018-11-10>
    */
-  @CompileDynamic
+  // TOTEST @CompileDynamic
   private void run() {
     if (builders.size() != 1) {
       throw new IllegalStateException(sprintf('Expected 1 builder. Found: %d', builders.size()))
@@ -163,7 +163,7 @@ class Template implements InterpolableObject {
     // Provisioners don't add anything to artifacts or upToDateWhen
 
     postProcessors.each { PostProcessor.PostProcessorArrayDefinition postProcessorArrayDefinition ->
-      Tuple2<Tuple2<List<Artifact>, Boolean>, List<Provider<Boolean>>> postProcessorResult = postProcessorArrayDefinition.postProcess(builderResult.first)
+      Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> postProcessorResult = postProcessorArrayDefinition.postProcess(builderResult.first)
       artifacts.addAll postProcessorResult.first.first
       keep = keep || postProcessorResult.first.second
       upToDateWhen.addAll postProcessorResult.second
