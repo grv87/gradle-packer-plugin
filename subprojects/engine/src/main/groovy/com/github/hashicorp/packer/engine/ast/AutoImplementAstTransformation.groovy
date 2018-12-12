@@ -14,6 +14,7 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.block
 import static org.codehaus.groovy.ast.tools.GeneralUtils.stmt
 import static org.codehaus.groovy.ast.tools.GeneralUtils.propX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.param
+import static org.codehaus.groovy.ast.tools.GeneralUtils.params
 import static org.codehaus.groovy.ast.tools.GeneralUtils.callX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.returnS
 import static org.codehaus.groovy.ast.ClassHelper.makeCached
@@ -28,6 +29,9 @@ import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActual
 import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
 import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
 import static org.codehaus.groovy.ast.Parameter.EMPTY_ARRAY as EMPTY_PARAMETER_ARRAY
+import groovy.transform.CompilationUnitAware
+import org.codehaus.groovy.ast.ModuleNode
+import org.codehaus.groovy.control.CompilationUnit
 import com.google.common.collect.ImmutableList
 import org.codehaus.groovy.ast.expr.ClassExpression
 import org.gradle.api.tasks.Input
@@ -81,7 +85,7 @@ import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 @CompileStatic
-class AutoImplementAstTransformation implements ASTTransformation {
+class AutoImplementAstTransformation implements ASTTransformation, CompilationUnitAware {
   private static final Pattern GETTER_PATTERN = ~/\Aget/
   private static final ConstantExpression NULL = constX(null)
   private static final VariableExpression THIS_X = varX('this')
@@ -110,6 +114,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     Mutability.MUTABLE, 'Impl',
     Mutability.IMMUTABLE, 'ImmutableImpl',
   )
+  private static final String INTERPOLATED = 'Interpolated'
   private static final ClassNode OBJECT_MAPPER_FACADE_CLASS = makeCached(ObjectMapperFacade)
   private static final ClassExpression OBJECT_MAPPER_FACADE_CLASS_X = classX(OBJECT_MAPPER_FACADE_CLASS)
   private static final ConstantExpression ABSTRACT_TYPE_MAPPING_REGISTRY_CONST_X = constX('ABSTRACT_TYPE_MAPPING_REGISTRY')
@@ -149,35 +154,30 @@ class AutoImplementAstTransformation implements ASTTransformation {
   )
 
   @Override
-  void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
+  void visit(ASTNode[] astNodes, SourceUnit source) {
     AnnotationNode autoImplementAnnotationNode = (AnnotationNode)astNodes[0]
     ClassNode abstractClass = (ClassNode)astNodes[1]
     if (abstractClass.interface || !(abstractClass.modifiers & ACC_ABSTRACT)) {
-      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'abstract classes only'
+      addErrorOnAnnotation source, autoImplementAnnotationNode, 'abstract classes only'
       return
     }
     if (!implementsInterfaceOrSubclassOf(abstractClass, INTERPOLABLE_OBJECT_CLASS)) {
-      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'abstract classes implementing InterpolableObject only', abstractClass.interfaces
+      addErrorOnAnnotation source, autoImplementAnnotationNode, 'classes implementing InterpolableObject only', abstractClass.interfaces
       return
     }
     if (!getAnnotation(abstractClass, COMPILE_STATIC_CLASS)) {
-      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'statically compiled classes only'
+      addErrorOnAnnotation source, autoImplementAnnotationNode, 'statically compiled types only'
       return
     }
 
-    abstractClass.modifiers &= ~ACC_ABSTRACT
+    boolean parameters = abstractClass.compileUnit.config.parameters
 
-    String abstractClassName = abstractClass.nameWithoutPackage
     String abstractClassFullName = abstractClass.name
-    Map<Mutability, String> implClassNames = (Map<Mutability, String>)IMPL.collectEntries { Map.Entry<Mutability, String> entry ->
-      [(entry.key): "$abstractClassName$entry.value"]
-    }
-    Map<Mutability, String> implClassFullNames = (Map<Mutability, String>)implClassNames.collectEntries { Map.Entry<Mutability, String> entry ->
-      [(entry.key): "$abstractClassFullName$DOLLAR$entry.value"]
-    }
-
     ClassNode abstractClassRef = newClass(abstractClass)
 
+    Map<Mutability, String> implClassFullNames = (Map<Mutability, String>)IMPL.collectEntries { Map.Entry<Mutability, String> entry ->
+      [(entry.key): "$abstractClassFullName$DOLLAR$entry.value"]
+    }
     Map<Mutability, ClassNode> implClasses = (Map<Mutability, ClassNode>)implClassFullNames.collectEntries { Map.Entry<Mutability, String> entry ->
       [(entry.key), new InnerClassNode(
         abstractClassRef,
@@ -192,6 +192,16 @@ class AutoImplementAstTransformation implements ASTTransformation {
       [(entry.key), newClass(entry.value)]
     }
 
+    ClassNode interpolatedClass = new InnerClassNode(
+      abstractClassRef,
+      "$abstractClassFullName$DOLLAR$INTERPOLATED",
+      PUBLIC_STATIC_FINAL,
+      abstractClassRef,
+      EMPTY_CLASS_NODE_ARRAY,
+      [] as MixinNode[]
+    )
+    ClassNode interpolatedClassRef = newClass(interpolatedClass)
+
     List<Parameter> abstractClassCtorParams = []
     List<Statement> abstractClassCtorStmts = []
     List<Expression> implClassDefaultCtorArgs = []
@@ -199,7 +209,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     Map<Mutability, List<Expression>> implClassCtorArgs = Mutability.values().collectEntries { Mutability mutability ->
       [(mutability): []]
     }
-    List<Expression> abstractClassInterpolateCtorArgs = []
+    List<Expression> interpolatedClassCtorArgs = []
 
     boolean methodsFound = false
 
@@ -242,7 +252,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
         // ClassNode typImplType = typ.name.startsWith("$abstractClass.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
-        if (jsonPropertyAnnotation == null && !abstractClass.compileUnit.config.parameters) {
+        if (jsonPropertyAnnotation == null && !parameters) {
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
           jsonPropertyAnnotation.addMember(VALUE, constX(ObjectMapperFacade.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
         }
@@ -326,7 +336,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
               List<Statement> statements = ((BlockStatement)defaultClosure.code).statements
               int countOfStatements = statements.size()
               if (countOfStatements != 1) {
-                addErrorOnDefaultClosure sourceUnit, defaultClosure, 'have exactly one statement', countOfStatements
+                addErrorOnDefaultClosure source, defaultClosure, 'have exactly one statement', countOfStatements
                 return
               }
               Statement firstS = statements.first()
@@ -336,7 +346,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
               } else if (ReturnStatement.isInstance(firstS)) {
                 defaultValueX = ((ReturnStatement)firstS).expression
               } else {
-                addErrorOnDefaultClosure sourceUnit, firstS, 'have expression or return statement', firstS, 'If you can\'t express it this way, set dynamic member to true'
+                addErrorOnDefaultClosure source, firstS, 'have expression or return statement', firstS, 'If you can\'t express it this way, set dynamic member to true'
                 return
               }
               interpolateValueArgs.add defaultValueX
@@ -375,26 +385,26 @@ class AutoImplementAstTransformation implements ASTTransformation {
             interpolateValueArgs.add postProcessAnnotation.members[VALUE]
           }
 
-          abstractClassInterpolateCtorArgs.add callX(
+          interpolatedClassCtorArgs.add callX(
             fromFieldX,
             INTERPOLATE_VALUE,
             args(interpolateValueArgs)
           )
         } else {
           if (defaultAnnotation != null) {
-            addErrorOnValuesOnlyAnnotation sourceUnit, defaultAnnotation, typ.name
+            addErrorOnValuesOnlyAnnotation source, defaultAnnotation, typ.name
             return
           }
           if (ignoreIfAnnotation != null) {
-            addErrorOnValuesOnlyAnnotation sourceUnit, ignoreIfAnnotation, typ.name
+            addErrorOnValuesOnlyAnnotation source, ignoreIfAnnotation, typ.name
             return
           }
           if (postProcessAnnotation != null) {
-            addErrorOnValuesOnlyAnnotation sourceUnit, postProcessAnnotation, typ.name
+            addErrorOnValuesOnlyAnnotation source, postProcessAnnotation, typ.name
             return
           }
 
-          abstractClassInterpolateCtorArgs.add callX(
+          interpolatedClassCtorArgs.add callX(
             fromFieldX,
             INTERPOLATE,
             args(
@@ -406,7 +416,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     }
 
     if (!methodsFound) {
-      addErrorOnAnnotation sourceUnit, autoImplementAnnotationNode, 'classes that have at least one method to implement'
+      addErrorOnAnnotation source, autoImplementAnnotationNode, 'classes having at least one method to implement'
       return
     }
 
@@ -417,39 +427,21 @@ class AutoImplementAstTransformation implements ASTTransformation {
       block(
         null,
         abstractClassCtorStmts
-      ) // TODO: need to call super() ?
-    )
-
-    abstractClass.addConstructor(
-      ACC_PRIVATE,
-      [
-        CONTEXT_PARAM,
-        param(
-          abstractClassRef,
-          FROM
-        )
-      ].toArray(new Parameter[2]),
-      EMPTY_CLASS_NODE_ARRAY,
-      block(
-        null,
-        ctorThisS(
-          args(abstractClassInterpolateCtorArgs)
-        )
-      ) // TODO: need to call super() ?
+      )
     )
 
     abstractClass.addMethod(
       INTERPOLATE,
       PUBLIC_FINAL,
       abstractClassRef,
-      [
+      params(
         CONTEXT_PARAM
-      ].toArray(new Parameter[1]),
+      ),
       EMPTY_CLASS_NODE_ARRAY,
       block(
         returnS(
           ctorX(
-            abstractClassRef,
+            interpolatedClassRef,
             args(
               CONTEXT_VAR_X,
               THIS_X
@@ -458,18 +450,6 @@ class AutoImplementAstTransformation implements ASTTransformation {
         )
       )
     ).addAnnotation(OVERRIDE_ANNOTATION)
-
-    abstractClass.addStaticInitializerStatements([(Statement)block(
-      stmt(callX(
-        ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-        REGISTER_ABSTRACT_TYPE_MAPPING,
-        args(
-          classX(abstractClassRef),
-          classX(implClassRefs[Mutability.MUTABLE]),
-          classX(implClassRefs[Mutability.IMMUTABLE])
-        )
-      ))
-    )], false)
 
     implClasses.each { Map.Entry<Mutability, ClassNode> entry ->
       entry.value.addConstructor(
@@ -489,15 +469,50 @@ class AutoImplementAstTransformation implements ASTTransformation {
         block(
           null,
           ctorSuperS(args(implClassCtorArgs[entry.key]))
-        ) // TODO: need to call super() ?
+        )
       ).addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
 
-      new StaticCompileTransformation().visit([COMPILE_STATIC_ANNOTATION, entry.value] as ASTNode[], sourceUnit)
-
-      abstractClass.module.addClass(entry.value)
-      // sourceUnit.AST.addClass(mutableClass)
-      // abstractClass.compileUnit.addClass(mutableClass)
+      addClass source, abstractClass.module, entry.value
     }
+
+    interpolatedClass.addConstructor(
+      ACC_PRIVATE,
+      params(
+        CONTEXT_PARAM,
+        param(
+          abstractClassRef,
+          FROM
+        )
+      ),
+      EMPTY_CLASS_NODE_ARRAY,
+      block(
+        null,
+        ctorSuperS(
+          args(interpolatedClassCtorArgs)
+        )
+      ) // TODO: need to call super() ?
+    )
+
+    addClass source, abstractClass.module, interpolatedClass
+
+    abstractClass.addStaticInitializerStatements([(Statement)block(
+      stmt(callX(
+        ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
+        REGISTER_ABSTRACT_TYPE_MAPPING,
+        args(
+          classX(abstractClassRef),
+          classX(implClassRefs[Mutability.MUTABLE]),
+          classX(implClassRefs[Mutability.IMMUTABLE])
+        )
+      ))
+    )], false)
+  }
+
+  private void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {
+    staticCompileTransformation.visit([COMPILE_STATIC_ANNOTATION, classNode] as ASTNode[], source)
+    module.addClass classNode
+    // source.AST.addClass(mutableClass)
+    // interfase.compileUnit.addClass(mutableClass)
   }
 
   private static void addError(SourceUnit sourceUnit, ASTNode node, String message) {
@@ -525,5 +540,12 @@ class AutoImplementAstTransformation implements ASTTransformation {
   // Overcomes the fact that AnnotatedNode#getAnnotations(ClassNode) returns an array
   private static AnnotationNode getAnnotation(AnnotatedNode annotatedNode, ClassNode targetClass) {
     annotatedNode.annotations.find { implementsInterfaceOrSubclassOf(it.classNode, targetClass) }
+  }
+
+  private final StaticCompileTransformation staticCompileTransformation = new StaticCompileTransformation()
+
+  @Override
+  void setCompilationUnit(final CompilationUnit unit) {
+    this.@staticCompileTransformation.compilationUnit = unit
   }
 }

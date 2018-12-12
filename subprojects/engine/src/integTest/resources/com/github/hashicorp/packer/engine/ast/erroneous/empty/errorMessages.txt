@@ -1,1 +1,1 @@
-@com.github.hashicorp.packer.engine.annotations.AutoImplement is applicable to classes that have at least one method to implement
+@com.github.hashicorp.packer.engine.annotations.AutoImplement is applicable to classes having at least one method to implement

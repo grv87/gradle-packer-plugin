@@ -25,8 +25,8 @@ class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
   }
 
   @Synchronized
-  T newInstance(String name) {
-    subtypeRegistry[name].getConstructor().newInstance()
+  Class<? extends T> getAt(String name) {
+    subtypeRegistry[name]
   }
 
   @Override

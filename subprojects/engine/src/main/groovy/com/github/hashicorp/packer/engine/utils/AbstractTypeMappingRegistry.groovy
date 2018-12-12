@@ -9,7 +9,6 @@ import groovy.transform.Synchronized
 
 @CompileStatic
 class AbstractTypeMappingRegistry implements ModuleProvider {
-  @SuppressWarnings('UnstableApiUsage')
   private final Map<Class<? extends InterpolableObject>, Map<Mutability, Class<? extends InterpolableObject>>> abstractTypeMappingRegistry = [:]
   private final Map<Mutability, SimpleModule> modules = [:]
 
@@ -23,7 +22,6 @@ class AbstractTypeMappingRegistry implements ModuleProvider {
     }
     modules.clear()
     abstractTypeMappingRegistry[abstractClass] = [(Mutability.MUTABLE): mutableClass, (Mutability.IMMUTABLE): immutableClass]
-
   }
 
   @Synchronized

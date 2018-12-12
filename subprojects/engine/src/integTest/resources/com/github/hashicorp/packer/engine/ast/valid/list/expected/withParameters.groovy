@@ -29,7 +29,7 @@ class ListTest implements InterpolableObject<ListTest> {
     )
   }
 
-  static final class ListTestImpl extends ListTest {
+  static final class Impl extends ListTest {
     ListTestImpl() {
       this(
         (List<InterpolableInteger>)null,
@@ -46,7 +46,7 @@ class ListTest implements InterpolableObject<ListTest> {
     }
   }
 
-  static final class ListTestImmutableImpl extends ListTest {
+  static final class ImmutableImpl extends ListTest {
     ListTestImmutableImpl() {
       this(
         (List<InterpolableInteger>)null,

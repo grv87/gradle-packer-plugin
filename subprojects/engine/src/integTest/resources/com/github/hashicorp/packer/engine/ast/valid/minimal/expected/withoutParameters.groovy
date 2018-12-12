@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 
 @CompileStatic
-class MinimalTest implements InterpolableObject<MinimalTest> {
+abstract class MinimalTest implements InterpolableObject<MinimalTest> {
   private final InterpolableLong singleField
 
   @Input
@@ -23,21 +23,15 @@ class MinimalTest implements InterpolableObject<MinimalTest> {
     this.@singleField = singleField
   }
 
-  private MinimalTest(Context context, MinimalTest from) {
-    this(
-      from.@singleField.interpolateValue(context, 1L),
-    )
-  }
-
-  static final class MinimalTestImpl extends MinimalTest {
-    MinimalTestImpl() {
+  static final class Impl extends MinimalTest {
+    Impl() {
       this(
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
-    MinimalTestImpl(
+    Impl(
       @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
@@ -47,15 +41,15 @@ class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
-  static final class MinimalTestImmutableImpl extends MinimalTest {
-    MinimalTestImmutableImpl() {
+  static final class ImmutableImpl extends MinimalTest {
+    ImmutableImpl() {
       this(
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
-    MinimalTestImmutableImpl(
+    ImmutableImpl(
       @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
@@ -65,12 +59,20 @@ class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
+  static final class Interpolated extends MinimalTest {
+    private Interpolated(Context context, MinimalTest from) {
+      super(
+        from.@singleField.interpolateValue(context, 1L),
+      )
+    }
+  }
+
   @Override
   final MinimalTest interpolate(Context context) {
-    return new MinimalTest(context, this)
+    return new Interpolated(context, this)
   }
 
   static {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping MinimalTest, MinimalTestImpl, MinimalTestImmutableImpl
+    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
   }
 }

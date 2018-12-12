@@ -1,1 +1,1 @@
-@com.github.hashicorp.packer.engine.annotations.AutoImplement is applicable to abstract classes implementing InterpolableObject only
+@com.github.hashicorp.packer.engine.annotations.AutoImplement is applicable to classes implementing InterpolableObject only

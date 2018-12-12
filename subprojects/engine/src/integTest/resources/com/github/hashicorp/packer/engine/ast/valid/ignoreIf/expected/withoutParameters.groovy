@@ -50,7 +50,7 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     )
   }
 
-  static final class IgnoreIfTestImpl extends IgnoreIfTest {
+  static final class Impl extends IgnoreIfTest {
     IgnoreIfTestImpl() {
       this(
         (InterpolableLong)null,
@@ -76,7 +76,7 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
   }
 
-  static final class IgnoreIfTestImmutableImpl extends IgnoreIfTest {
+  static final class ImmutableImpl extends IgnoreIfTest {
     IgnoreIfTestImmutableImpl() {
       this(
         (InterpolableLong)null,
