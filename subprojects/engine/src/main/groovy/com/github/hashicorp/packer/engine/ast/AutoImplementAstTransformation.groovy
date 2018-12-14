@@ -18,8 +18,10 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.params
 import static org.codehaus.groovy.ast.tools.GeneralUtils.callX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.returnS
 import static org.codehaus.groovy.ast.ClassHelper.makeCached
+import static org.codehaus.groovy.ast.ClassHelper.VOID_TYPE
 import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
 import static org.codehaus.groovy.ast.ClassNode.ACC_PUBLIC
+import static org.codehaus.groovy.ast.ClassNode.ACC_PROTECTED
 import static org.codehaus.groovy.ast.ClassNode.ACC_ABSTRACT
 import static org.codehaus.groovy.ast.ClassNode.ACC_PRIVATE
 import static org.codehaus.groovy.ast.ClassNode.ACC_STATIC
@@ -152,6 +154,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     OUTPUT_DIRECTORY_CLASS,
     OUTPUT_DIRECTORIES_CLASS
   )
+  private static final String REGISTER = 'register'
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit source) {
@@ -476,7 +479,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     }
 
     interpolatedClass.addConstructor(
-      ACC_PRIVATE,
+      ACC_PROTECTED,
       params(
         CONTEXT_PARAM,
         param(
@@ -495,17 +498,24 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
 
     addClass source, abstractClass.module, interpolatedClass
 
-    abstractClass.addStaticInitializerStatements([(Statement)block(
-      stmt(callX(
-        ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-        REGISTER_ABSTRACT_TYPE_MAPPING,
-        args(
-          classX(abstractClassRef),
-          classX(implClassRefs[Mutability.MUTABLE]),
-          classX(implClassRefs[Mutability.IMMUTABLE])
-        )
-      ))
-    )], false)
+    abstractClass.addMethod(
+      REGISTER,
+      PUBLIC_STATIC_FINAL,
+      VOID_TYPE,
+      EMPTY_PARAMETER_ARRAY,
+      EMPTY_CLASS_NODE_ARRAY,
+      block(
+        stmt(callX(
+          ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
+          REGISTER_ABSTRACT_TYPE_MAPPING,
+          args(
+            classX(abstractClassRef),
+            classX(implClassRefs[Mutability.MUTABLE]),
+            classX(implClassRefs[Mutability.IMMUTABLE])
+          )
+        ))
+      )
+    )
   }
 
   private void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {

@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 
 @CompileStatic
-class ListTest implements InterpolableObject<ListTest> {
+abstract class ListTest implements InterpolableObject<ListTest> {
   private final List<InterpolableInteger> singleList
 
   @Input
@@ -23,21 +23,15 @@ class ListTest implements InterpolableObject<ListTest> {
     this.@singleList = singleList
   }
 
-  private ListTest(Context context, ListTest from) {
-    this(
-      ImmutableList.copyOf((List<InterpolableInteger>)from.@singleList.collect { InterpolableInteger interpolableItem -> interpolableItem.interpolateValue(context) }),
-    )
-  }
-
   static final class Impl extends ListTest {
-    ListTestImpl() {
+    Impl() {
       this(
         (List<InterpolableInteger>)null,
       )
     }
 
     @JsonCreator
-    ListTestImpl(
+    Impl(
       List<InterpolableInteger> singleList
     ) {
       super(
@@ -47,14 +41,14 @@ class ListTest implements InterpolableObject<ListTest> {
   }
 
   static final class ImmutableImpl extends ListTest {
-    ListTestImmutableImpl() {
+    ImmutableImpl() {
       this(
         (List<InterpolableInteger>)null,
       )
     }
 
     @JsonCreator
-    ListTestImmutableImpl(
+    ImmutableImpl(
       List<InterpolableInteger> singleList
     ) {
       super(
@@ -63,12 +57,20 @@ class ListTest implements InterpolableObject<ListTest> {
     }
   }
 
-  @Override
-  final ListTest interpolate(Context context) {
-    return new ListTest(context, this)
+  static final class Interpolated extends ListTest {
+    protected Interpolated(Context context, ListTest from) {
+      super(
+        ImmutableList.copyOf((List<InterpolableInteger>)from.@singleList.collect { InterpolableInteger interpolableItem -> interpolableItem.interpolateValue(context) }),
+      )
+    }
   }
 
-  static {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping ListTest, ListTestImpl, ListTestImmutableImpl
+  @Override
+  final ListTest interpolate(Context context) {
+    return new Interpolated(context, this)
+  }
+
+  static final void register() {
+    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping ListTest, Impl, ImmutableImpl
   }
 }

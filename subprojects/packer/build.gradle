@@ -1,6 +1,6 @@
-buildscript {
+/*buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
+}*/
 plugins {
   id 'org.fidata.project.java'
   id 'org.fidata.project.groovy'

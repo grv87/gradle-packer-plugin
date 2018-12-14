@@ -60,7 +60,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
   }
 
   static final class Interpolated extends MinimalTest {
-    private Interpolated(Context context, MinimalTest from) {
+    protected Interpolated(Context context, MinimalTest from) {
       super(
         from.@singleField.interpolateValue(context, 1L),
       )
@@ -72,7 +72,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     return new Interpolated(context, this)
   }
 
-  static {
+  static final void register() {
     ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
   }
 }

@@ -18,9 +18,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-buildscript {
+/*buildscript {
   configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
+}*/
 plugins {
   id 'org.fidata.project' version '6.0.0-gradle-5-0-SNAPSHOT'
 }

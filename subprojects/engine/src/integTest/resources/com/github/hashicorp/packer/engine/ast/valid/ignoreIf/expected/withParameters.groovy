@@ -10,7 +10,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
 @CompileStatic
-class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
+abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
   private final InterpolableLong firstField
   private final InterpolableLong secondField
   private final InterpolableLong thirdField
@@ -41,16 +41,8 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     this.@thirdField = thirdField
   }
 
-  private IgnoreIfTest(Context context, IgnoreIfTest from) {
-    this(
-      from.@firstField.interpolateValue(context),
-      from.@secondField.interpolateValue(context, (Long)null, { -> firstField.interpolated != 0 }),
-      from.@thirdField.interpolateValue(context, (Long)null, { -> firstField.interpolated == 42 }),
-    )
-  }
-
   static final class Impl extends IgnoreIfTest {
-    IgnoreIfTestImpl() {
+    Impl() {
       this(
         (InterpolableLong)null,
         (InterpolableLong)null,
@@ -59,7 +51,7 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
 
     @JsonCreator
-    IgnoreIfTestImpl(
+    Impl(
       InterpolableLong firstField,
       InterpolableLong secondField,
       InterpolableLong thirdField
@@ -73,7 +65,7 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
   }
 
   static final class ImmutableImpl extends IgnoreIfTest {
-    IgnoreIfTestImmutableImpl() {
+    ImmutableImpl() {
       this(
         (InterpolableLong)null,
         (InterpolableLong)null,
@@ -82,7 +74,7 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
 
     @JsonCreator
-    IgnoreIfTestImmutableImpl(
+    ImmutableImpl(
       InterpolableLong firstField,
       InterpolableLong secondField,
       InterpolableLong thirdField
@@ -95,12 +87,22 @@ class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
   }
 
-  @Override
-  final IgnoreIfTest interpolate(Context context) {
-    return new IgnoreIfTest(context, this)
+  static final class Interpolated extends IgnoreIfTest {
+    protected Interpolated(Context context, IgnoreIfTest from) {
+      super(
+        from.@firstField.interpolateValue(context),
+        from.@secondField.interpolateValue(context, (Long)null, { -> firstField.interpolated != 0 }),
+        from.@thirdField.interpolateValue(context, (Long)null, { -> firstField.interpolated == 42 }),
+      )
+    }
   }
 
-  static {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping IgnoreIfTest, IgnoreIfTestImpl, IgnoreIfTestImmutableImpl
+  @Override
+  final IgnoreIfTest interpolate(Context context) {
+    return new Interpolated(context, this)
+  }
+
+  static final void register() {
+    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping IgnoreIfTest, Impl, ImmutableImpl
   }
 }
