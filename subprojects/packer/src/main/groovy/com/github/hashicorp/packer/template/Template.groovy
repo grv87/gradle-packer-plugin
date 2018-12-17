@@ -19,15 +19,15 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.Mutability
+import com.github.hashicorp.packer.engine.Mutability
 
 import static Context.BUILD_NAME_VARIABLE_NAME
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
 import com.github.hashicorp.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
 import java.nio.file.Path
-import groovy.transform.CompileDynamic
+
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
@@ -164,9 +164,9 @@ class Template implements InterpolableObject {
 
     postProcessors.each { PostProcessor.PostProcessorArrayDefinition postProcessorArrayDefinition ->
       Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> postProcessorResult = postProcessorArrayDefinition.postProcess(builderResult.first)
-      artifacts.addAll postProcessorResult.first.first
-      keep = keep || postProcessorResult.first.second
-      upToDateWhen.addAll postProcessorResult.second
+      artifacts.addAll postProcessorResult.first
+      keep = keep || postProcessorResult.second
+      upToDateWhen.addAll postProcessorResult.third
     }
     if (keep) {
       artifacts.add builderResult.first
@@ -184,22 +184,22 @@ class Template implements InterpolableObject {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  static Template readFromFile(File file, Mutability mutability = Mutability.IMMUTABLE) {
+  static Template readFromFile(Engine engine, File file, Mutability mutability = Mutability.IMMUTABLE) {
     Template template = (Template)file.withInputStream { InputStream inputStream ->
-      ObjectMapperFacade.get(mutability).readValue(inputStream, Template)
+      engine.getObjectMapperFacade(mutability).readValue(inputStream, Template)
     }
     template.path = file.toPath()
     template
   }
 
-  static Template readValue(String string, Mutability mutability = Mutability.IMMUTABLE) {
-    Template template = ObjectMapperFacade.get(mutability).readValue(string, Template)
+  static Template readValue(Engine engine, String string, Mutability mutability = Mutability.IMMUTABLE) {
+    Template template = engine.getObjectMapperFacade(mutability).readValue(string, Template)
     template
   }
 
   void writeValue(Writer writer) {
     /* TODO file.withInputStream { InputStream inputStream ->
-      ObjectMapperFacade.get(mutability).writeValue
+      Engine.get(mutability).writeValue
         .readValue(inputStream, Template)
     }*/
   }

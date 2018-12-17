@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.utils
+package com.github.hashicorp.packer.engine
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.jsontype.NamedType
@@ -41,7 +41,7 @@ class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
     this.@module
   }
 
-  void registerRegistry() {
-    ObjectMapperFacade.registerCustomModuleProvider this
+  void registerRegistry(Engine engine) {
+    engine.registerCustomModuleProvider this
   }
 }

@@ -7,9 +7,9 @@ import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassExcepti
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedWithFixedContextException
 import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationException
 import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
-import com.github.hashicorp.packer.engine.utils.ModuleProvider
-import com.github.hashicorp.packer.engine.utils.Mutability
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+import com.github.hashicorp.packer.engine.ModuleProvider
+import com.github.hashicorp.packer.engine.Mutability
+import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
@@ -111,8 +111,8 @@ interface InterpolableValue<
       interpolateValue(args, null)
     }
 
-    static {
-      ObjectMapperFacade.registerCustomModuleProvider(new SerializerModuleProvider())
+    static void register(Engine engine) { // TODO
+      engine.registerCustomModuleProvider(new SerializerModuleProvider())
     }
   }
 

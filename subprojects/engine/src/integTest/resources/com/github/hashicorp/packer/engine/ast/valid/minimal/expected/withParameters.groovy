@@ -1,8 +1,10 @@
+import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.OptBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.InterpolableObject
-import com.github.hashicorp.packer.engine.utils.Mutability
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+import com.github.hashicorp.packer.engine.Mutability
+import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
@@ -23,35 +25,41 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
   }
 
   static final class Impl extends MinimalTest {
-    Impl() {
+    Impl(Engine engine) {
       this(
+        engine,
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
     Impl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+      Engine engine,
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.MUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.newInstance(InterpolableLong, Mutability.MUTABLE),
       )
     }
   }
 
   static final class ImmutableImpl extends MinimalTest {
-    ImmutableImpl() {
+    ImmutableImpl(Engine engine) {
       this(
+        engine,
         (InterpolableLong)null,
       )
     }
 
     @JsonCreator
     ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+      Engine engine,
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(InterpolableLong, Mutability.IMMUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.newInstance(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }
@@ -69,7 +77,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     return new Interpolated(context, this)
   }
 
-  static final void register() {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
+  static final void register(Engine engine) {
+    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
   }
 }

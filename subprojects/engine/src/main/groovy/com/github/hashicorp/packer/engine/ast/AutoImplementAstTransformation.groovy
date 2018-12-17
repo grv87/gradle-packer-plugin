@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.ast
 
+import static org.codehaus.groovy.ast.tools.GeneralUtils.cloneParams
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.varX
@@ -30,7 +31,8 @@ import static org.codehaus.groovy.ast.tools.GenericsUtils.newClass
 import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActualGenericsTypeMap
 import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
 import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
-import static org.codehaus.groovy.ast.Parameter.EMPTY_ARRAY as EMPTY_PARAMETER_ARRAY
+import com.fasterxml.jackson.annotation.JacksonInject
+import com.fasterxml.jackson.annotation.OptBoolean
 import groovy.transform.CompilationUnitAware
 import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.control.CompilationUnit
@@ -44,9 +46,9 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import com.github.hashicorp.packer.engine.utils.Mutability
+import com.github.hashicorp.packer.engine.Mutability
 import com.google.common.collect.ImmutableMap
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+import com.github.hashicorp.packer.engine.Engine
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.codehaus.groovy.syntax.SyntaxException
 import org.codehaus.groovy.ast.AnnotatedNode
@@ -112,17 +114,22 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     CONTEXT
   )
   private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT_PARAM)
+  private static final String ENGINE = 'engine'
+  private static final ClassNode ENGINE_CLASS = makeCached(Engine)
+  private static final Parameter ENGINE_PARAM = param(
+    ENGINE_CLASS,
+    ENGINE
+  )
+  private static final VariableExpression ENGINE_VAR_X = varX(ENGINE_PARAM)
   private static final Map<Mutability, String> IMPL = ImmutableMap.of(
     Mutability.MUTABLE, 'Impl',
     Mutability.IMMUTABLE, 'ImmutableImpl',
   )
   private static final String INTERPOLATED = 'Interpolated'
-  private static final ClassNode OBJECT_MAPPER_FACADE_CLASS = makeCached(ObjectMapperFacade)
-  private static final ClassExpression OBJECT_MAPPER_FACADE_CLASS_X = classX(OBJECT_MAPPER_FACADE_CLASS)
-  private static final ConstantExpression ABSTRACT_TYPE_MAPPING_REGISTRY_CONST_X = constX('ABSTRACT_TYPE_MAPPING_REGISTRY')
+  private static final String ABSTRACT_TYPE_MAPPING_REGISTRY = 'abstractTypeMappingRegistry'
   private static final Expression ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X = propX(
-    OBJECT_MAPPER_FACADE_CLASS_X,
-    ABSTRACT_TYPE_MAPPING_REGISTRY_CONST_X
+    ENGINE_VAR_X,
+    ABSTRACT_TYPE_MAPPING_REGISTRY
   )
   private static final String REGISTER_ABSTRACT_TYPE_MAPPING = 'registerAbstractTypeMapping'
   private static final String INTERPOLATE = 'interpolate'
@@ -155,6 +162,21 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     OUTPUT_DIRECTORIES_CLASS
   )
   private static final String REGISTER = 'register'
+  private static final ClassNode JACKSON_INJECT_CLASS = makeCached(JacksonInject)
+  private static final AnnotationNode JACKSON_INJECT_ANNOTATION = new AnnotationNode(JACKSON_INJECT_CLASS)
+  static {
+    JACKSON_INJECT_ANNOTATION.addMember(
+      'useInput',
+      propX(
+        classX(makeCached(OptBoolean)),
+        'FALSE'
+      )
+    )
+  }
+  private static final Parameter ENGINE_PARAM_WITH_ANNOTATION = cloneParams(ENGINE_PARAM)[0]
+  static {
+    ENGINE_PARAM_WITH_ANNOTATION.addAnnotation(JACKSON_INJECT_ANNOTATION)
+  }
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit source) {
@@ -207,8 +229,9 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
 
     List<Parameter> abstractClassCtorParams = []
     List<Statement> abstractClassCtorStmts = []
-    List<Expression> implClassDefaultCtorArgs = []
-    List<Parameter> implClassCtorParams = []
+    List<Expression> implClassDefaultCtorArgs = [(Expression)ENGINE_VAR_X]
+    Parameter engineParam = cloneParams(ENGINE_PARAM)[0]
+    List<Parameter> implClassCtorParams = [ENGINE_PARAM_WITH_ANNOTATION]
     Map<Mutability, List<Expression>> implClassCtorArgs = Mutability.values().collectEntries { Mutability mutability ->
       [(mutability): []]
     }
@@ -257,7 +280,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null && !parameters) {
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
-          jsonPropertyAnnotation.addMember(VALUE, constX(ObjectMapperFacade.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
+          jsonPropertyAnnotation.addMember(VALUE, constX(Engine.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
         }
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
@@ -457,7 +480,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     implClasses.each { Map.Entry<Mutability, ClassNode> entry ->
       entry.value.addConstructor(
         ACC_PUBLIC,
-        EMPTY_PARAMETER_ARRAY,
+        params(ENGINE_PARAM),
         EMPTY_CLASS_NODE_ARRAY,
         block(
           null,
@@ -502,7 +525,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
       REGISTER,
       PUBLIC_STATIC_FINAL,
       VOID_TYPE,
-      EMPTY_PARAMETER_ARRAY,
+      params(ENGINE_PARAM),
       EMPTY_CLASS_NODE_ARRAY,
       block(
         stmt(callX(

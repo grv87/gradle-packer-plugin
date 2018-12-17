@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.utils
+package com.github.hashicorp.packer.engine
 
 import groovy.transform.CompileStatic
 

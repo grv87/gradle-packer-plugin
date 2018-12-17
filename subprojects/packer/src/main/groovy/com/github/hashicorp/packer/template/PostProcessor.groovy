@@ -24,12 +24,11 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
-import com.github.hashicorp.packer.engine.annotations.PostProcess
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
-import com.github.hashicorp.packer.engine.utils.Mutability
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
-import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
+import com.github.hashicorp.packer.engine.Mutability
+import com.github.hashicorp.packer.engine.Engine
+import com.github.hashicorp.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
@@ -102,8 +101,8 @@ abstract class PostProcessor extends InterpolableObject {
 
   protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
 
-  static {
-    SUBTYPE_REGISTRY.registerRegistry()
+  static void register(Engine engine) {
+    SUBTYPE_REGISTRY.registerRegistry engine
   }
 
   static final class PostProcessorArrayDefinition extends InterpolableObject {
@@ -317,7 +316,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
+      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {

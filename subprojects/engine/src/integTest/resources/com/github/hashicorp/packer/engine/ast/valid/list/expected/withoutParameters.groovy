@@ -1,8 +1,10 @@
+import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.OptBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
 import com.github.hashicorp.packer.engine.types.InterpolableObject
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
@@ -24,14 +26,17 @@ abstract class ListTest implements InterpolableObject<ListTest> {
   }
 
   static final class Impl extends ListTest {
-    Impl() {
+    Impl(Engine engine) {
       this(
+        engine,
         (List<InterpolableInteger>)null,
       )
     }
 
     @JsonCreator
     Impl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+      Engine engine,
       @JsonProperty('single_field')
       List<InterpolableInteger> singleList
     ) {
@@ -42,14 +47,17 @@ abstract class ListTest implements InterpolableObject<ListTest> {
   }
 
   static final class ImmutableImpl extends ListTest {
-    ImmutableImpl() {
+    ImmutableImpl(Engine engine) {
       this(
+        engine,
         (List<InterpolableInteger>)null,
       )
     }
 
     @JsonCreator
     ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+        Engine engine,
       @JsonProperty('single_field')
       List<InterpolableInteger> singleList
     ) {
@@ -72,7 +80,7 @@ abstract class ListTest implements InterpolableObject<ListTest> {
     return new Interpolated(context, this)
   }
 
-  static final void register() {
-    ObjectMapperFacade.ABSTRACT_TYPE_MAPPING_REGISTRY.registerAbstractTypeMapping ListTest, Impl,ImmutableImpl
+  static final void register(Engine engine) {
+    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping ListTest, Impl,ImmutableImpl
   }
 }

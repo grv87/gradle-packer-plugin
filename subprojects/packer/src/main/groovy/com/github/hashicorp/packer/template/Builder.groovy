@@ -19,11 +19,12 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.utils.ObjectMapperFacade
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.github.hashicorp.packer.engine.Engine
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
-import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
+import com.github.hashicorp.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
@@ -38,19 +39,15 @@ import org.gradle.api.tasks.Internal
   include = JsonTypeInfo.As.PROPERTY,
   property = 'type'
 )
+@AutoImplement
 @CompileStatic
 // REVIEWED
-abstract class Builder extends InterpolableObject {
+abstract class Builder implements InterpolableObject<Builder> {
   protected Builder() {
   }
 
   @Inline
-  BuilderHeader header
-
-  @Override
-  protected void doInterpolate() {
-    header.interpolate context
-  }
+  abstract BuilderHeader getHeader()
 
   final Tuple2<Artifact, List<Provider<Boolean>>> run() {
     if (!interpolated) {
@@ -62,27 +59,23 @@ abstract class Builder extends InterpolableObject {
 
   protected abstract Tuple2<Artifact, List<Provider<Boolean>>> doRun()
 
-  static final class BuilderHeader extends InterpolableObject {
+  @AutoImplement
+  abstract static class BuilderHeader implements InterpolableObject<BuilderHeader> {
     @Internal
-    InterpolableString name
+    abstract InterpolableString getName()
 
     @Input
-    String type
+    abstract String getType()
 
     @ComputedInput
     String getBuildName() {
-      name?.interpolatedValue ?: type
-    }
-
-    @Override
-    protected void doInterpolate() {
-      name.interpolate context
+      name?.interpolated ?: type
     }
   }
 
   protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
 
-  static {
-    SUBTYPE_REGISTRY.registerRegistry()
+  static void register(Engine engine) {
+    SUBTYPE_REGISTRY.registerRegistry engine
   }
 }

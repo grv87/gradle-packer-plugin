@@ -22,8 +22,9 @@ package com.github.hashicorp.packer.template
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
-import com.github.hashicorp.packer.engine.utils.SubtypeRegistry
+import com.github.hashicorp.packer.engine.SubtypeRegistry
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableObject
@@ -113,7 +114,7 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
 
   protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new SubtypeRegistry<Provisioner>()
 
-  static {
-    SUBTYPE_REGISTRY.registerRegistry()
+  static void register(Engine engine) {
+    SUBTYPE_REGISTRY.registerRegistry engine
   }
 }
