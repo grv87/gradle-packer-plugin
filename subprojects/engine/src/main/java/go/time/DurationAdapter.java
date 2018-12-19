@@ -73,7 +73,7 @@ public final class DurationAdapter {
    */
   public static String string(final Duration d) {
     // Largest time is 2540400h10m10.000000000s
-    final StringBuilder buf = new StringBuilder();
+    final StringBuilder buf = new StringBuilder(); // TODO: capacity
 
     /*
      * Don't use Duration.toNanos() since it causes overflow

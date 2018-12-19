@@ -48,7 +48,7 @@ interface InterpolableEnum<
           return enumConstant
         }
       }
-      return new SimpleInterpolableString(raw)
+      return new SimpleInterpolableString(raw) // TODO: valueOf && immutable ?
     }
   }
 

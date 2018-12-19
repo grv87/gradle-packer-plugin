@@ -55,7 +55,7 @@ class AutoImplementAstTransformationTest {
   @Parameters
   @TestCaseName('testCompilation[{index}]: {0}, parameters = {2}')
   void testCompilation(String testName, String source, Boolean parameters) {
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
     groovyClassLoader.parseClass(source)
   }
 
@@ -69,7 +69,7 @@ class AutoImplementAstTransformationTest {
       compilePhase: compilePhase.inspect(),
       expectedUrl: expectedUrl.toString().inspect(),
     ).toString())
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
     groovyClassLoader.parseClass(sourceWithASTTest)
   }
 
@@ -135,5 +135,9 @@ class AutoImplementAstTransformationTest {
     ]).collect { it.flatten().toArray(new Object[5]) }.toArray()
     assert result.length > 0
     result
+  }
+
+  private static ClassLoader getClassLoader1() {
+    Thread.currentThread().contextClassLoader ?: this.class.classLoader
   }
 }
