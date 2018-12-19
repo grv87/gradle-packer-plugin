@@ -1,8 +1,7 @@
 import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
 import com.github.hashicorp.packer.engine.types.InterpolableLong
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal

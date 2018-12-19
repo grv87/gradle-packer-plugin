@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.InheritConstructors
 import groovy.transform.CompileStatic

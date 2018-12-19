@@ -24,7 +24,7 @@ import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
 import com.github.hashicorp.packer.engine.annotations.ComputedInputFile
 import com.github.hashicorp.packer.engine.annotations.ComputedOutputDirectory
 import com.github.hashicorp.packer.engine.annotations.ComputedOutputFile
-import com.github.hashicorp.packer.engine.types.InterpolableEnum
+import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner

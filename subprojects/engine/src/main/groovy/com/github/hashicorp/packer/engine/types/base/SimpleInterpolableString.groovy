@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.types
+package com.github.hashicorp.packer.engine.types.base
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
@@ -13,7 +13,7 @@ class SimpleInterpolableString /*implements InterpolableObject<SimpleInterpolabl
   private volatile String rawValue
   private volatile Object compiledTemplate = null
 
-  @JsonCreator
+  @JsonCreator // (mode = JsonCreator.Mode.DELEGATING)
   SimpleInterpolableString(String rawValue) {
     setRawValue rawValue
   }

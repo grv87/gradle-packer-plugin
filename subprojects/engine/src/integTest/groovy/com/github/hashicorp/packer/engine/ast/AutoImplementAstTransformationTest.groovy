@@ -1,5 +1,6 @@
 package com.github.hashicorp.packer.engine.ast
 
+import static groovy.test.GroovyAssert.assertScript
 import static groovy.test.GroovyAssert.shouldFail
 import java.util.regex.Pattern
 import org.codehaus.groovy.control.CompilerConfiguration
@@ -59,6 +60,14 @@ class AutoImplementAstTransformationTest {
     groovyClassLoader.parseClass(source)
   }
 
+  @Test
+  @Parameters
+  @TestCaseName('testCompilationExpected[{index}]: {0}, parameters = {2}')
+  void testCompilationExpected(String testName, String source, Boolean parameters) {
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    groovyClassLoader.parseClass(source)
+  }
+
   private static final Template AST_TEST_TEMPLATE = new StreamingTemplateEngine().createTemplate(Resources.toString(Resources.getResource(this, 'ASTTest.groovy.template'), Charsets.UTF_8))
 
   @Test
@@ -71,6 +80,19 @@ class AutoImplementAstTransformationTest {
     ).toString())
     GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
     groovyClassLoader.parseClass(sourceWithASTTest)
+  }
+
+  @Test
+  @Parameters
+  @TestCaseName('testSerialization[{index}]: {0}')
+  void testSerialization(String testName, File source, File source2) {
+    // assertScript source
+    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[Boolean.FALSE])
+    groovyClassLoader.parseClass(source)
+    /*groovyClassLoader.parseClass(source2)*/
+    GroovyShell shell = new GroovyShell(groovyClassLoader)
+    // shell.evaluate(source)
+    shell.evaluate(source2)
   }
 
   private static Object[] parametersForTestErroneousSource() {
@@ -107,6 +129,30 @@ class AutoImplementAstTransformationTest {
     result
   }
 
+  private static Object[] parametersForTestCompilationExpected() {
+    Object[] result = (
+      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/expected/withoutParameters\\.groovy\\z'
+        if (m) {
+          String testName = m[0][1]
+          [testName, Resources.toString(it.url(), Charsets.UTF_8), Boolean.FALSE].toArray(new Object[3])
+        } else {
+          null
+        }
+      } + ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
+        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/expected/withParameters\\.groovy\\z'
+        if (m) {
+          String testName = m[0][1]
+          [testName, Resources.toString(it.url(), Charsets.UTF_8), Boolean.TRUE].toArray(new Object[3])
+        } else {
+          null
+        }
+      }
+    ).toArray()
+    assert result.length > 0
+    result
+  }
+
   private static Object[] parametersForTestASTMatch() {
     Object[] result = GroovyCollections.combinations([
       ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
@@ -137,7 +183,23 @@ class AutoImplementAstTransformationTest {
     result
   }
 
-  private static ClassLoader getClassLoader1() {
+  private static Object[] parametersForTestSerialization() {
+    Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
+      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/serialization\\.groovy\\z'
+      if (m) {
+        String testName = m[0][1]
+        // [testName, Resources.toString(Paths.get(it.url().toURI()).resolveSibling('source.groovy').toUri().toURL(), Charsets.UTF_8) + Resources.toString(it.url(), Charsets.UTF_8)].toArray(new Object[2])
+        // [testName, Resources.toString(Paths.get(it.url().toURI()).resolveSibling('source.groovy').toUri().toURL(), Charsets.UTF_8), Resources.toString(it.url(), Charsets.UTF_8)].toArray(new Object[3])
+        [testName, Paths.get(it.url().toURI()).resolveSibling('source.groovy').toFile(), new File(it.url().toURI())].toArray(new Object[3])
+      } else {
+        null
+      }
+    }.toArray()
+    assert result.length > 0
+    result
+  }
+
+  private ClassLoader getClassLoader1() { // TODO
     Thread.currentThread().contextClassLoader ?: this.class.classLoader
   }
 }

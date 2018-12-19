@@ -105,8 +105,8 @@ final class Context {
    */
   Context forTemplateBody(Map<String, InterpolableString> userVariables) { // TODO: we could interpolate variables right here
     new Context(
-      (Map<String, ?>)userVariables.collectEntries { Map.Entry<String, InterpolableString> entry ->
-        [entry.key, userVariablesValues.getOrDefault(entry.key, entry.value.interpolated)]
+      (Map<String, ?>)userVariables.collectEntries { String key, InterpolableString value ->
+        [key, userVariablesValues.getOrDefault(key, value.interpolated)]
       },
       null,
       templateFile,
@@ -364,8 +364,8 @@ final class Context {
 
     @Override
     Collection<Serializable> values() {
-      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions.collectMany { Map.Entry<Pattern, Map<String, ?>> entry ->
-        entry.value.values().collect { Map.Entry<String, ?> subentry -> flattenValue(subentry.value) }
+      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions.values().collectMany { Map<String, ?> value ->
+        value.values().collect { Object subvalue -> flattenValue(subvalue) }
       } + parameterlessConstantFunctions))
     }
 

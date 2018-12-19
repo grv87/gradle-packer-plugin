@@ -22,7 +22,7 @@ package com.github.hashicorp.packer.provisioner
 import com.github.hashicorp.packer.engine.annotations.ComputedInputFiles
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray

@@ -1,6 +1,6 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
-import com.github.hashicorp.packer.engine.types.InterpolableEnum
+import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
 import groovy.transform.InheritConstructors
 
 interface InterpolableVolumeType extends InterpolableEnum<VolumeType, InterpolableVolumeType> {

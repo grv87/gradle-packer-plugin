@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.types
+package com.github.hashicorp.packer.engine.types.base
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.template.Context
@@ -28,7 +28,7 @@ interface InterpolableEnum<
       super(raw)
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     ImmutableRaw(String raw) {
       super(tryCastStringToEnum((Class<E>)new TypeToken<E>(this.class) { }.rawType, raw))
     }
@@ -69,7 +69,7 @@ interface InterpolableEnum<
       super(raw)
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     Raw(String raw) {
       super(tryCastStringToEnum((Class<E>)new TypeToken<E>(this.class) { }.rawType, raw))
     }

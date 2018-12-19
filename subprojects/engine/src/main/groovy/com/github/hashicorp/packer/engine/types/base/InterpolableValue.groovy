@@ -1,6 +1,7 @@
-package com.github.hashicorp.packer.engine.types
+package com.github.hashicorp.packer.engine.types.base
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
@@ -9,7 +10,6 @@ import com.github.hashicorp.packer.engine.exceptions.RecursiveInterpolationExcep
 import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
 import com.github.hashicorp.packer.engine.ModuleProvider
 import com.github.hashicorp.packer.engine.Mutability
-import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
@@ -66,7 +66,7 @@ interface InterpolableValue<
     Target extends Serializable,
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
   > implements InterpolableValue<Source, Target, ThisInterface> {
-    // TODO: With final error: You are not allowed to override the final method interpolate(com.github.hashicorp.packer.template.Context -> com.github.hashicorp.packer.template.Context) from class 'com.github.hashicorp.packer.engine.types.InterpolableValue$Abstract'.
+    // TODO: With final error: You are not allowed to override the final method interpolate(com.github.hashicorp.packer.template.Context -> com.github.hashicorp.packer.template.Context) from class 'com.github.hashicorp.packer.engine.types.base.InterpolableValue$Abstract'.
     @Override
     /*final*/ ThisInterface interpolate(Context context) {
       throw CommonExceptions.interpolateWithDefault()
@@ -110,10 +110,6 @@ interface InterpolableValue<
     final ThisInterface interpolateValue(Map<String, ?> args) {
       interpolateValue(args, null)
     }
-
-    static void register(Engine engine) { // TODO
-      engine.registerCustomModuleProvider(new SerializerModuleProvider())
-    }
   }
 
   private abstract static class AbstractRaw<
@@ -124,7 +120,7 @@ interface InterpolableValue<
     AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
   > extends Abstract<Source, Target, ThisInterface> implements Cloneable {
     @SuppressWarnings('UnstableApiUsage')
-    private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Closure, Closure)
+    private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType)./*getDeclaredConstructor TODO */getConstructor(AbstractRaw, Context, Object, Closure, Closure)
 
     @Override
     final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
@@ -169,13 +165,13 @@ interface InterpolableValue<
   > extends AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> {
     private final Source raw
 
-    // This constructor is required for initWithDefault
+    // This constructor is required for AbstractTypeMappingRegistry.newInstance1
     ImmutableRaw() {
       this.@raw = null
     }
 
     // This is public so that it can be simply inherited by implementors // TOTHINK
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     ImmutableRaw(Source raw) {
       this.@raw = raw
     }
@@ -211,7 +207,7 @@ interface InterpolableValue<
     }
 
     // This is public so that it can be simply inherited by implementors // TOTHINK
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     Raw(Source raw) {
       this.@raw = raw
     }
@@ -299,7 +295,7 @@ interface InterpolableValue<
 
     private final Closure<Target> postProcess
 
-    protected Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
       this.@raw = raw.clone()
       this.@context = context
       this.@defaultValue = defaultValue
@@ -373,12 +369,7 @@ interface InterpolableValue<
     // CAVEAT: target should be immutable!
     private Target interpolated
 
-    // This constructor is required for Serializable
-    private AlreadyInterpolated(/*RawValueClass*/ ImmutableRaw interpolable, Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
-      this.interpolated = null
-    }
-
-    private AlreadyInterpolated(Target interpolated) {
+    AlreadyInterpolated(Target interpolated) {
       this.@interpolated = interpolated
     }
 
@@ -411,7 +402,7 @@ interface InterpolableValue<
   }
 
   static final class Serializer extends JsonSerializer<InterpolableValue> {
-    private static final Serializer SERIALIZER = new Serializer()
+    protected static final Serializer SERIALIZER = new Serializer()
 
     private Serializer() {}
 
@@ -422,14 +413,16 @@ interface InterpolableValue<
         jsonGenerator.writeObject(raw)
       }
     }
-  }
 
-  private static final class SerializerModuleProvider implements ModuleProvider {
-    @Override
-    Module getModule(Mutability mutability) {
-      SimpleModule serializerModule = new SimpleModule()
-      serializerModule.addSerializer(InterpolableValue, Serializer.SERIALIZER)
-      serializerModule
+    static final ModuleProvider MODULE_PROVIDER = new SerializerModuleProvider()
+
+    private static final class SerializerModuleProvider implements ModuleProvider {
+      @Override
+      Module getModule(Mutability mutability) {
+        SimpleModule serializerModule = new SimpleModule()
+        serializerModule.addSerializer(InterpolableValue, SERIALIZER)
+        serializerModule
+      }
     }
   }
 }

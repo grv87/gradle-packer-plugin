@@ -11,7 +11,8 @@ interface ModuleProvider {
    * this method should return the same instance as the last call.
    *
    * If module's configuration is independent from mutability settings
-   * then it is also recommended to return the same instance for any value of {@code mutability} argument.
+   * then it is also recommended to return the same instance
+   * for any value of {@code mutability} argument.
    */
   Module getModule(Mutability mutability)
 }

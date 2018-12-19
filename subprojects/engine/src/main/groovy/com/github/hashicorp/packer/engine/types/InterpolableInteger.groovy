@@ -1,6 +1,8 @@
 package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
@@ -12,14 +14,20 @@ interface InterpolableInteger extends InterpolableValue<Object, Integer, Interpo
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     ImmutableRaw(Integer raw) {
       super(raw)
     }
 
-    @JsonCreator
-    ImmutableRaw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    ImmutableRaw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final Integer doInterpolatePrimitive(Context context, Integer raw) {
@@ -36,14 +44,20 @@ interface InterpolableInteger extends InterpolableValue<Object, Integer, Interpo
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     Raw(Integer raw) {
       super(raw)
     }
 
-    @JsonCreator
-    Raw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    Raw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final Integer doInterpolatePrimitive(Context context, Integer raw) {

@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.engine.testfixtures
 
+import org.codehaus.groovy.macro.matcher.ASTMatcher
+
 import static com.google.common.base.Charsets.UTF_8
 import static org.codehaus.groovy.ast.builder.AstAssert.assertSyntaxTree
 import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
@@ -35,7 +37,15 @@ class AstTransformationAssert {
       }
     }.sort(CLASS_SORTER)
 
+    /*
+     * CAVEAT:
+     * We don't use ASTMatcher since it doesn't give detailed message what exactly is different between two ASTs
+     */
     assertSyntaxTree expected, actual
+    // TODO:  Rewrite imports & try again
+    /*expected.eachWithIndex { ClassNode expectedItem, Integer index ->
+      assert ASTMatcher.matches(expectedItem, actual[index])
+    }*/
   }
 
   // Suppress default constructor for noninstantiability

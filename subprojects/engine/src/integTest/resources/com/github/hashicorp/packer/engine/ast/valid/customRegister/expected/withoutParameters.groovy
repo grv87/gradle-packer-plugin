@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
 import com.github.hashicorp.packer.engine.types.base.InterpolableObject
@@ -10,7 +11,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 
 @CompileStatic
-abstract class MinimalTest implements InterpolableObject<MinimalTest> {
+abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTest> {
   private final InterpolableLong singleField
 
   @Input
@@ -18,13 +19,13 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     this.@singleField
   }
 
-  protected MinimalTest(
+  protected CustomRegisterTest(
     InterpolableLong singleField
   ) {
     this.@singleField = singleField
   }
 
-  static final class Impl extends MinimalTest {
+  static final class Impl extends CustomRegisterTest {
     Impl(Engine engine) {
       this(
         engine,
@@ -36,6 +37,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     Impl(
       @JacksonInject(useInput = OptBoolean.FALSE)
       Engine engine,
+      @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
       super(
@@ -44,7 +46,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
-  static final class ImmutableImpl extends MinimalTest {
+  static final class ImmutableImpl extends CustomRegisterTest {
     ImmutableImpl(Engine engine) {
       this(
         engine,
@@ -56,6 +58,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     ImmutableImpl(
       @JacksonInject(useInput = OptBoolean.FALSE)
       Engine engine,
+      @JsonProperty('single_field')
       InterpolableLong singleField
     ) {
       super(
@@ -64,20 +67,22 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
-  static final class Interpolated extends MinimalTest {
-    protected Interpolated(Context context, MinimalTest from) {
+  static final class Interpolated extends CustomRegisterTest {
+    protected Interpolated(Context context, CustomRegisterTest from) {
       super(
         from.@singleField.interpolateValue(context, 1L),
       )
     }
   }
 
-  @Override
-  final MinimalTest interpolate(Context context) {
-    return new Interpolated(context, this)
+  static final void register(Engine engine) {
+    // do some stuff
+    new Random().nextInt()
+    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping CustomRegisterTest, Impl, ImmutableImpl
   }
 
-  static final void register(Engine engine) {
-    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
+  @Override
+  final CustomRegisterTest interpolate(Context context) {
+    return new Interpolated(context, this)
   }
 }

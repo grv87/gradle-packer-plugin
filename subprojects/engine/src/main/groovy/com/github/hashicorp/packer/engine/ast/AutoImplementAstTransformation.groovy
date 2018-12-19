@@ -59,8 +59,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.IgnoreIf
 import com.github.hashicorp.packer.engine.annotations.PostProcess
-import com.github.hashicorp.packer.engine.types.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableValue
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode
@@ -138,7 +138,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
   private static final ClassNode MUTABILITY_CLASS = makeCached(Mutability)
   private static final ClassExpression MUTABILITY_CLASS_X = classX(MUTABILITY_CLASS)
   private static final String DYNAMIC = 'dynamic'
-  private static final String NEW_INSTANCE = 'newInstance'
+  private static final String NEW_INSTANCE = 'newInstance1'
   private static final String TARGET = 'Target'
   private static final int PUBLIC_FINAL = ACC_PUBLIC | ACC_FINAL
   private static final int PRIVATE_FINAL = ACC_PRIVATE | ACC_FINAL
@@ -200,21 +200,21 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     String abstractClassFullName = abstractClass.name
     ClassNode abstractClassRef = newClass(abstractClass)
 
-    Map<Mutability, String> implClassFullNames = (Map<Mutability, String>)IMPL.collectEntries { Map.Entry<Mutability, String> entry ->
-      [(entry.key): "$abstractClassFullName$DOLLAR$entry.value"]
+    Map<Mutability, String> implClassFullNames = (Map<Mutability, String>)IMPL.collectEntries { Mutability key, String value ->
+      [(key): "$abstractClassFullName$DOLLAR$value"]
     }
-    Map<Mutability, ClassNode> implClasses = (Map<Mutability, ClassNode>)implClassFullNames.collectEntries { Map.Entry<Mutability, String> entry ->
-      [(entry.key), new InnerClassNode(
+    Map<Mutability, ClassNode> implClasses = (Map<Mutability, ClassNode>)implClassFullNames.collectEntries { Mutability key, String value ->
+      [(key), new InnerClassNode(
         abstractClassRef,
-        entry.value,
+        value,
         PUBLIC_STATIC_FINAL,
         abstractClassRef,
         EMPTY_CLASS_NODE_ARRAY,
         [] as MixinNode[]
       )]
     }
-    Map<Mutability, ClassNode> implClassRefs = (Map<Mutability, ClassNode>)implClasses.collectEntries { Map.Entry<Mutability, ClassNode> entry ->
-      [(entry.key), newClass(entry.value)]
+    Map<Mutability, ClassNode> implClassRefs = (Map<Mutability, ClassNode>)implClasses.collectEntries { Mutability key, ClassNode value ->
+      [(key), newClass(value)]
     }
 
     ClassNode interpolatedClass = new InnerClassNode(
@@ -230,7 +230,6 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     List<Parameter> abstractClassCtorParams = []
     List<Statement> abstractClassCtorStmts = []
     List<Expression> implClassDefaultCtorArgs = [(Expression)ENGINE_VAR_X]
-    Parameter engineParam = cloneParams(ENGINE_PARAM)[0]
     List<Parameter> implClassCtorParams = [ENGINE_PARAM_WITH_ANNOTATION]
     Map<Mutability, List<Expression>> implClassCtorArgs = Mutability.values().collectEntries { Mutability mutability ->
       [(mutability): []]
@@ -238,6 +237,22 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     List<Expression> interpolatedClassCtorArgs = []
 
     boolean methodsFound = false
+
+    Closure<Statement> registerStmt = { Parameter engineParam ->
+      stmt(callX(
+        propX(
+          varX(engineParam),
+          ABSTRACT_TYPE_MAPPING_REGISTRY
+        ),
+        REGISTER_ABSTRACT_TYPE_MAPPING,
+        args(
+          classX(abstractClassRef),
+          classX(implClassRefs[Mutability.MUTABLE]),
+          classX(implClassRefs[Mutability.IMMUTABLE])
+        )
+      ))
+    }
+    boolean registerMethodFound = false
 
     abstractClass.methods.each { MethodNode method ->
       Matcher m = GETTER_PATTERN.matcher(method.name)
@@ -327,8 +342,8 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
         implClassCtorParams.add implClassCtorParam
 
         // TODO: + list
-        implClassCtorArgs.each { Map.Entry<Mutability, List<Expression>> entry ->
-          entry.value.add new ElvisOperatorExpression(
+        implClassCtorArgs.each { Mutability key, List<Expression> value ->
+          value.add new ElvisOperatorExpression(
             fieldVarX,
             callX(
               ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
@@ -337,7 +352,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
                 classX(typ),
                 propX(
                   MUTABILITY_CLASS_X,
-                  entry.key.name()
+                  key.name()
                 )
               )
             )
@@ -438,6 +453,14 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
             )
           )
         }
+      } else if (
+        method.name == REGISTER
+        && method.modifiers & ACC_STATIC
+        && method.parameters.length == 1
+        && method.parameters[0].type == ENGINE_CLASS
+      ) {
+        ((BlockStatement)method.code).statements.add registerStmt(method.parameters[0])
+        registerMethodFound = true
       }
     }
 
@@ -447,7 +470,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     }
 
     abstractClass.addConstructor(
-      ACC_PRIVATE,
+      ACC_PROTECTED,
       abstractClassCtorParams.toArray(new Parameter[0]),
       EMPTY_CLASS_NODE_ARRAY,
       block(
@@ -477,8 +500,8 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
       )
     ).addAnnotation(OVERRIDE_ANNOTATION)
 
-    implClasses.each { Map.Entry<Mutability, ClassNode> entry ->
-      entry.value.addConstructor(
+    implClasses.each { Mutability key, ClassNode value ->
+      value.addConstructor(
         ACC_PUBLIC,
         params(ENGINE_PARAM),
         EMPTY_CLASS_NODE_ARRAY,
@@ -488,17 +511,17 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
         )
       )
 
-      entry.value.addConstructor(
+      value.addConstructor(
         ACC_PUBLIC,
         implClassCtorParams.toArray(new Parameter[0]),
         EMPTY_CLASS_NODE_ARRAY,
         block(
           null,
-          ctorSuperS(args(implClassCtorArgs[entry.key]))
+          ctorSuperS(args(implClassCtorArgs[key]))
         )
       ).addAnnotation(new AnnotationNode(JSON_CREATOR_CLASS))
 
-      addClass source, abstractClass.module, entry.value
+      addClass source, abstractClass.module, value
     }
 
     interpolatedClass.addConstructor(
@@ -521,24 +544,18 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
 
     addClass source, abstractClass.module, interpolatedClass
 
-    abstractClass.addMethod(
-      REGISTER,
-      PUBLIC_STATIC_FINAL,
-      VOID_TYPE,
-      params(ENGINE_PARAM),
-      EMPTY_CLASS_NODE_ARRAY,
-      block(
-        stmt(callX(
-          ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-          REGISTER_ABSTRACT_TYPE_MAPPING,
-          args(
-            classX(abstractClassRef),
-            classX(implClassRefs[Mutability.MUTABLE]),
-            classX(implClassRefs[Mutability.IMMUTABLE])
-          )
-        ))
+    if (!registerMethodFound) {
+      abstractClass.addMethod(
+        REGISTER,
+        PUBLIC_STATIC_FINAL,
+        VOID_TYPE,
+        params(ENGINE_PARAM),
+        EMPTY_CLASS_NODE_ARRAY,
+        block(
+          registerStmt(ENGINE_PARAM)
+        )
       )
-    )
+    }
   }
 
   private void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {

@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
@@ -13,14 +15,20 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     ImmutableRaw(ImmutableList<String> raw) {
       super(ImmutableList.copyOf(raw))
     }
 
-    @JsonCreator
-    ImmutableRaw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    ImmutableRaw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final ImmutableList<String> doInterpolatePrimitive(Context context, ImmutableList<SimpleInterpolableString> raw) {
@@ -39,14 +47,20 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     Raw(List<String> raw) {
       super(new ArrayList(raw))
     }
 
-    @JsonCreator
-    Raw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    Raw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final ImmutableList<String> doInterpolatePrimitive(Context context, List<SimpleInterpolableString> raw) {

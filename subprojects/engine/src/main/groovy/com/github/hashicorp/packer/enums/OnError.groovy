@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.enums
+package com.github.hashicorp.packer.enums
 
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic

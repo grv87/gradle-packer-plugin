@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input

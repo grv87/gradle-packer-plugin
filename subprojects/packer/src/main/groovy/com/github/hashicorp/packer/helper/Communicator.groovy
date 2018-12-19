@@ -2,7 +2,7 @@ package com.github.hashicorp.packer.helper
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Internal
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableInteger

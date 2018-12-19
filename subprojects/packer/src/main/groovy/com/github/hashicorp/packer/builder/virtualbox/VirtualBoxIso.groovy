@@ -38,7 +38,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
-import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
+import com.github.hashicorp.packer.engine.enums.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.gradle.api.tasks.Input

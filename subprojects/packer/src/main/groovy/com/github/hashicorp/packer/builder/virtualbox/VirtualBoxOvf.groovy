@@ -34,10 +34,10 @@ import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.enums.VBoxGuestAdditionsMode
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
+import com.github.hashicorp.packer.engine.enums.InterpolableChecksumType
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
-import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
+import com.github.hashicorp.packer.engine.enums.InterpolableVBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.gradle.api.tasks.Input

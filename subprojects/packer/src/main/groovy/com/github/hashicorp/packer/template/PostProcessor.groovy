@@ -32,7 +32,7 @@ import com.github.hashicorp.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -102,7 +102,7 @@ abstract class PostProcessor extends InterpolableObject {
   protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
 
   static void register(Engine engine) {
-    SUBTYPE_REGISTRY.registerRegistry engine
+    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
   }
 
   static final class PostProcessorArrayDefinition extends InterpolableObject {
@@ -116,12 +116,12 @@ abstract class PostProcessor extends InterpolableObject {
     private PostProcessorArrayDefinition() {
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     PostProcessorArrayDefinition(ArrayClass rawValue) {
       this.rawValue = rawValue
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     PostProcessorArrayDefinition(PostProcessorDefinition rawValue) {
       this.rawValue = rawValue
     }
@@ -258,12 +258,12 @@ abstract class PostProcessor extends InterpolableObject {
     private PostProcessorDefinition() {
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     PostProcessorDefinition(String rawValue) {
       this.rawValue = rawValue
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     PostProcessorDefinition(PostProcessor rawValue) {
       this.rawValue = rawValue
     }
@@ -316,7 +316,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
+      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance1(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {

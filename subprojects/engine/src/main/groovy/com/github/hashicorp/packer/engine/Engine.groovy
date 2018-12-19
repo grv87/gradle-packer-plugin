@@ -1,9 +1,30 @@
 package com.github.hashicorp.packer.engine
 
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ImmutableBase
+import groovy.transform.KnownImmutable
+import groovy.transform.ToString
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase
 import static com.fasterxml.jackson.databind.InjectableValues.Std as InjectableValuesStd
+import com.github.hashicorp.packer.engine.types.InterpolableDuration
+import com.github.hashicorp.packer.engine.types.InterpolableFile
+import com.github.hashicorp.packer.engine.types.InterpolableInputDirectory
+import com.github.hashicorp.packer.engine.types.InterpolableInputURI
+import com.github.hashicorp.packer.engine.types.InterpolableInteger
+import com.github.hashicorp.packer.engine.types.InterpolableLong
+import com.github.hashicorp.packer.engine.types.InterpolableString
+import com.github.hashicorp.packer.engine.types.InterpolableStringArray
+import com.github.hashicorp.packer.engine.types.InterpolableURI
+import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import java.lang.reflect.Constructor
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import groovy.transform.Immutable
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
+import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonEncoding
@@ -24,6 +45,7 @@ import groovy.transform.Synchronized
 @CompileStatic
 final class Engine {
   public static final PropertyNamingStrategyBase PROPERTY_NAMING_STRATEGY = (PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE
+
   private final Set<ModuleProvider> customModuleProviderRegistry = new HashSet()
   private Map<Mutability, ObjectMapperFacade> facades = new HashMap<>(2)
 
@@ -33,10 +55,9 @@ final class Engine {
     this.@abstractTypeMappingRegistry
   }
 
-  private final Map<Class<? extends InterpolableObject>, SubtypeRegistry<? extends InterpolableObject>> subtypeRegistries = [:]
-
   Engine() {
     registerCustomModuleProvider abstractTypeMappingRegistry
+    registerCustomModuleProvider InterpolableValue.Serializer.MODULE_PROVIDER
   }
 
   @Synchronized
@@ -44,6 +65,118 @@ final class Engine {
     facades.clear()
     customModuleProviderRegistry.add moduleProvider
   }
+
+  // @KnownImmutable
+  final static class AbstractTypeMapping {
+    final boolean noArgConstructor
+    final Map<Mutability, Class<? extends InterpolableObject>> implementations
+    /*@Lazy
+    Map<Mutability, Constructor<? extends InterpolableObject>> constructors = {
+      ImmutableMap.copyOf(implementations.collectEntries { Mutability key, Class<? extends InterpolableObject> implementation ->
+        // CAVEAT: Using public constructors only
+        [(key): noArgConstructor ? implementation.getConstructor() : implementation.getConstructor(Engine)]
+      })
+    }()*/
+    AbstractTypeMapping(boolean noArgConstructor, Map<Mutability, Class<? extends InterpolableObject>> implementations) {
+      this.@noArgConstructor = noArgConstructor
+      this.@implementations = ImmutableMap.copyOf(implementations)
+    }
+  }
+
+  final class AbstractTypeMappingRegistry implements ModuleProvider {
+    private final Map<Class<? extends InterpolableObject>, AbstractTypeMapping> registry = [:]
+    private final Map<Mutability, SimpleModule> modules = [:]
+
+    AbstractTypeMappingRegistry() {
+      // InterpolableValue descendants don't have built-in register methods
+
+      // Strings
+      registerAbstractTypeMapping InterpolableString, true, InterpolableString.Raw, InterpolableString.ImmutableRaw
+      registerAbstractTypeMapping InterpolableStringArray, true, InterpolableStringArray.Raw, InterpolableStringArray.ImmutableRaw
+
+      // Numeric
+      registerAbstractTypeMapping InterpolableInteger, true, InterpolableInteger.Raw, InterpolableInteger.ImmutableRaw
+      registerAbstractTypeMapping InterpolableLong, true, InterpolableLong.Raw, InterpolableLong.ImmutableRaw
+      registerAbstractTypeMapping InterpolableUnsignedInteger, true, InterpolableUnsignedInteger.Raw, InterpolableUnsignedInteger.ImmutableRaw
+
+      // Boolean
+      registerAbstractTypeMapping InterpolableBoolean, true, InterpolableBoolean.Raw, InterpolableBoolean.ImmutableRaw
+
+      // File & URI
+      registerAbstractTypeMapping InterpolableFile, true, InterpolableFile.Raw, InterpolableFile.ImmutableRaw
+      registerAbstractTypeMapping InterpolableInputDirectory, true, InterpolableInputDirectory.Raw, InterpolableInputDirectory.ImmutableRaw
+      registerAbstractTypeMapping InterpolableURI, true, InterpolableURI.Raw, InterpolableURI.ImmutableRaw
+      registerAbstractTypeMapping InterpolableInputURI, true, InterpolableInputURI.Raw, InterpolableInputURI.ImmutableRaw
+
+      // Miscellaneous
+      registerAbstractTypeMapping InterpolableDuration, true, InterpolableDuration.Raw, InterpolableDuration.ImmutableRaw
+    }
+
+    @Synchronized
+    <T extends InterpolableObject<T>> void registerAbstractTypeMapping(Class<? extends T> abstractClass, boolean noArgConstructor = false, Class<? extends T> mutableClass, Class<? extends T> immutableClass) {
+      if (registry.containsKey(abstractClass)) {
+        throw new IllegalArgumentException(sprintf('Abstract type mapping for type %s is already registered', [abstractClass.canonicalName]))
+      }
+      modules.clear()
+      abstractClass.
+      this.class.classLoader.getClass()
+      registry[abstractClass] = new AbstractTypeMapping(noArgConstructor, [
+        (Mutability.MUTABLE): mutableClass,
+        (Mutability.IMMUTABLE): immutableClass
+      ])
+    }
+
+    @Override
+    @Synchronized
+    Module getModule(Mutability mutability) {
+      SimpleModule module = modules[mutability]
+      if (module == null) {
+        module = new SimpleModule()
+        registry.each { Class<? extends InterpolableObject> key, AbstractTypeMapping abstractTypeMapping ->
+          module.addAbstractTypeMapping key, abstractTypeMapping.implementations[mutability]
+        }
+        modules[mutability] = module
+      }
+      module
+    }
+
+    @Synchronized
+    <T extends InterpolableObject<T>> T newInstance1(Class<T> abstractClass, Mutability mutability) {
+      /*AbstractTypeMapping abstractTypeMapping = registry[abstractClass]
+      if (abstractTypeMapping.noArgConstructor) {
+        (T)abstractTypeMapping.constructors[mutability].newInstance()
+      } else {
+        (T)abstractTypeMapping.constructors[mutability].newInstance(Engine.this)
+      }*/
+      null
+    }
+  }
+
+  /*
+   * CAVEAT:
+   * We assume here and in ModuleProvider that nobody
+   * changes configuration of ObjectMapper's modules etc.
+   * We hide ObjectMapper behind Facade, but it is still possible
+   * to do something hazardous in custom deserializers etc.
+   * It's up to plugin authors to meet these expectations
+   */
+  private static final List<Module> DEFAULT_MODULES = ImmutableList.of(
+    (Module)new ParameterNamesModule(JsonCreator.Mode.PROPERTIES),
+    (Module)new GuavaModule(),
+    (Module)new AfterburnerModule(),
+  )
+
+  /*
+   * CAVEAT:
+   * Lazy initialization to avoid
+   * escaping `this` from constructor
+   */
+  @Lazy
+  private InjectableValuesStd injectableValues = {
+    InjectableValuesStd injectableValues = new InjectableValuesStd()
+    injectableValues.addValue Engine, this
+    injectableValues
+  }()
 
   @Synchronized
   final ObjectMapperFacade getObjectMapperFacade(Mutability mutability) {
@@ -55,12 +188,7 @@ final class Engine {
     ObjectMapper objectMapper = new ObjectMapper()
     objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
     objectMapper.propertyNamingStrategy = PROPERTY_NAMING_STRATEGY
-    objectMapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
-    objectMapper.registerModule(new GuavaModule())
-    objectMapper.registerModule(new AfterburnerModule())
-
-    InjectableValuesStd injectableValues = new InjectableValuesStd()
-    injectableValues.addValue Engine, this
+    objectMapper.registerModules DEFAULT_MODULES
     objectMapper.injectableValues = injectableValues
 
     facade = new ObjectMapperFacade(objectMapper, customModules)
@@ -75,9 +203,7 @@ final class Engine {
     private ObjectMapperFacade(ObjectMapper objectMapper, Set<Module> customModules) {
       this.@objectMapper = objectMapper
       this.@customModules = customModules
-      customModules.each { Module customModule ->
-        objectMapper.registerModule customModule
-      }
+      objectMapper.registerModules customModules
     }
 
     /**

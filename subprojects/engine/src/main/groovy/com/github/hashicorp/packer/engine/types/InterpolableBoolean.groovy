@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.engine.types
 
+import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -12,14 +14,20 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     ImmutableRaw(Boolean raw) {
       super(raw)
     }
 
-    @JsonCreator
-    ImmutableRaw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    ImmutableRaw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final Boolean doInterpolatePrimitive(Context context, Boolean raw) {
@@ -36,14 +44,20 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
       super()
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     Raw(Boolean raw) {
       super(raw)
     }
 
-    @JsonCreator
-    Raw(SimpleInterpolableString raw) {
-      super(raw)
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    /*
+     * WORKAROUND:
+     * Can't use argument of type SimpleInterpolableString
+     * since Jackson doesn't work correctly with nested value classes
+     * <grv87 2018-12-20>
+     */
+    Raw(String raw) {
+      super(new SimpleInterpolableString(raw))
     }
 
     protected static final Boolean doInterpolatePrimitive(Context context, Boolean raw) {

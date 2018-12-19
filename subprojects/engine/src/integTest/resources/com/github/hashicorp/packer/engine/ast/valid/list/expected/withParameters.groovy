@@ -2,7 +2,7 @@ import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
@@ -18,7 +18,7 @@ abstract class ListTest implements InterpolableObject<ListTest> {
     this.@singleList
   }
 
-  private ListTest(
+  protected ListTest(
     List<InterpolableInteger> singleList
   ) {
     this.@singleList = singleList

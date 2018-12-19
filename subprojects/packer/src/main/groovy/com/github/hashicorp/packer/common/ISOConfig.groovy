@@ -1,10 +1,10 @@
 package com.github.hashicorp.packer.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
+import com.github.hashicorp.packer.engine.enums.InterpolableChecksumType
 import com.github.hashicorp.packer.engine.types.InterpolableInputURI
 import com.github.hashicorp.packer.engine.types.InterpolableFile
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Internal

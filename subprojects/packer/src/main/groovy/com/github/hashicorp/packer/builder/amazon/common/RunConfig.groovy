@@ -5,7 +5,7 @@ import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
 import com.github.hashicorp.packer.engine.types.InterpolableLong
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import com.github.hashicorp.packer.helper.Communicator

@@ -1,4 +1,4 @@
-package com.github.hashicorp.packer.engine.types
+package com.github.hashicorp.packer.engine.types.base
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Context

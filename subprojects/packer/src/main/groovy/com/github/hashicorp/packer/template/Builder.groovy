@@ -28,7 +28,7 @@ import com.github.hashicorp.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -76,6 +76,6 @@ abstract class Builder implements InterpolableObject<Builder> {
   protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
 
   static void register(Engine engine) {
-    SUBTYPE_REGISTRY.registerRegistry engine
+    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
   }
 }

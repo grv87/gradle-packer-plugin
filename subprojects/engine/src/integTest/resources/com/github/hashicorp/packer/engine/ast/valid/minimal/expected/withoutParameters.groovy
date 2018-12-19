@@ -3,7 +3,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableLong
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.Mutability
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
@@ -19,7 +19,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     this.@singleField
   }
 
-  private MinimalTest(
+  protected MinimalTest(
     InterpolableLong singleField
   ) {
     this.@singleField = singleField
@@ -41,7 +41,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.newInstance(InterpolableLong, Mutability.MUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.newInstance1(InterpolableLong, Mutability.MUTABLE),
       )
     }
   }
@@ -62,7 +62,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.newInstance(InterpolableLong, Mutability.IMMUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.newInstance1(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }

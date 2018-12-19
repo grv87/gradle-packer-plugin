@@ -27,7 +27,7 @@ import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedFo
 import com.github.hashicorp.packer.engine.SubtypeRegistry
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.InterpolableObject
+import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -115,6 +115,6 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
   protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new SubtypeRegistry<Provisioner>()
 
   static void register(Engine engine) {
-    SUBTYPE_REGISTRY.registerRegistry engine
+    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
   }
 }
