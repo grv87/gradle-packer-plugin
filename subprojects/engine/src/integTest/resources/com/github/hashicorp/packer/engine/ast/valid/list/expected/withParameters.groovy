@@ -7,6 +7,7 @@ import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
+import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
 
 @CompileStatic
@@ -22,6 +23,27 @@ abstract class ListTest implements InterpolableObject<ListTest> {
     List<InterpolableInteger> singleList
   ) {
     this.@singleList = singleList
+  }
+
+  @KnownImmutable
+  static final class ImmutableImpl extends ListTest {
+    ImmutableImpl(Engine engine) {
+      this(
+        engine,
+        (List<InterpolableInteger>)null,
+      )
+    }
+
+    @JsonCreator
+    ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+        Engine engine,
+      List<InterpolableInteger> singleList
+    ) {
+      super(
+        singleList != null ? ImmutableList.copyOf(singleList) : ImmutableList.<InterpolableInteger>of(),
+      )
+    }
   }
 
   static final class Impl extends ListTest {
@@ -40,26 +62,6 @@ abstract class ListTest implements InterpolableObject<ListTest> {
     ) {
       super(
         singleList != null ? new ArrayList(singleList) : new ArrayList<InterpolableInteger>(),
-      )
-    }
-  }
-
-  static final class ImmutableImpl extends ListTest {
-    ImmutableImpl(Engine engine) {
-      this(
-        engine,
-        (List<InterpolableInteger>)null,
-      )
-    }
-
-    @JsonCreator
-    ImmutableImpl(
-      @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
-      List<InterpolableInteger> singleList
-    ) {
-      super(
-        singleList != null ? ImmutableList.copyOf(singleList) : ImmutableList.<InterpolableInteger>of(),
       )
     }
   }

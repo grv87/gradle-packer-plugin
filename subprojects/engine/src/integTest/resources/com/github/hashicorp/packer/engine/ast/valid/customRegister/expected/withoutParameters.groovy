@@ -8,6 +8,7 @@ import com.github.hashicorp.packer.engine.Mutability
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
+import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
 
 @CompileStatic
@@ -23,6 +24,28 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
     InterpolableLong singleField
   ) {
     this.@singleField = singleField
+  }
+
+  @KnownImmutable
+  static final class ImmutableImpl extends CustomRegisterTest {
+    ImmutableImpl(Engine engine) {
+      this(
+        engine,
+        (InterpolableLong)null,
+      )
+    }
+
+    @JsonCreator
+    ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+        Engine engine,
+      @JsonProperty('single_field')
+        InterpolableLong singleField
+    ) {
+      super(
+        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+      )
+    }
   }
 
   static final class Impl extends CustomRegisterTest {
@@ -42,27 +65,6 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
     ) {
       super(
         singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
-      )
-    }
-  }
-
-  static final class ImmutableImpl extends CustomRegisterTest {
-    ImmutableImpl(Engine engine) {
-      this(
-        engine,
-        (InterpolableLong)null,
-      )
-    }
-
-    @JsonCreator
-    ImmutableImpl(
-      @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
-      @JsonProperty('single_field')
-      InterpolableLong singleField
-    ) {
-      super(
-        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }

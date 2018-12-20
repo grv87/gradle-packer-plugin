@@ -15,14 +15,19 @@ import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
+import groovy.transform.KnownImmutable
+
 // import groovy.transform.EqualsAndHashCode
 import groovy.transform.Synchronized
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FromString
 import org.apache.commons.lang3.BooleanUtils
 
 import java.lang.reflect.Constructor
+import java.util.concurrent.Callable
 import java.util.concurrent.Semaphore
 
 // @AutoExternalize(excludes = ['raw']) // TODO: Groovy 2.5.0
@@ -42,13 +47,13 @@ interface InterpolableValue<
    */
   void setRaw(Source raw)
 
-  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
+  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess)
 
-  ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess)
+  ThisInterface interpolateValue(Context context, Target defaultValue, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess)
 
-  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf)
+  ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf)
 
-  ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf)
+  ThisInterface interpolateValue(Context context, Target defaultValue, Callable<Boolean> ignoreIf)
 
   ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier)
 
@@ -57,7 +62,7 @@ interface InterpolableValue<
   ThisInterface interpolateValue(Context context)
 
   // Note: Map variants are provided but not used, since it is unnecessary map creation and dissection
-  ThisInterface interpolateValue(Map<String, ?> args, Closure<Target> postProcess)
+  ThisInterface interpolateValue(Map<String, ?> args, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess)
 
   ThisInterface interpolateValue(Map<String, ?> args)
 
@@ -75,12 +80,12 @@ interface InterpolableValue<
     }
 
     @Override
-    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf) {
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf) {
       interpolateValue(context, defaultValueSupplier, ignoreIf, null)
     }
 
     @Override
-    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf) {
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Callable<Boolean> ignoreIf) {
       interpolateValue(context, defaultValue, ignoreIf, null)
     }
 
@@ -100,11 +105,11 @@ interface InterpolableValue<
     }
 
     @Override
-    final ThisInterface interpolateValue(Map<String, ?> args, Closure<Target> postProcess) {
+    final ThisInterface interpolateValue(Map<String, ?> args, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       if (args.containsKey('defaultValueSupplier')) {
-        interpolateValue((Context)args['context'], (Supplier<Target>)args.get('defaultValueSupplier', null), (Closure<Boolean>)args.get('ignoreIf', null), postProcess)
+        interpolateValue((Context)args['context'], (Supplier<Target>)args.get('defaultValueSupplier', null), (Callable<Boolean>)args.get('ignoreIf', null), postProcess)
       } else {
-        interpolateValue((Context)args['context'], (Target)args.get('defaultValue', null), (Closure<Boolean>)args.get('ignoreIf', null), postProcess)
+        interpolateValue((Context)args['context'], (Target)args.get('defaultValue', null), (Callable<Boolean>)args.get('ignoreIf', null), postProcess)
       }
     }
 
@@ -125,12 +130,12 @@ interface InterpolableValue<
     private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType)./*getDeclaredConstructor TODO */getConstructor(AbstractRaw, Context, Object, Closure, Closure)
 
     @Override
-    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       interpolatedClassConstructor.newInstance(this, context, defaultValueSupplier, ignoreIf, postProcess)
     }
 
     @Override
-    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       interpolatedClassConstructor.newInstance(this, context, defaultValue, ignoreIf, postProcess)
     }
 
@@ -158,6 +163,7 @@ interface InterpolableValue<
     abstract AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> clone()
   }
 
+  @KnownImmutable
   abstract static class ImmutableRaw<
     Source,
     Target extends Serializable,
@@ -243,12 +249,12 @@ interface InterpolableValue<
     ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
   > extends Abstract<Source, Target, ThisInterface> implements Serializable {
     @Override
-    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       throw new UnsupportedOperationException('Object is already interpolated')
     }
 
     @Override
-    final ThisInterface interpolateValue(Context context, Target defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    final ThisInterface interpolateValue(Context context, Target defaultValue, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       throw new UnsupportedOperationException('Object is already interpolated')
     }
 
@@ -293,11 +299,11 @@ interface InterpolableValue<
 
     private final Object defaultValue
 
-    private final Closure<Boolean> ignoreIf
+    private final Callable<Boolean> ignoreIf
 
     private final Closure<Target> postProcess
 
-    Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Closure<Boolean> ignoreIf, Closure<Target> postProcess) {
+    Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       this.@raw = raw.clone()
       this.@context = context
       this.@defaultValue = defaultValue
@@ -363,6 +369,7 @@ interface InterpolableValue<
     }
   }
 
+  @KnownImmutable
   abstract static class AlreadyInterpolated<
     Source,
     Target extends Serializable,

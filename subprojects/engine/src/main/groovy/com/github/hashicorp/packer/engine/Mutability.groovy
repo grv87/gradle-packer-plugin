@@ -4,6 +4,6 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 enum Mutability {
-  MUTABLE,
-  IMMUTABLE
+  IMMUTABLE,
+  MUTABLE
 }

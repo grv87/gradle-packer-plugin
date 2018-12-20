@@ -5,6 +5,8 @@ import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.InheritConstructors
 import groovy.transform.CompileStatic
+import groovy.transform.KnownImmutable
+
 import java.util.concurrent.Callable
 
 // TOTHINK: Maybe we should accept other input types too ?
@@ -13,6 +15,7 @@ import java.util.concurrent.Callable
 // Callable is required for InputFile etc. annotations
 @CompileStatic
 interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>> extends InterpolableValue<Object, File, ThisInterface>, Callable<File> {
+  @KnownImmutable
   @InheritConstructors
   class ImmutableRaw<
     ThisInterface extends InterpolableFile<ThisInterface>,
@@ -45,6 +48,7 @@ interface InterpolableFile<ThisInterface extends InterpolableFile<ThisInterface>
     }
   }
 
+  @KnownImmutable
   @InheritConstructors
   class Interpolated<
     ThisInterface extends InterpolableFile<ThisInterface>,

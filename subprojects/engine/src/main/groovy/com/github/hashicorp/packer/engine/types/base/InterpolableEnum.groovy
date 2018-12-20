@@ -5,12 +5,14 @@ import com.github.hashicorp.packer.template.Context
 import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableEnum<
   E extends Enum,
   ThisInterface extends InterpolableEnum<E, ThisInterface>
 > extends InterpolableValue<Object, E, ThisInterface> {
+  @KnownImmutable
   abstract class ImmutableRaw<
     E extends Enum,
     ThisInterface extends InterpolableEnum<E, ThisInterface>,
@@ -100,6 +102,7 @@ interface InterpolableEnum<
     AlreadyInterpolatedClass extends AlreadyInterpolated<E, ThisInterface> & ThisInterface
   > extends InterpolableValue.Interpolated<Object, E, InterpolableEnum, AlreadyInterpolatedClass> implements InterpolableEnum<E, ThisInterface> { }
 
+  @KnownImmutable
   @InheritConstructors
   abstract class AlreadyInterpolated<
     E extends Enum,

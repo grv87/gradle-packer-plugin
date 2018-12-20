@@ -6,9 +6,11 @@ import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableInteger extends InterpolableValue<Object, Integer, InterpolableInteger> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, Integer, InterpolableInteger, Interpolated, AlreadyInterpolated> implements InterpolableInteger {
     ImmutableRaw() {
       super()
@@ -72,6 +74,7 @@ interface InterpolableInteger extends InterpolableValue<Object, Integer, Interpo
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, Integer, InterpolableInteger, AlreadyInterpolated> implements InterpolableInteger { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Integer, InterpolableInteger> implements InterpolableInteger { }
 }

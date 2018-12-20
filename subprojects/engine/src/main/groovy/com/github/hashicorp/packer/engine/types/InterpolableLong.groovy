@@ -6,9 +6,11 @@ import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableLong> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, Long, InterpolableLong, Interpolated, AlreadyInterpolated> implements InterpolableLong {
     ImmutableRaw() {
       super()
@@ -72,6 +74,7 @@ interface InterpolableLong extends InterpolableValue<Object, Long, InterpolableL
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, Long, InterpolableLong, AlreadyInterpolated> implements InterpolableLong { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Long, InterpolableLong> implements InterpolableLong { }
 }

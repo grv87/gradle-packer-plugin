@@ -1,5 +1,8 @@
 package com.github.hashicorp.packer.engine
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase
 import static com.fasterxml.jackson.databind.InjectableValues.Std as InjectableValuesStd
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
@@ -180,6 +183,8 @@ final class Engine {
       return facade
     }
     ObjectMapper objectMapper = new ObjectMapper()
+    objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
+    objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
     objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
     objectMapper.propertyNamingStrategy = PROPERTY_NAMING_STRATEGY
     objectMapper.registerModules DEFAULT_MODULES

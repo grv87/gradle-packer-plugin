@@ -7,9 +7,11 @@ import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableStringArray extends InterpolableValue<Object, ImmutableList<String>, InterpolableStringArray> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, ImmutableList<String>, InterpolableStringArray, Interpolated, AlreadyInterpolated> implements InterpolableStringArray {
     ImmutableRaw() {
       super()
@@ -75,6 +77,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, ImmutableList<String>, InterpolableStringArray, AlreadyInterpolated> implements InterpolableStringArray { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, ImmutableList<String>, InterpolableStringArray> implements InterpolableStringArray { }
 }

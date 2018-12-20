@@ -7,9 +7,11 @@ import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> extends InterpolableValue<Object, URI, ThisInterface> {
+  @KnownImmutable
   class ImmutableRaw<
     ThisInterface extends InterpolableURI<ThisInterface>,
     InterpolatedClass extends Interpolated<ThisInterface, AlreadyInterpolatedClass>,
@@ -106,6 +108,7 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
     }
   }
 
+  @KnownImmutable
   @InheritConstructors
   class AlreadyInterpolated<
     ThisInterface extends InterpolableURI<ThisInterface>

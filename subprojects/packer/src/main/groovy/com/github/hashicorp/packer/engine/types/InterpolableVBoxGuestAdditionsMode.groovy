@@ -4,9 +4,11 @@ import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableVBoxGuestAdditionsMode extends InterpolableEnum<VBoxGuestAdditionsMode, InterpolableVBoxGuestAdditionsMode> {
+  @KnownImmutable
   @InheritConstructors
   final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<VBoxGuestAdditionsMode, InterpolableVBoxGuestAdditionsMode, Interpolated, AlreadyInterpolated> implements InterpolableVBoxGuestAdditionsMode { }
 
@@ -16,6 +18,7 @@ interface InterpolableVBoxGuestAdditionsMode extends InterpolableEnum<VBoxGuestA
   @InheritConstructors
   final class Interpolated extends InterpolableEnum.Interpolated<VBoxGuestAdditionsMode, InterpolableVBoxGuestAdditionsMode, AlreadyInterpolated> implements InterpolableVBoxGuestAdditionsMode { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<VBoxGuestAdditionsMode, InterpolableVBoxGuestAdditionsMode> implements InterpolableVBoxGuestAdditionsMode { }
 }

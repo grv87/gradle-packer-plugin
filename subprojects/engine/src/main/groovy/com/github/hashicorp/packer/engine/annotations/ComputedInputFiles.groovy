@@ -5,9 +5,7 @@ import groovy.transform.AnnotationCollector
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.InputFiles
 
-@JsonIgnore
-@InputFiles
-@AnnotationCollector
+@AnnotationCollector([JsonIgnore, InputFiles])
 @CompileStatic
 @interface ComputedInputFiles {
 }

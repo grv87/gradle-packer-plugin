@@ -181,7 +181,7 @@ final class Context {
     // TODO project.files paths.collect { String path -> resolvePath(path) }
   }
 
-  Iterator<File> resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) {
+  Iterator<File> resolveFileTree(String path, @DelegatesTo(ConfigurableFileTree) Closure closure) { // TODO: @ClosureParams
 
     // TODO project.fileTree resolvePath(path), closure
   }

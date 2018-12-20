@@ -7,9 +7,11 @@ import com.github.hashicorp.packer.template.Context
 import com.google.common.primitives.UnsignedInteger
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableUnsignedInteger extends InterpolableValue<Object, UnsignedInteger, InterpolableUnsignedInteger> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, UnsignedInteger, InterpolableUnsignedInteger, Interpolated, AlreadyInterpolated> implements InterpolableUnsignedInteger {
     ImmutableRaw() {
       super()
@@ -73,6 +75,7 @@ interface InterpolableUnsignedInteger extends InterpolableValue<Object, Unsigned
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, UnsignedInteger, InterpolableUnsignedInteger, AlreadyInterpolated> implements InterpolableUnsignedInteger { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, UnsignedInteger, InterpolableUnsignedInteger> implements InterpolableUnsignedInteger { }
 }

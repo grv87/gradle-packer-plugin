@@ -19,15 +19,13 @@ contacts {
   }
 }
 
-ext.rootDir = rootProject.projectDir
-
-apply from: new File(ext.rootDir, 'subprojects/plugin/gradle/dependencies-validate-compile.gradle')
+apply from: 'gradle/dependencies-validate-compile.gradle'
 
 dependencies {
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
 }
 
-sourceSets.main.groovy.srcDirs new File(project.ext.rootDir,  'src/validate/groovy')
+sourceSets.main.groovy.srcDirs 'src/validate/groovy'
 
 /*
  * WORKAROUND:

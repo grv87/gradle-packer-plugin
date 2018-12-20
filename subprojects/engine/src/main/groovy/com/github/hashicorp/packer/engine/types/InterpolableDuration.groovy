@@ -2,6 +2,7 @@ package com.github.hashicorp.packer.engine.types
 
 import com.github.hashicorp.packer.engine.types.base.InterpolableValue
 import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
+import groovy.transform.KnownImmutable
 
 import static go.time.DurationAdapter.parseDuration
 import com.github.hashicorp.packer.template.Context
@@ -12,6 +13,7 @@ import java.time.Duration
 
 @CompileStatic
 interface InterpolableDuration extends InterpolableValue<Object, Duration, InterpolableDuration> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, Duration, InterpolableDuration, Interpolated, AlreadyInterpolated> implements InterpolableDuration {
     ImmutableRaw() {
       super()
@@ -75,6 +77,7 @@ interface InterpolableDuration extends InterpolableValue<Object, Duration, Inter
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, Duration, InterpolableDuration, AlreadyInterpolated> implements InterpolableDuration { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Duration, InterpolableDuration> implements InterpolableDuration { }
 }

@@ -3,11 +3,14 @@ package com.github.hashicorp.packer.engine.types
 import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
+
 import java.nio.file.Path
 
 // This class is required to overcome the fact that Gradle doesn't have InputDirectories annotation
 @CompileStatic
 interface InterpolableInputDirectory extends InterpolableFile<InterpolableInputDirectory> {
+  @KnownImmutable
   @InheritConstructors
   final class ImmutableRaw extends InterpolableFile.ImmutableRaw<InterpolableInputDirectory, Interpolated, AlreadyInterpolated> implements InterpolableInputDirectory { }
 
@@ -22,6 +25,7 @@ interface InterpolableInputDirectory extends InterpolableFile<InterpolableInputD
     }
   }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableFile.AlreadyInterpolated<InterpolableInputDirectory> implements InterpolableInputDirectory {
     @ComputedInputDirectory

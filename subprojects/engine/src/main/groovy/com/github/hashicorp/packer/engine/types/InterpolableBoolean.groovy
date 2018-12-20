@@ -6,9 +6,11 @@ import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableBoolean extends InterpolableValue<Object, Boolean, InterpolableBoolean> {
+  @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, Boolean, InterpolableBoolean, Interpolated, AlreadyInterpolated> implements InterpolableBoolean {
     ImmutableRaw() {
       super()
@@ -72,6 +74,7 @@ interface InterpolableBoolean extends InterpolableValue<Object, Boolean, Interpo
   @InheritConstructors
   final class Interpolated extends InterpolableValue.Interpolated<Object, Boolean, InterpolableBoolean, AlreadyInterpolated> implements InterpolableBoolean { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableValue.AlreadyInterpolated<Object, Boolean, InterpolableBoolean> implements InterpolableBoolean { }
 }

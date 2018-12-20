@@ -4,10 +4,12 @@ import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
 import com.github.hashicorp.packer.enums.ChecksumType
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableChecksumType extends InterpolableEnum<ChecksumType, InterpolableChecksumType> {
-@InheritConstructors
+  @KnownImmutable
+  @InheritConstructors
   final class ImmutableRaw extends InterpolableEnum.ImmutableRaw<ChecksumType, InterpolableChecksumType, Interpolated, AlreadyInterpolated> implements InterpolableChecksumType { }
 
   @InheritConstructors
@@ -16,6 +18,7 @@ interface InterpolableChecksumType extends InterpolableEnum<ChecksumType, Interp
   @InheritConstructors
   final class Interpolated extends InterpolableEnum.Interpolated<ChecksumType, InterpolableChecksumType, AlreadyInterpolated> implements InterpolableChecksumType { }
 
+  @KnownImmutable
   @InheritConstructors
   final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<ChecksumType, InterpolableChecksumType> implements InterpolableChecksumType { }
 }

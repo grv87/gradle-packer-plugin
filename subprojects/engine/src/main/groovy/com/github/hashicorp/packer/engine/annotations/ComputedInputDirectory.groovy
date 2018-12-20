@@ -5,9 +5,7 @@ import groovy.transform.AnnotationCollector
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.InputDirectory
 
-@JsonIgnore
-@InputDirectory
-@AnnotationCollector
+@AnnotationCollector([JsonIgnore, InputDirectory])
 @CompileStatic
 @interface ComputedInputDirectory {
 }

@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.engine.ast
 
+import groovy.transform.KnownImmutable
+
 import static org.codehaus.groovy.ast.tools.GeneralUtils.cloneParams
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
@@ -174,6 +176,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
   static {
     ENGINE_PARAM_WITH_ANNOTATION.addAnnotation(JACKSON_INJECT_ANNOTATION)
   }
+  private static final AnnotationNode KNOWN_IMMUTABLE_ANNOTATION = new AnnotationNode(makeCached(KnownImmutable))
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit source) {
@@ -213,6 +216,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     Map<Mutability, ClassNode> implClassRefs = (Map<Mutability, ClassNode>)implClasses.collectEntries { Mutability key, ClassNode value ->
       [(key), newClass(value)]
     }
+    implClasses[Mutability.IMMUTABLE].addAnnotation KNOWN_IMMUTABLE_ANNOTATION
 
     ClassNode interpolatedClass = new InnerClassNode(
       abstractClassRef,

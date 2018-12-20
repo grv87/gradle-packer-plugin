@@ -7,6 +7,7 @@ import com.github.hashicorp.packer.engine.Mutability
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
+import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
@@ -43,6 +44,33 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     this.@thirdField = thirdField
   }
 
+  @KnownImmutable
+  static final class ImmutableImpl extends IgnoreIfTest {
+    ImmutableImpl(Engine engine) {
+      this(
+        engine,
+        (InterpolableLong)null,
+        (InterpolableLong)null,
+        (InterpolableLong)null,
+      )
+    }
+
+    @JsonCreator
+    ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+        Engine engine,
+      InterpolableLong firstField,
+      InterpolableLong secondField,
+      InterpolableLong thirdField
+    ) {
+      super(
+        firstField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        secondField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        thirdField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+      )
+    }
+  }
+
   static final class Impl extends IgnoreIfTest {
     Impl(Engine engine) {
       this(
@@ -65,32 +93,6 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
         firstField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
         secondField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
         thirdField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
-      )
-    }
-  }
-
-  static final class ImmutableImpl extends IgnoreIfTest {
-    ImmutableImpl(Engine engine) {
-      this(
-        engine,
-        (InterpolableLong)null,
-        (InterpolableLong)null,
-        (InterpolableLong)null,
-      )
-    }
-
-    @JsonCreator
-    ImmutableImpl(
-      @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
-      InterpolableLong firstField,
-      InterpolableLong secondField,
-      InterpolableLong thirdField
-    ) {
-      super(
-        firstField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
-        secondField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
-        thirdField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }

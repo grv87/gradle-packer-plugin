@@ -5,9 +5,7 @@ import groovy.transform.AnnotationCollector
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Nested
 
-@JsonIgnore
-@Nested
-@AnnotationCollector
+@AnnotationCollector([JsonIgnore, Nested])
 @CompileStatic
 @interface ComputedNested {
 }

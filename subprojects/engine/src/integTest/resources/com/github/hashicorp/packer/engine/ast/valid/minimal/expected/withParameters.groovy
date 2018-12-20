@@ -7,6 +7,7 @@ import com.github.hashicorp.packer.engine.Mutability
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
+import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
 
 @CompileStatic
@@ -22,6 +23,27 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     InterpolableLong singleField
   ) {
     this.@singleField = singleField
+  }
+
+  @KnownImmutable
+  static final class ImmutableImpl extends MinimalTest {
+    ImmutableImpl(Engine engine) {
+      this(
+        engine,
+        (InterpolableLong)null,
+      )
+    }
+
+    @JsonCreator
+    ImmutableImpl(
+      @JacksonInject(useInput = OptBoolean.FALSE)
+        Engine engine,
+      InterpolableLong singleField
+    ) {
+      super(
+        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+      )
+    }
   }
 
   static final class Impl extends MinimalTest {
@@ -40,26 +62,6 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     ) {
       super(
         singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
-      )
-    }
-  }
-
-  static final class ImmutableImpl extends MinimalTest {
-    ImmutableImpl(Engine engine) {
-      this(
-        engine,
-        (InterpolableLong)null,
-      )
-    }
-
-    @JsonCreator
-    ImmutableImpl(
-      @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
-      InterpolableLong singleField
-    ) {
-      super(
-        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }
