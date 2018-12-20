@@ -41,7 +41,7 @@ abstract class ListTest implements InterpolableObject<ListTest> {
       List<InterpolableInteger> singleList
     ) {
       super(
-        singleList != null ? (List<InterpolableInteger>)singleList.clone() : new ArrayList<InterpolableInteger>(),
+        singleList != null ? new ArrayList(singleList) : new ArrayList<InterpolableInteger>(),
       )
     }
   }

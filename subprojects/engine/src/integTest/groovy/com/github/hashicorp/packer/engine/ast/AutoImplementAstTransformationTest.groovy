@@ -1,7 +1,13 @@
 package com.github.hashicorp.packer.engine.ast
 
-import static groovy.test.GroovyAssert.assertScript
 import static groovy.test.GroovyAssert.shouldFail
+import com.google.common.collect.HashBasedTable
+import groovy.transform.CompileStatic
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableTable
+import com.google.common.collect.Maps
+import com.google.common.collect.Table
+import java.nio.charset.Charset
 import java.util.regex.Pattern
 import org.codehaus.groovy.control.CompilerConfiguration
 import java.nio.file.Path
@@ -21,12 +27,12 @@ import java.nio.file.Paths
 import com.google.common.reflect.ClassPath
 import org.junit.Test
 import com.google.common.collect.ImmutableMap
+import org.apache.commons.lang3.ClassPathUtils
 
 @RunWith(JUnitParamsRunner)
-// @CompileStatic
+@CompileStatic
 class AutoImplementAstTransformationTest {
-
-  public static final Pattern DECLARATION_PATTERN = Pattern.compile('^// declaration$', Pattern.MULTILINE)
+  public static final Charset SOURCE_ENCODING = Charsets.UTF_8
 
   @Test
   @Parameters
@@ -39,24 +45,11 @@ class AutoImplementAstTransformationTest {
     }
   }
 
-  private static CompilerConfiguration getCompilerConfiguration(Boolean parameters) {
-    CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/*TODO*/)
-    compilerConfiguration.sourceEncoding = Charsets.UTF_8.name()
-    compilerConfiguration.parameters = parameters
-    compilerConfiguration.debug = true
-    compilerConfiguration
-  }
-
-  private static final Map<Boolean, CompilerConfiguration> COMPILER_CONFIGURATIONS = ImmutableMap.of(
-    Boolean.FALSE, getCompilerConfiguration(Boolean.FALSE),
-    Boolean.TRUE, getCompilerConfiguration(Boolean.TRUE),
-  )
-
   @Test
   @Parameters
-  @TestCaseName('testCompilation[{index}]: {0}, parameters = {2}')
-  void testCompilation(String testName, String source, Boolean parameters) {
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+  @TestCaseName('testCompilationSource[{index}]: {0}, parameters = {2}')
+  void testCompilationSource(String testName, String source, Boolean parameters) {
+    GroovyClassLoader groovyClassLoader = getGroovyClassLoader(parameters)
     groovyClassLoader.parseClass(source)
   }
 
@@ -64,142 +57,183 @@ class AutoImplementAstTransformationTest {
   @Parameters
   @TestCaseName('testCompilationExpected[{index}]: {0}, parameters = {2}')
   void testCompilationExpected(String testName, String source, Boolean parameters) {
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
+    GroovyClassLoader groovyClassLoader = getGroovyClassLoader(parameters)
     groovyClassLoader.parseClass(source)
   }
 
-  private static final Template AST_TEST_TEMPLATE = new StreamingTemplateEngine().createTemplate(Resources.toString(Resources.getResource(this, 'ASTTest.groovy.template'), Charsets.UTF_8))
+  public static final Pattern DECLARATION_PATTERN = Pattern.compile('^// declaration$', Pattern.MULTILINE)
+
+  private static final Template AST_TEST_TEMPLATE = new StreamingTemplateEngine().createTemplate(Resources.toString(Resources.getResource(this, 'ASTTest.groovy.template'), SOURCE_ENCODING))
 
   @Test
   @Parameters
   @TestCaseName('testASTMatch[{index}]: {0}, parameters = {3}, compilePhase = {4}')
   void testASTMatch(String testName, String source, URL expectedUrl, Boolean parameters, CompilePhase compilePhase) {
-    String sourceWithASTTest = source.replaceFirst(DECLARATION_PATTERN, AST_TEST_TEMPLATE.make(
+    File sourceWithASTTest = File.createTempFile('sourceWithASTTest', '.groovy')
+    sourceWithASTTest.write source.replaceFirst(DECLARATION_PATTERN, AST_TEST_TEMPLATE.make(
       compilePhase: compilePhase.inspect(),
       expectedUrl: expectedUrl.toString().inspect(),
-    ).toString())
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[parameters])
-    groovyClassLoader.parseClass(sourceWithASTTest)
+    ).toString()), SOURCE_ENCODING.toString()
+    getGroovyClassLoader(parameters).parseClass(sourceWithASTTest)
   }
 
+  /*
+   * CAVEAT:
+   * We pass serializationTest as file so that we can debug it.
+   * Perfect way is to write resource to temp file and debug from there. But for simple test environment
+   * this looks like unnecessary complication
+   */
   @Test
   @Parameters
-  @TestCaseName('testSerialization[{index}]: {0}')
-  void testSerialization(String testName, File source, File source2) {
-    // assertScript source
-    GroovyClassLoader groovyClassLoader = new GroovyClassLoader(Thread.currentThread().contextClassLoader ?: this.class.classLoader, COMPILER_CONFIGURATIONS[Boolean.FALSE])
-    groovyClassLoader.parseClass(source)
-    /*groovyClassLoader.parseClass(source2)*/
-    GroovyShell shell = new GroovyShell(groovyClassLoader)
-    // shell.evaluate(source)
-    shell.evaluate(source2)
+  @TestCaseName('testSerialization[{index}]: {0}, parameters = {3}')
+  void testSerialization(String testName, String classSource, File serializationTest, Boolean parameters) {
+    GroovyClassLoader groovyClassLoader = getGroovyClassLoader(Boolean.FALSE)
+    groovyClassLoader.parseClass(classSource)
+    new GroovyShell(groovyClassLoader).evaluate(serializationTest)
   }
 
-  private static Object[] parametersForTestErroneousSource() {
-    Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/erroneous/(\\S+)/source\\.groovy\\z'
-      if (m) {
-        String testName = m[0][1]
-        [testName, Resources.toString(it.url(), Charsets.UTF_8), Resources.readLines(Paths.get(it.url().toURI()).parent.resolve('errorMessages.txt').toUri().toURL(), Charsets.UTF_8)].toArray(new Object[3])
+  private static final List<Boolean> BOOLEANS = ImmutableList.of(Boolean.FALSE, Boolean.TRUE)
+
+  private static final Pattern TESTS_PATH = ~"\\A${ Pattern.quote(ClassPathUtils.toFullyQualifiedPath(this, '')) }(.+)\\z"
+
+  private static final Path ERRONEOUS_DIRNAME = Paths.get('erroneous')
+  private static final Path SOURCE_FILENAME = Paths.get('source.groovy')
+  private static final Path ERROR_MESSAGES_FILENAME = Paths.get('errorMessages.txt')
+  private static final Path VALID_DIRNAME = Paths.get('valid')
+  private static final Path EXPECTED_DIRNAME = Paths.get('expected')
+  private static final Map<Boolean, Path> EXPECTED_FILENAMES = ImmutableMap.of(
+    Boolean.FALSE, Paths.get('withoutParameters.groovy'),
+    Boolean.TRUE, Paths.get('withParameters.groovy')
+  )
+  private static final Path SERIALIZATION_FILENAME = Paths.get('serialization.groovy')
+
+  private static final Map<String, URL> ERRONEOUS_TESTS
+  private static final Map<String, URL> VALID_TESTS
+  private static final Table<String, Boolean, URL> EXPECTED_TESTS
+  private static final Map<String, URL> SERIALIZATION_TESTS
+
+  static {
+    Map<String, URL> erroneousTests = [:]
+    Map<String, URL> validTests = [:]
+    Table<String, Boolean, URL> expectedTests = HashBasedTable.create()
+    Map<String, URL> serializationTests = [:]
+
+    ClassPath.from(this.classLoader).resources.each { ClassPath.ResourceInfo it ->
+      Matcher m = it.resourceName =~ TESTS_PATH
+      if (m.matches()) {
+        Path resourcePath = Paths.get(m.group(1))
+        if (resourcePath[0] == ERRONEOUS_DIRNAME && resourcePath.nameCount == 3 && resourcePath[2] == SOURCE_FILENAME) {
+          erroneousTests[resourcePath[1].toString()] = it.url()
+        } else if (resourcePath[0] == VALID_DIRNAME && resourcePath.nameCount == 3 && resourcePath[2] == SOURCE_FILENAME) {
+          String testName = resourcePath[1].toString()
+          URL url = it.url()
+
+          validTests[testName] = url
+
+          Path expectedDir = Paths.get(url.toURI()).resolveSibling(EXPECTED_DIRNAME)
+          EXPECTED_FILENAMES.each { Boolean parameters, Path filename ->
+            expectedTests.put testName, parameters, expectedDir.resolve(filename).toUri().toURL()
+          }
+        } else if (resourcePath[0] == VALID_DIRNAME && resourcePath.nameCount == 3 && resourcePath[2] == SERIALIZATION_FILENAME) {
+          serializationTests[resourcePath[1].toString()] = it.url()
+        }
       } else {
         null
       }
+    }
+
+    ERRONEOUS_TESTS = ImmutableMap.copyOf(erroneousTests)
+    VALID_TESTS = ImmutableMap.copyOf(validTests)
+    EXPECTED_TESTS = ImmutableTable.copyOf(expectedTests)
+    SERIALIZATION_TESTS = ImmutableMap.copyOf(serializationTests)
+  }
+
+  private static Object[] parametersForTestErroneousSource() {
+    Object[] result = ERRONEOUS_TESTS.collect { String testName, URL url ->
+      [
+        testName,
+        Resources.toString(url, SOURCE_ENCODING),
+        Resources.asCharSource(Paths.get(url.toURI()).resolveSibling(ERROR_MESSAGES_FILENAME).toUri().toURL(), SOURCE_ENCODING).readLines()
+      ].toArray(new Object[3])
     }.toArray()
     assert result.length > 0
     result
   }
 
-  private static Object[] parametersForTestCompilation() {
+  private static Object[] parametersForTestCompilationSource() {
     Object[] result = GroovyCollections.combinations([
-      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
-        if (m) {
-          String testName = m[0][1]
-          [testName, Resources.toString(it.url(), Charsets.UTF_8)]
-        } else {
-          null
-        }
+      VALID_TESTS.collect { String testName, URL url ->
+        [
+          testName,
+          Resources.toString(url, SOURCE_ENCODING)
+        ]
       },
-      [
-        Boolean.FALSE,
-        Boolean.TRUE
-      ],
-    ]).collect { it.flatten().toArray(new Object[3]) }.toArray()
+      BOOLEANS
+    ]).collect { ((Iterable)it).flatten().toArray(new Object[3]) }.toArray()
     assert result.length > 0
     result
   }
 
   private static Object[] parametersForTestCompilationExpected() {
-    Object[] result = (
-      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/expected/withoutParameters\\.groovy\\z'
-        if (m) {
-          String testName = m[0][1]
-          [testName, Resources.toString(it.url(), Charsets.UTF_8), Boolean.FALSE].toArray(new Object[3])
-        } else {
-          null
-        }
-      } + ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/expected/withParameters\\.groovy\\z'
-        if (m) {
-          String testName = m[0][1]
-          [testName, Resources.toString(it.url(), Charsets.UTF_8), Boolean.TRUE].toArray(new Object[3])
-        } else {
-          null
-        }
-      }
-    ).toArray()
+    Object[] result = EXPECTED_TESTS.cellSet().collect { Table.Cell<String, Boolean, URL> cell ->
+      [
+        cell.rowKey,
+        Resources.toString(cell.value, SOURCE_ENCODING),
+        cell.columnKey
+      ].toArray(new Object[3])
+    }.toArray()
     assert result.length > 0
     result
   }
 
   private static Object[] parametersForTestASTMatch() {
     Object[] result = GroovyCollections.combinations([
-      ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-        Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/source\\.groovy\\z'
-        if (m) {
-          String testName = m[0][1]
-          [testName, it.url()]
-        } else {
-          null
-        }
-      }.collectMany { it ->
-        def newIt = [it[0], Resources.toString(it[1], Charsets.UTF_8)]
-        Path expectedPath = Paths.get(it[1].toURI()).parent.resolve('expected')
+      EXPECTED_TESTS.cellSet().collect { Table.Cell<String, Boolean, URL> cell ->
         [
-          newIt + [expectedPath.resolve('withoutParameters.groovy').toUri().toURL(), Boolean.FALSE],
-          newIt + [expectedPath.resolve('withParameters.groovy').toUri().toURL(), Boolean.TRUE],
+          cell.rowKey,
+          Resources.toString(VALID_TESTS[cell.rowKey], SOURCE_ENCODING),
+          cell.value,
+          cell.columnKey
         ]
       },
       [
         CompilePhase.SEMANTIC_ANALYSIS,
-        /* TODO
-        CompilePhase.CANONICALIZATION,
-        CompilePhase.INSTRUCTION_SELECTION,
-        CompilePhase.CLASS_GENERATION,*/
-      ],
-    ]).collect { it.flatten().toArray(new Object[5]) }.toArray()
+        /*
+         * Other compiler phases don't work, and so are not tested.
+         * After CANONICALIZATION phase expected AST has invoke, get and set methods
+         */
+      ]
+    ]).collect { ((Iterable)it).flatten().toArray(new Object[5]) }.toArray()
     assert result.length > 0
     result
   }
 
   private static Object[] parametersForTestSerialization() {
-    Object[] result = ClassPath.from(this.classLoader).resources.findResults { ClassPath.ResourceInfo it ->
-      Matcher m = it.resourceName =~ '\\Acom/github/hashicorp/packer/engine/ast/valid/(\\S+)/serialization\\.groovy\\z'
-      if (m) {
-        String testName = m[0][1]
-        // [testName, Resources.toString(Paths.get(it.url().toURI()).resolveSibling('source.groovy').toUri().toURL(), Charsets.UTF_8) + Resources.toString(it.url(), Charsets.UTF_8)].toArray(new Object[2])
-        // [testName, Resources.toString(Paths.get(it.url().toURI()).resolveSibling('source.groovy').toUri().toURL(), Charsets.UTF_8), Resources.toString(it.url(), Charsets.UTF_8)].toArray(new Object[3])
-        [testName, Paths.get(it.url().toURI()).resolveSibling('source.groovy').toFile(), new File(it.url().toURI())].toArray(new Object[3])
-      } else {
-        null
-      }
-    }.toArray()
+    Object[] result = GroovyCollections.combinations([
+      SERIALIZATION_TESTS.collect { String testName, URL url ->
+        [
+          testName,
+          Resources.toString(Paths.get(url.toURI()).resolveSibling(SOURCE_FILENAME).toUri().toURL(), SOURCE_ENCODING),
+          new File(url.toURI())
+        ]
+      },
+      BOOLEANS,
+    ]).collect { ((Iterable)it).flatten().toArray(new Object[4]) }.toArray()
     assert result.length > 0
     result
   }
 
-  private ClassLoader getClassLoader1() { // TODO
-    Thread.currentThread().contextClassLoader ?: this.class.classLoader
+  private static final Map<Boolean, CompilerConfiguration> COMPILER_CONFIGURATIONS = ImmutableMap.copyOf(
+    BOOLEANS.collect { Boolean parameters ->
+      CompilerConfiguration compilerConfiguration = new CompilerConfiguration(/* TODO: Is there a way to get compiler configuration used to compile this test ? */)
+      compilerConfiguration.sourceEncoding = SOURCE_ENCODING.name()
+      compilerConfiguration.parameters = parameters
+      compilerConfiguration.debug = true
+      Maps.immutableEntry(parameters, compilerConfiguration)
+    }
+  )
+
+  private static GroovyClassLoader getGroovyClassLoader(Boolean parameters) {
+    new GroovyClassLoader(this.classLoader, COMPILER_CONFIGURATIONS[parameters])
   }
 }

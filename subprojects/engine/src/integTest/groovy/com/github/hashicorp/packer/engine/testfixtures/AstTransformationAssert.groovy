@@ -1,11 +1,10 @@
 package com.github.hashicorp.packer.engine.testfixtures
 
-import org.codehaus.groovy.macro.matcher.ASTMatcher
-
 import static com.google.common.base.Charsets.UTF_8
 import static org.codehaus.groovy.ast.builder.AstAssert.assertSyntaxTree
 import static org.codehaus.groovy.ast.tools.WideningCategories.implementsInterfaceOrSubclassOf
 import static org.codehaus.groovy.ast.ClassHelper.makeCached
+import org.codehaus.groovy.macro.matcher.ASTMatcher
 import groovy.transform.ASTTest
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ASTNode

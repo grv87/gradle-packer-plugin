@@ -14,7 +14,7 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
   @Default({ 1L })
   abstract InterpolableLong getSingleField()
 
-  static final void register(Engine engine) {
+  static final void register(Engine e) {
     // do some stuff
     new Random().nextInt()
   }

@@ -41,7 +41,7 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.newInstance1(InterpolableLong, Mutability.MUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
       )
     }
   }
@@ -62,7 +62,7 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.newInstance1(InterpolableLong, Mutability.IMMUTABLE),
+        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }
@@ -75,10 +75,10 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
     }
   }
 
-  static final void register(Engine engine) {
+  static final void register(Engine e) {
     // do some stuff
     new Random().nextInt()
-    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping CustomRegisterTest, Impl, ImmutableImpl
+    e.abstractTypeMappingRegistry.registerAbstractTypeMapping CustomRegisterTest, Impl, ImmutableImpl
   }
 
   @Override

@@ -300,8 +300,8 @@ final class Context {
 
     @Override
     boolean containsValue(Object value) {
-      parameterizedFunctions.any { Entry<Pattern, Map<String, ?>> entry ->
-        entry.value.containsValue(value)
+      parameterizedFunctions.values().any { Map<String, ?> values ->
+        values.containsValue(value)
       } || parameterlessConstantFunctions.containsValue(value)
     }
 

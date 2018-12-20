@@ -94,21 +94,21 @@ class File extends Provisioner<Configuration> {
 
       Path sourcePath = null
       if (source) {
-        String sourcePathString = source.get()
+        String sourcePathString = source.interpolated
         sourcePath = Paths.get(sourcePathString)
         isDirectory = sourcePathString ==~ DIR_PATTERN
       }
 
-      switch (direction.get() /*directionValue*/) {
+      switch (direction.interpolated /*directionValue*/) {
         case Direction.UPLOAD:
-          if (source && !generated.get()) {
+          if (source && !generated.interpolated) {
             inputFile = context.resolveFile(sourcePath)
           }
           break
         case Direction.DOWNLOAD:
           if (source && destination) {
-            Path outputPath = Paths.get(destination.get())
-            Boolean destinationIsDirectory = destination.get() ==~ DIR_PATTERN
+            Path outputPath = Paths.get(destination.interpolated)
+            Boolean destinationIsDirectory = destination.interpolated ==~ DIR_PATTERN
             if (destinationIsDirectory) {
               outputPath = outputPath.resolve(sourcePath.getName(sourcePath.nameCount - 1))
             }

@@ -13,7 +13,7 @@ class TypesTest {
   @Test
   void testEngine() {
     Engine engine = new Engine()
-    InterpolableLong interpolableLong = engine.abstractTypeMappingRegistry.newInstance1(InterpolableLong, Mutability.MUTABLE)
+    InterpolableLong interpolableLong = engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE)
     assert InterpolableLong.Raw.isInstance(interpolableLong)
   }
 }

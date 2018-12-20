@@ -33,9 +33,7 @@ import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGeneri
 import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
 import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.OptBoolean
-import groovy.transform.CompilationUnitAware
 import org.codehaus.groovy.ast.ModuleNode
-import org.codehaus.groovy.control.CompilationUnit
 import com.google.common.collect.ImmutableList
 import org.codehaus.groovy.ast.expr.ClassExpression
 import org.gradle.api.tasks.Input
@@ -52,7 +50,6 @@ import com.github.hashicorp.packer.engine.Engine
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.codehaus.groovy.syntax.SyntaxException
 import org.codehaus.groovy.ast.AnnotatedNode
-import org.codehaus.groovy.transform.sc.StaticCompileTransformation
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -89,7 +86,7 @@ import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 @CompileStatic
-class AutoImplementAstTransformation implements ASTTransformation, CompilationUnitAware {
+class AutoImplementAstTransformation implements ASTTransformation {
   private static final Pattern GETTER_PATTERN = ~/\Aget/
   private static final ConstantExpression NULL = constX(null)
   private static final VariableExpression THIS_X = varX('this')
@@ -138,7 +135,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
   private static final ClassNode MUTABILITY_CLASS = makeCached(Mutability)
   private static final ClassExpression MUTABILITY_CLASS_X = classX(MUTABILITY_CLASS)
   private static final String DYNAMIC = 'dynamic'
-  private static final String NEW_INSTANCE = 'newInstance1'
+  private static final String INSTANTIATE = 'instantiate'
   private static final String TARGET = 'Target'
   private static final int PUBLIC_FINAL = ACC_PUBLIC | ACC_FINAL
   private static final int PRIVATE_FINAL = ACC_PRIVATE | ACC_FINAL
@@ -256,7 +253,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
 
     abstractClass.methods.each { MethodNode method ->
       Matcher m = GETTER_PATTERN.matcher(method.name)
-      if (m && method.modifiers & ACC_ABSTRACT && method.parameters.length == 0) { // TODO: + Test for method.code
+      if (m && method.modifiers & ACC_ABSTRACT && method.parameters.length == 0) {
         methodsFound = true
 
         method.modifiers &= ~ACC_ABSTRACT
@@ -284,13 +281,6 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
           fieldNameConstX
         )
         VariableExpression fieldVarX = varX(fieldName)
-
-        /*
-         * Due to https://issues.apache.org/jira/browse/GROOVY-8914 inner classes don't work anyway.
-         * Maybe we should remove this code too
-         */
-        // String typImplClassName =  "$typ.name$DOLLAR${ isValue ? IMMUTABLE_RAW /* TODO: + Mutable version */ : "$typ.name$MUTABLE_IMPL" }"
-        // ClassNode typImplType = typ.name.startsWith("$abstractClass.name\$") ? newClass((ClassNode)typ.redirect().innerClasses.find { InnerClassNode innerClassNode -> innerClassNode.name == typImplClassName }) : make(this.class.classLoader.loadClass(typImplClassName))
 
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null && !parameters) {
@@ -347,7 +337,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
             fieldVarX,
             callX(
               ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
-              NEW_INSTANCE,
+              INSTANTIATE,
               args(
                 classX(typ),
                 propX(
@@ -415,6 +405,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
               }
             }
             if (!hasOptionalAnnotation & lastGradleTaskPropertyAnnotationIndex != null) {
+              // Add Optional annotation after other Gradle annotations
               method.annotations.add lastGradleTaskPropertyAnnotationIndex + 1, new AnnotationNode(OPTIONAL_CLASS)
             }
           } else if (postProcessAnnotation != null) {
@@ -558,8 +549,7 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
     }
   }
 
-  private void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {
-    staticCompileTransformation.visit([COMPILE_STATIC_ANNOTATION, classNode] as ASTNode[], source)
+  private static void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {
     module.addClass classNode
     // source.AST.addClass(mutableClass)
     // interfase.compileUnit.addClass(mutableClass)
@@ -590,12 +580,5 @@ class AutoImplementAstTransformation implements ASTTransformation, CompilationUn
   // Overcomes the fact that AnnotatedNode#getAnnotations(ClassNode) returns an array
   private static AnnotationNode getAnnotation(AnnotatedNode annotatedNode, ClassNode targetClass) {
     annotatedNode.annotations.find { implementsInterfaceOrSubclassOf(it.classNode, targetClass) }
-  }
-
-  private final StaticCompileTransformation staticCompileTransformation = new StaticCompileTransformation()
-
-  @Override
-  void setCompilationUnit(final CompilationUnit unit) {
-    this.@staticCompileTransformation.compilationUnit = unit
   }
 }

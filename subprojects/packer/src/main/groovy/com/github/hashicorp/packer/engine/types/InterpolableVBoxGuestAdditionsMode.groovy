@@ -1,6 +1,5 @@
 package com.github.hashicorp.packer.engine.types
 
-
 import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic

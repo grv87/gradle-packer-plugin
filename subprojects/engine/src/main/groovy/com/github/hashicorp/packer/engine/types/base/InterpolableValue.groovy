@@ -20,6 +20,8 @@ import groovy.transform.Synchronized
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
+import org.apache.commons.lang3.BooleanUtils
+
 import java.lang.reflect.Constructor
 import java.util.concurrent.Semaphore
 
@@ -165,7 +167,7 @@ interface InterpolableValue<
   > extends AbstractRaw<Source, Target, ThisInterface, InterpolatedClass, AlreadyInterpolatedClass> {
     private final Source raw
 
-    // This constructor is required for AbstractTypeMappingRegistry.newInstance1
+    // This constructor is required for AbstractTypeMappingRegistry.instantiate
     ImmutableRaw() {
       this.@raw = null
     }
@@ -335,7 +337,7 @@ interface InterpolableValue<
       }
       try {
         if (ignoreIf != null) {
-          if (ignoreIf.call() == Boolean.TRUE) {
+          if (BooleanUtils.isTrue(ignoreIf.call())) {
             return null
           }
         }

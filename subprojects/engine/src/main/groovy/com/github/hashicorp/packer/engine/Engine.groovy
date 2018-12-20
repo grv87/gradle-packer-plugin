@@ -1,10 +1,5 @@
 package com.github.hashicorp.packer.engine
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ImmutableBase
-import groovy.transform.KnownImmutable
-import groovy.transform.ToString
-
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase
 import static com.fasterxml.jackson.databind.InjectableValues.Std as InjectableValuesStd
 import com.github.hashicorp.packer.engine.types.InterpolableDuration
@@ -18,6 +13,10 @@ import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import com.github.hashicorp.packer.engine.types.InterpolableURI
 import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
 import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ImmutableBase
+import groovy.transform.KnownImmutable
+import groovy.transform.ToString
 import java.lang.reflect.Constructor
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -70,16 +69,14 @@ final class Engine {
   final static class AbstractTypeMapping {
     final boolean noArgConstructor
     final Map<Mutability, Class<? extends InterpolableObject>> implementations
-    /*@Lazy
-    Map<Mutability, Constructor<? extends InterpolableObject>> constructors = {
-      ImmutableMap.copyOf(implementations.collectEntries { Mutability key, Class<? extends InterpolableObject> implementation ->
-        // CAVEAT: Using public constructors only
-        [(key): noArgConstructor ? implementation.getConstructor() : implementation.getConstructor(Engine)]
-      })
-    }()*/
+    final Map<Mutability, Constructor<? extends InterpolableObject>> constructors
     AbstractTypeMapping(boolean noArgConstructor, Map<Mutability, Class<? extends InterpolableObject>> implementations) {
       this.@noArgConstructor = noArgConstructor
       this.@implementations = ImmutableMap.copyOf(implementations)
+      this.@constructors = ImmutableMap.copyOf(implementations.collectEntries { Mutability key, Class<? extends InterpolableObject> implementation ->
+        // CAVEAT: Using public constructors only
+        [(key): noArgConstructor ? implementation.getConstructor() : implementation.getConstructor(Engine)]
+      })
     }
   }
 
@@ -118,8 +115,6 @@ final class Engine {
         throw new IllegalArgumentException(sprintf('Abstract type mapping for type %s is already registered', [abstractClass.canonicalName]))
       }
       modules.clear()
-      abstractClass.
-      this.class.classLoader.getClass()
       registry[abstractClass] = new AbstractTypeMapping(noArgConstructor, [
         (Mutability.MUTABLE): mutableClass,
         (Mutability.IMMUTABLE): immutableClass
@@ -141,14 +136,13 @@ final class Engine {
     }
 
     @Synchronized
-    <T extends InterpolableObject<T>> T newInstance1(Class<T> abstractClass, Mutability mutability) {
-      /*AbstractTypeMapping abstractTypeMapping = registry[abstractClass]
+    <T extends InterpolableObject<T>> T instantiate(Class<T> abstractClass, Mutability mutability) {
+      AbstractTypeMapping abstractTypeMapping = registry[abstractClass]
       if (abstractTypeMapping.noArgConstructor) {
         (T)abstractTypeMapping.constructors[mutability].newInstance()
       } else {
         (T)abstractTypeMapping.constructors[mutability].newInstance(Engine.this)
-      }*/
-      null
+      }
     }
   }
 

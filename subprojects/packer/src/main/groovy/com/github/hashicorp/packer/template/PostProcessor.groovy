@@ -316,7 +316,7 @@ abstract class PostProcessor extends InterpolableObject {
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.newInstance1(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
+      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.instantiate(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
     }
 
     private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
