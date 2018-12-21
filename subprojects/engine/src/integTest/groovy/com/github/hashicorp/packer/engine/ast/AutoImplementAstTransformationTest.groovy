@@ -28,6 +28,8 @@ import com.google.common.reflect.ClassPath
 import org.junit.Test
 import com.google.common.collect.ImmutableMap
 import org.apache.commons.lang3.ClassPathUtils
+import com.google.common.collect.BiMap
+import com.google.common.collect.ImmutableBiMap
 
 @RunWith(JUnitParamsRunner)
 @CompileStatic
@@ -50,7 +52,7 @@ class AutoImplementAstTransformationTest {
   @TestCaseName('testCompilationSource[{index}]: {0}, parameters = {2}')
   void testCompilationSource(String testName, String source, Boolean parameters) {
     GroovyClassLoader groovyClassLoader = getGroovyClassLoader(parameters)
-    groovyClassLoader.parseClass(source)
+    groovyClassLoader.parseClass source
   }
 
   @Test
@@ -58,7 +60,7 @@ class AutoImplementAstTransformationTest {
   @TestCaseName('testCompilationExpected[{index}]: {0}, parameters = {2}')
   void testCompilationExpected(String testName, String source, Boolean parameters) {
     GroovyClassLoader groovyClassLoader = getGroovyClassLoader(parameters)
-    groovyClassLoader.parseClass(source)
+    groovyClassLoader.parseClass source
   }
 
   public static final Pattern DECLARATION_PATTERN = Pattern.compile('^// declaration$', Pattern.MULTILINE)
@@ -74,7 +76,7 @@ class AutoImplementAstTransformationTest {
       compilePhase: compilePhase.inspect(),
       expectedUrl: expectedUrl.toString().inspect(),
     ).toString()), SOURCE_ENCODING.toString()
-    getGroovyClassLoader(parameters).parseClass(sourceWithASTTest)
+    getGroovyClassLoader(parameters).parseClass sourceWithASTTest
   }
 
   /*
@@ -88,8 +90,8 @@ class AutoImplementAstTransformationTest {
   @TestCaseName('testSerialization[{index}]: {0}, parameters = {3}')
   void testSerialization(String testName, String classSource, File serializationTest, Boolean parameters) {
     GroovyClassLoader groovyClassLoader = getGroovyClassLoader(Boolean.FALSE)
-    groovyClassLoader.parseClass(classSource)
-    new GroovyShell(groovyClassLoader).evaluate(serializationTest)
+    groovyClassLoader.parseClass classSource
+    new GroovyShell(groovyClassLoader).evaluate serializationTest
   }
 
   private static final List<Boolean> BOOLEANS = ImmutableList.of(Boolean.FALSE, Boolean.TRUE)
@@ -101,7 +103,7 @@ class AutoImplementAstTransformationTest {
   private static final Path ERROR_MESSAGES_FILENAME = Paths.get('errorMessages.txt')
   private static final Path VALID_DIRNAME = Paths.get('valid')
   private static final Path EXPECTED_DIRNAME = Paths.get('expected')
-  private static final Map<Boolean, Path> EXPECTED_FILENAMES = ImmutableMap.of(
+  private static final BiMap<Boolean, Path> EXPECTED_FILENAMES = ImmutableBiMap.of(
     Boolean.FALSE, Paths.get('withoutParameters.groovy'),
     Boolean.TRUE, Paths.get('withParameters.groovy')
   )

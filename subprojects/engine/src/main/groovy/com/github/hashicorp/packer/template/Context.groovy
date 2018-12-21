@@ -1,13 +1,11 @@
 package com.github.hashicorp.packer.template
 
-
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem
+import static org.apache.commons.io.FilenameUtils.separatorsToUnix
+import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS
 import org.gradle.api.provider.Provider
-
 import java.util.concurrent.Callable
 import java.util.function.Supplier
-
-import static org.apache.commons.io.FilenameUtils.separatorsToUnix
-
 import groovy.transform.CompileDynamic
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableList
@@ -21,7 +19,6 @@ import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.file.ConfigurableFileTree
-
 import java.nio.file.Path
 import java.time.Instant
 import com.samskivert.mustache.Template as MustacheTemplate
@@ -186,12 +183,15 @@ final class Context {
     // TODO project.fileTree resolvePath(path), closure
   }
 
+  private static final String ABS_PREFIX = IS_OS_WINDOWS ? '/' : ''
+
   // DownloadableURL processes a URL that may also be a file path and returns
   // a completely valid URL representing the requested file. For example,
   // the original URL might be "local/file.iso" which isn't a valid URL,
   // and so DownloadableURL will return "file://local/file.iso"
   // No other transformations are done to the path.
   // TODO: @throws
+  @CompileStatic
   URI resolveUri(String original) {
     // Code from packer/common DownloadableURL
     String result
@@ -205,63 +205,54 @@ final class Context {
     // Fix the url if it's using bad characters commonly mistaken with a path.
     result = separatorsToUnix(original)
 
-    // Check to see that this is a parseable URL with a scheme and a host.
-    // If so, then just pass it through.
     try {
-      URI resultUri = new URI(result)
-      if (!resultUri.scheme && !resultUri.host) {
-        return resultUri
+      // Check to see that this is a parseable URL with a scheme and a host.
+      // If so, then just pass it through.
+      URI u = new URI(result)
+      if (u.scheme && u.host) {
+        return u
+      }
+      // If it's a file scheme, then convert it back to a regular path so the next
+      // case which forces it to an absolute path, will correct it.
+      // TODO
+      Boolean b1 = u.scheme != null
+      Boolean b2 = b1 && u.scheme.toLowerCase() == 'file'
+      println b2
+      if (b2 == Boolean.TRUE) {
+        result = u.path
       }
     } catch (URISyntaxException ignored) {
       // This means that it is not an URI
       // Then we assume it is a regular path
     }
 
-    /* TODO:
-      // If it's a file scheme, then convert it back to a regular path so the next
-      // case which forces it to an absolute path, will correct it.
-      if u, err := url.Parse(original); err == nil && strings.ToLower(u.Scheme) == "file" {
-        original = u.Path
-      }
+    // If we're on Windows and we start with a slash, then this absolute path
+    // is wrong. Fix it up, so the next case can figure out the absolute path.
+    String[] rpath = result.split('/', 2)
+    if (rpath[0].empty && IS_OS_WINDOWS) {
+      result = rpath[1]
+    }
 
-      // If we're on Windows and we start with a slash, then this absolute path
-      // is wrong. Fix it up, so the next case can figure out the absolute path.
-      if rpath := strings.SplitN(original, "/", 2); rpath[0] == "" && runtime.GOOS == "windows" {
-        result = rpath[1]
-      } else {
-        result = original
-      }
+    // Since we should be some kind of path (relative or absolute), check
+    // that the file exists, then make it an absolute path so we can return an
+    // absolute uri.
+    if (cwd.resolve(result).toFile().exists()) {
+      Path resultPath = cwd.resolve(separatorsToSystem(result)).toAbsolutePath()
 
-      // Since we should be some kind of path (relative or absolute), check
-      // that the file exists, then make it an absolute path so we can return an
-      // absolute uri.
-      if _, err := os.Stat(result); err == nil {
-        result, err = filepath.Abs(filepath.FromSlash(result))
-        if err != nil {
-          return "", err
-        }
+      resultPath = resultPath.toRealPath()
 
-        result, err = filepath.EvalSymlinks(result)
-        if err != nil {
-          return "", err
-        }
+      resultPath = resultPath.normalize()
 
-        result = filepath.Clean(result)
-        return fmt.Sprintf("file://%s%s", absPrefix, filepath.ToSlash(result)), nil
-      }
+      return new URI("file://$ABS_PREFIX${ separatorsToUnix(resultPath.toString()) }")
+    }
 
-      // Otherwise, check if it was originally an absolute path, and fix it if so.
-      if strings.HasPrefix(original, "/") {
-        return fmt.Sprintf("file://%s%s", absPrefix, result), nil
-      }
+    // Otherwise, check if it was originally an absolute path, and fix it if so.
+    if (result.startsWith('/')) {
+      return new URI("file://$ABS_PREFIX$result")
+    }
 
-      // Anything left should be a non-existent relative path. So fix it up here.
-      result = filepath.ToSlash(filepath.Clean(result))
-      return fmt.Sprintf("file://./%s", result), nil
-     */
-
-    // Then we rely on built-in Java algorithms
-    return resolvePath(result).toUri()
+    // Anything left should be a non-existent relative path. So fix it up here.
+    return new URI("file://./${ separatorsToUnix(cwd.resolve(result).normalize().toString()) }")
   }
 
   /*
@@ -276,7 +267,7 @@ final class Context {
     @Override
     // @CompileStatic
     int size() {
-      parameterizedFunctions*.value*.size().sum() + parameterlessConstantFunctions.size()
+      (int)parameterizedFunctions*.value*.size().sum() + parameterlessConstantFunctions.size()
     }
 
     @Override

@@ -1,7 +1,5 @@
 package com.github.hashicorp.packer.engine.ast
 
-import groovy.transform.KnownImmutable
-
 import static org.codehaus.groovy.ast.tools.GeneralUtils.cloneParams
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
@@ -33,6 +31,9 @@ import static org.codehaus.groovy.ast.tools.GenericsUtils.newClass
 import static org.codehaus.groovy.ast.tools.GenericsUtils.makeDeclaringAndActualGenericsTypeMap
 import static org.codehaus.groovy.ast.tools.GenericsUtils.findActualTypeByGenericsPlaceholderName
 import static org.codehaus.groovy.ast.ClassNode.EMPTY_ARRAY as EMPTY_CLASS_NODE_ARRAY
+import com.google.common.collect.BiMap
+import com.google.common.collect.ImmutableBiMap
+import groovy.transform.KnownImmutable
 import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.OptBoolean
 import org.codehaus.groovy.ast.ModuleNode
@@ -47,7 +48,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import com.github.hashicorp.packer.engine.Mutability
-import com.google.common.collect.ImmutableMap
 import com.github.hashicorp.packer.engine.Engine
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.codehaus.groovy.syntax.SyntaxException
@@ -103,8 +103,6 @@ class AutoImplementAstTransformation implements ASTTransformation {
   private static final String FROM = 'from'
   private static final AnnotationNode OVERRIDE_ANNOTATION = new AnnotationNode(makeCached(Override))
   private static final ClassNode JSON_CREATOR_CLASS = makeCached(JsonCreator)
-  private static final ClassNode COMPILE_STATIC_CLASS = makeCached(CompileStatic)
-  private static final AnnotationNode COMPILE_STATIC_ANNOTATION = new AnnotationNode(COMPILE_STATIC_CLASS)
   private static final ClassNode OPTIONAL_CLASS = makeCached(Optional)
   private static final String CONTEXT = 'context'
   private static final ClassNode CONTEXT_CLASS = makeCached(Context)
@@ -120,7 +118,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     ENGINE
   )
   private static final VariableExpression ENGINE_VAR_X = varX(ENGINE_PARAM)
-  private static final Map<Mutability, String> IMPL = ImmutableMap.of(
+  private static final BiMap<Mutability, String> IMPL = ImmutableBiMap.of(
     Mutability.MUTABLE, 'Impl',
     Mutability.IMMUTABLE, 'ImmutableImpl',
   )
@@ -188,10 +186,6 @@ class AutoImplementAstTransformation implements ASTTransformation {
     }
     if (!implementsInterfaceOrSubclassOf(abstractClass, INTERPOLABLE_OBJECT_CLASS)) {
       addErrorOnAnnotation source, autoImplementAnnotationNode, 'classes implementing InterpolableObject only', abstractClass.interfaces
-      return
-    }
-    if (!getAnnotation(abstractClass, COMPILE_STATIC_CLASS)) {
-      addErrorOnAnnotation source, autoImplementAnnotationNode, 'statically compiled types only'
       return
     }
 

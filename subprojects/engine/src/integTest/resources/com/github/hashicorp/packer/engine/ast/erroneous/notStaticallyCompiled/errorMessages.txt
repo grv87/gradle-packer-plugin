@@ -1,1 +1,0 @@
-@com.github.hashicorp.packer.engine.annotations.AutoImplement is applicable to statically compiled types only

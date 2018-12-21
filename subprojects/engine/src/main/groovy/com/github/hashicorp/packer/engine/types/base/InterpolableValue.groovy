@@ -16,6 +16,7 @@ import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
 import groovy.transform.KnownImmutable
+import groovy.transform.PackageScope
 
 // import groovy.transform.EqualsAndHashCode
 import groovy.transform.Synchronized
@@ -127,7 +128,7 @@ interface InterpolableValue<
     AlreadyInterpolatedClass extends AlreadyInterpolated<Source, Target, ThisInterface>
   > extends Abstract<Source, Target, ThisInterface> implements Cloneable {
     @SuppressWarnings('UnstableApiUsage')
-    private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType)./*getDeclaredConstructor TODO */getConstructor(AbstractRaw, Context, Object, Closure, Closure)
+    private final Constructor<InterpolatedClass> interpolatedClassConstructor = ((Class<InterpolatedClass>)new TypeToken<InterpolatedClass>(this.class) { }.rawType).getConstructor(AbstractRaw, Context, Object, Callable, Closure)
 
     @Override
     final ThisInterface interpolateValue(Context context, Supplier<Target> defaultValueSupplier, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
@@ -303,6 +304,13 @@ interface InterpolableValue<
 
     private final Closure<Target> postProcess
 
+    /*
+     * CAVEAT:
+     * This constructor is made public, so that AbstractRaw can get this constructor with reflection
+     * without any specific permissions.
+     * Maybe this would not be a problem with PackageScope or even private access,
+     * but we don't want to risk
+     */
     Interpolated(/*RawValueClass*/ AbstractRaw raw, Context context, Object defaultValue, Callable<Boolean> ignoreIf, @ClosureParams(value = FromString, options = ['Target']) Closure<Target> postProcess) {
       this.@raw = raw.clone()
       this.@context = context
