@@ -1,5 +1,7 @@
 package com.github.hashicorp.packer.template
 
+import java.nio.file.Paths
+
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS
@@ -203,12 +205,12 @@ final class Context {
     }
 
     // Fix the url if it's using bad characters commonly mistaken with a path.
-    result = separatorsToUnix(original)
+    original = separatorsToUnix(original)
 
     try {
       // Check to see that this is a parseable URL with a scheme and a host.
       // If so, then just pass it through.
-      URI u = new URI(result)
+      URI u = new URI(original)
       if (u.scheme && u.host) {
         return u
       }
@@ -219,7 +221,7 @@ final class Context {
       Boolean b2 = b1 && u.scheme.toLowerCase() == 'file'
       println b2
       if (b2 == Boolean.TRUE) {
-        result = u.path
+        original = u.path
       }
     } catch (URISyntaxException ignored) {
       // This means that it is not an URI
@@ -228,9 +230,11 @@ final class Context {
 
     // If we're on Windows and we start with a slash, then this absolute path
     // is wrong. Fix it up, so the next case can figure out the absolute path.
-    String[] rpath = result.split('/', 2)
+    String[] rpath = original.split('/', 2)
     if (rpath[0].empty && IS_OS_WINDOWS) {
       result = rpath[1]
+    } else {
+      result = original
     }
 
     // Since we should be some kind of path (relative or absolute), check
@@ -247,12 +251,12 @@ final class Context {
     }
 
     // Otherwise, check if it was originally an absolute path, and fix it if so.
-    if (result.startsWith('/')) {
+    if (original.startsWith('/')) {
       return new URI("file://$ABS_PREFIX$result")
     }
 
     // Anything left should be a non-existent relative path. So fix it up here.
-    return new URI("file://./${ separatorsToUnix(cwd.resolve(result).normalize().toString()) }")
+    return new URI("file://./${ separatorsToUnix(Paths.get(result).normalize().toString()) }")
   }
 
   /*
