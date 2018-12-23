@@ -143,14 +143,6 @@ class Template implements InterpolableObject {
     result
   }
 
-  /*
-   * WORKAROUND:
-   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-   * Nested generics are not supported in static compile mode.
-   * Fixed in Groovy 2.5.0-rc-3
-   * <grv87 2018-11-10>
-   */
-  // TOTEST @CompileDynamic
   private void run() {
     if (builders.size() != 1) {
       throw new IllegalStateException(sprintf('Expected 1 builder. Found: %d', builders.size()))

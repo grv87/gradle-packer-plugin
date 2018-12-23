@@ -86,6 +86,7 @@ interface InterpolableEnum<
 
     private static Object tryCastStringToEnum(Class<? extends Enum> enumClass, String raw) {
       String rawValueUpperCase = raw.toUpperCase()
+      enumClass.enum
       for (/*E*/Enum enumConstant : enumClass.enumConstants) {
         if (enumConstant.name() == rawValueUpperCase) {
           return enumConstant

@@ -19,7 +19,6 @@
  */
 package com.github.hashicorp.packer.template
 
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.hashicorp.packer.engine.Engine
 import com.github.hashicorp.packer.engine.annotations.AutoImplement
@@ -58,6 +57,24 @@ abstract class Builder implements InterpolableObject<Builder> {
   }
 
   protected abstract Tuple2<Artifact, List<Provider<Boolean>>> doRun()
+
+  /**
+   * Number of local CPUs used for build.
+   *
+   * For cloud builders, if the builder is able to detect
+   * that the cloud is run alongside with this build on the same host
+   * (e.g. local installation of Eucalyptus)
+   * then it should treat used CPUs as local
+   * and so return their number from this method.
+   * Otherwise, it should return zero.
+   *
+   * Right now this number is not used for anything.
+   * In the future it could be used to limit build parallelism.
+   *
+   * @return Number of local CPUs used for build
+   */
+  @Internal
+  abstract int getLocalCpusUsed()
 
   @AutoImplement
   abstract static class BuilderHeader implements InterpolableObject<BuilderHeader> {

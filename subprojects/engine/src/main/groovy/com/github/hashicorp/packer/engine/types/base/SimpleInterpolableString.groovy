@@ -11,7 +11,7 @@ import groovy.transform.Synchronized
 @CompileStatic
 class SimpleInterpolableString /*implements InterpolableObject<SimpleInterpolableString>*/ {
   private volatile String rawValue
-  private volatile Object compiledTemplate = null
+  private volatile Object compiledTemplate
 
   @JsonCreator // (mode = JsonCreator.Mode.DELEGATING)
   SimpleInterpolableString(String rawValue) {

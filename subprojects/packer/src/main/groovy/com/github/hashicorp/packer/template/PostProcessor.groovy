@@ -80,14 +80,6 @@ abstract class PostProcessor extends InterpolableObject {
     }
   }
 
-  /*
-   * WORKAROUND:
-   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-   * Nested generics are not supported in static compile mode.
-   * Fixed in Groovy 2.5.0-rc-3
-   * <grv87 2018-11-10>
-   */
-  // TOTEST @CompileDynamic
   final Tuple3<Artifact, Boolean, List<Provider<Boolean>>> postProcess(Artifact priorArtifact) {
     if (!interpolated) {
       throw new IllegalStateException('') // TODO
@@ -204,14 +196,6 @@ abstract class PostProcessor extends InterpolableObject {
       doPostProcess priorArtifact, rawValue
     }
 
-    /*
-     * WORKAROUND:
-     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-     * Nested generics are not supported in static compile mode.
-     * Fixed in Groovy 2.5.0-rc-3
-     * <grv87 2018-11-10>
-     */
-    // TOTEST @CompileDynamic
     private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
       List<Artifact> artifacts = []
       Boolean keep = true
@@ -232,14 +216,6 @@ abstract class PostProcessor extends InterpolableObject {
       new Tuple3(artifacts, keep, upToDateWhen)
     }
 
-    /*
-     * WORKAROUND:
-     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-     * Nested generics are not supported in static compile mode.
-     * Fixed in Groovy 2.5.0-rc-3
-     * <grv87 2018-11-10>
-     */
-    // TOTEST @CompileDynamic
     private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
       Tuple3<Artifact, Boolean, List<Provider<Boolean>>> result = rawValue.postProcess(priorArtifact)
       new Tuple3([result.first], result.second, result.third)
@@ -338,14 +314,6 @@ abstract class PostProcessor extends InterpolableObject {
       doPostProcess priorArtifact, rawValue
     }
 
-    /*
-     * WORKAROUND:
-     * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-     * Nested generics are not supported in static compile mode.
-     * Fixed in Groovy 2.5.0-rc-3
-     * <grv87 2018-11-10>
-     */
-    // TOTEST @CompileDynamic
     private Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, PostProcessor rawValue) {
       rawValue.postProcess priorArtifact
     }

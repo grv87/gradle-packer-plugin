@@ -1,14 +1,12 @@
 package com.github.hashicorp.packer.template
 
-import java.nio.file.Paths
-
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS
+import java.nio.file.Paths
 import org.gradle.api.provider.Provider
 import java.util.concurrent.Callable
 import java.util.function.Supplier
-import groovy.transform.CompileDynamic
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableList
 import javax.annotation.concurrent.Immutable
@@ -39,7 +37,7 @@ import com.samskivert.mustache.Template as MustacheTemplate
 */
 @Immutable // Note: Context is itself is immutable, but templateVariables are mutable
 // Maybe we should make other objects mutable too - makes no sense to don't support mutability
-// @CompileStatic
+@CompileStatic
 // REVIEWED
 final class Context {
   private final Map<String, ?> userVariablesValues
@@ -75,7 +73,7 @@ final class Context {
   /**
    * Creates new context
    */
-  Context(Map<String, Object> userVariablesValues, Map<String, ?> env, File templateFile, Path cwd) {
+  Context(Map<String, ?> userVariablesValues, Map<String, ?> env, File templateFile, Path cwd) {
     this(
       userVariablesValues,
       env,
@@ -193,7 +191,6 @@ final class Context {
   // and so DownloadableURL will return "file://local/file.iso"
   // No other transformations are done to the path.
   // TODO: @throws
-  @CompileStatic
   URI resolveUri(String original) {
     // Code from packer/common DownloadableURL
     String result
@@ -216,11 +213,7 @@ final class Context {
       }
       // If it's a file scheme, then convert it back to a regular path so the next
       // case which forces it to an absolute path, will correct it.
-      // TODO
-      Boolean b1 = u.scheme != null
-      Boolean b2 = b1 && u.scheme.toLowerCase() == 'file'
-      println b2
-      if (b2 == Boolean.TRUE) {
+      if (u.scheme?.toLowerCase() == 'file') {
         original = u.path
       }
     } catch (URISyntaxException ignored) {
@@ -259,29 +252,18 @@ final class Context {
     return new URI("file://./${ separatorsToUnix(Paths.get(result).normalize().toString()) }")
   }
 
-  /*
-   * WORKAROUND:
-   * Groovy bug https://issues.apache.org/jira/browse/GROOVY-7985.
-   * Nested generics are not supported in static compile mode.
-   * Fixed in Groovy 2.5.0-rc-3
-   * <grv87 2018-11-10>
-   */
-  // TOTEST @CompileDynamic
   private final class InterpolationContext implements Map<String, Serializable> /* TODO: implements Mustache.CustomContext */ {
     @Override
-    // @CompileStatic
     int size() {
       (int)parameterizedFunctions*.value*.size().sum() + parameterlessConstantFunctions.size()
     }
 
     @Override
-    // @CompileStatic
     boolean isEmpty() {
       return false
     }
 
     @Override
-    // @CompileStatic
     boolean containsKey(Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
@@ -301,7 +283,7 @@ final class Context {
     }
 
     // TODO: Find usable Gradle built-in/third-party library method
-    private flattenValue(Object value) {
+    private static flattenValue(Object value) {
       if (Callable.isInstance(value)) {
         flattenValue(((Callable)value).call())
       } else if (Provider.isInstance(value)) {
@@ -315,7 +297,6 @@ final class Context {
     }
 
     @Override
-    // @CompileStatic
     final Serializable get(Object key) {
       String stringKey = (String)key
       parameterizedFunctions.each { Pattern pattern, Map<String, ?> values ->
@@ -328,31 +309,26 @@ final class Context {
     }
 
     @Override
-    // @CompileStatic
     Serializable put(String key, Serializable value) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    // @CompileStatic
     Serializable remove(Object key) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    // @CompileStatic
     void putAll(Map<? extends String, ? extends Serializable> m) {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    // @CompileStatic
     void clear() {
       throw new UnsupportedOperationException()
     }
 
     @Override
-    // @CompileStatic
     Set<String> keySet() {
       throw new UnsupportedOperationException()
     }
@@ -386,7 +362,8 @@ final class Context {
     static private final NoArgGenerator UUID_GENERATOR = Generators.timeBasedGenerator()
   }
 
+
   // This should be initialized exactly once, otherwise different threads could get different timestamp or uuid
   @Lazy
-  private volatile InterpolationContext interpolationContext
+  private volatile InterpolationContext interpolationContext = new InterpolationContext()
 }
