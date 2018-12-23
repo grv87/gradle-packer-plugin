@@ -20,6 +20,7 @@
 package com.github.hashicorp.packer.template
 
 import com.github.hashicorp.packer.engine.Mutability
+import com.github.hashicorp.packer.engine.types.InterpolableString
 
 import static Context.BUILD_NAME_VARIABLE_NAME
 import com.github.hashicorp.packer.engine.Engine

@@ -19,10 +19,9 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import static org.fidata.gradle.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.OnlyExcept
 import org.gradle.api.file.RegularFile
-
-import static org.fidata.gradle.utils.StringUtils.stringize
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ProviderFactory
@@ -32,7 +31,7 @@ import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
 import org.gradle.api.provider.Provider
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
-import com.github.hashicorp.packer.engine.enums.OnError
+import com.github.hashicorp.packer.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Optional

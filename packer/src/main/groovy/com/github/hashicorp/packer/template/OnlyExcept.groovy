@@ -41,8 +41,8 @@ class OnlyExcept {
   }
 
   OnlyExcept(ImmutableList<String> only, ImmutableList<String> except) {
-    this.only = only ?: (ImmutableList<String>)ImmutableList.of()
-    this.except = except ?: (ImmutableList<String>)ImmutableList.of()
+    this.only = only ?: ImmutableList.<String>of()
+    this.except = except ?: ImmutableList.<String>of()
   }
 
   static final OnlyExcept only(List<String> only) {

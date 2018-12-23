@@ -11,14 +11,14 @@ import groovy.transform.Synchronized
 @CompileStatic
 final class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
   @SuppressWarnings('UnstableApiUsage')
-  private final Class<T> tClass = (Class<T>)new TypeToken<T>(this.class) { }.rawType
+  private final String className = (Class<T>)new TypeToken<T>(this.class) { }.rawType.simpleName
   private final Map<String, Class<? extends T>> subtypeRegistry = [:]
   private SimpleModule module = null
 
   @Synchronized
   void registerSubtype(String name, Class<? extends T> clazz) {
     if (subtypeRegistry.containsKey(name)) {
-      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [tClass.simpleName, name]))
+      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [className, name]))
     }
     module = null
     subtypeRegistry[name] = clazz

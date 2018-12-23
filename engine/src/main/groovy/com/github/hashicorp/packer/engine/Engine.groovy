@@ -195,7 +195,7 @@ final class Engine {
     facade
   }
 
-  static class ObjectMapperFacade {
+  final static class ObjectMapperFacade {
     private final ObjectMapper objectMapper
     private final Set<Module> customModules
 
