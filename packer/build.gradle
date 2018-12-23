@@ -6,8 +6,9 @@ plugins {
   id 'org.fidata.project.groovy'
 }
 dependencies {
-  annotationProcessor project(path: ':engine'/*, configuration: 'apiElements'*/)
+  // TOTEST: annotationProcessor project(path: ':engine'/*, configuration: 'apiElements'*/)
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
+  // api 'org.codehaus.groovy:groovy:2.5.5'
   // Provided by engine: api gradleApi()
   // Provided by engine: implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['

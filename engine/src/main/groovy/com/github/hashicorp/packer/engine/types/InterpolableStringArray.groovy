@@ -4,6 +4,7 @@ import com.github.hashicorp.packer.engine.types.base.InterpolableValue
 import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.RegularImmutableList
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonCreator
 import groovy.transform.InheritConstructors
@@ -11,6 +12,8 @@ import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableStringArray extends InterpolableValue<Object, ImmutableList<String>, InterpolableStringArray> {
+  static final class ArrayClass extends ArrayList<SimpleInterpolableString> { }
+
   @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Object, ImmutableList<String>, InterpolableStringArray, Interpolated, AlreadyInterpolated> implements InterpolableStringArray {
     ImmutableRaw() {
@@ -18,7 +21,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    ImmutableRaw(ImmutableList<String> raw) {
+    ImmutableRaw(ArrayClass raw) {
       super(ImmutableList.copyOf(raw))
     }
 
@@ -33,7 +36,7 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
       super(new SimpleInterpolableString(raw))
     }
 
-    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, ImmutableList<SimpleInterpolableString> raw) {
+    protected static final ImmutableList<String> doInterpolatePrimitive(Context context, List<SimpleInterpolableString> raw) {
       ImmutableList.copyOf(raw*.interpolate(context))
     }
 
@@ -43,14 +46,12 @@ interface InterpolableStringArray extends InterpolableValue<Object, ImmutableLis
   }
 
   final class Raw extends InterpolableValue.Raw<Object, ImmutableList<String>, InterpolableStringArray, Interpolated, AlreadyInterpolated> implements InterpolableStringArray {
-    static final class ArrayClass extends ArrayList<SimpleInterpolableString> { }
-
     Raw() {
       super()
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    Raw(List<String> raw) {
+    Raw(ArrayClass raw) {
       super(new ArrayList(raw))
     }
 

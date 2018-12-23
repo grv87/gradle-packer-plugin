@@ -13,49 +13,49 @@ import org.gradle.api.tasks.Input
 
 @AutoImplement
 @CompileStatic
-interface BlockDevice extends InterpolableObject<BlockDevice> {
+abstract class BlockDevice implements InterpolableObject<BlockDevice> {
   @Input
   @Default({ Boolean.FALSE })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  InterpolableBoolean getDeleteOnTermination()
+  abstract InterpolableBoolean getDeleteOnTermination()
 
   @Input
-  InterpolableString getDeviceName()
+  abstract InterpolableString getDeviceName()
 
   @Input
   @Default({ Boolean.FALSE })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated || snapshotId.interpolated })
-  InterpolableBoolean getEncrypted()
+  abstract InterpolableBoolean getEncrypted()
 
   @Input
   @IgnoreIf({ volumeType.interpolated != 'io1' /* TODO: Bug in either Packer or AWS documentation. This should be supported for gp2 volumes too */ })
-  InterpolableLong getIops()
+  abstract InterpolableLong getIops()
 
   @Input
   @Default({ Boolean.FALSE })
-  InterpolableBoolean getNoDevice()
+  abstract InterpolableBoolean getNoDevice()
 
   @Input
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  InterpolableString getSnapshotId()
+  abstract InterpolableString getSnapshotId()
 
   @Input
   @IgnoreIf({ noDevice.interpolated })
   @PostProcess({ String interpolated -> interpolated.startsWith('ephemeral') ? null : interpolated })
-  InterpolableString getVirtualName()
+  abstract InterpolableString getVirtualName()
 
   @Input
   @Default({ VolumeType.STANDARD })
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  InterpolableVolumeType getVolumeType()
+  abstract InterpolableVolumeType getVolumeType()
 
   @Input
   // @Default() TODO: If you're creating the volume from a snapshot and don't specify a volume size, the default is the snapshot size.
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
   @PostProcess({ Long interpolableValue -> interpolableValue > 0 ? interpolableValue : null})
-  InterpolableLong getVolumeSize()
+  abstract InterpolableLong getVolumeSize()
 
   @Input
   @IgnoreIf({ noDevice.interpolated || virtualName.interpolated })
-  InterpolableString getKmsKeyId()
+  abstract InterpolableString getKmsKeyId()
 }

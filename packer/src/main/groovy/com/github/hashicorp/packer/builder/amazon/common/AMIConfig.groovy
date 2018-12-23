@@ -10,52 +10,52 @@ import groovy.transform.CompileStatic
 
 @AutoImplement
 @CompileStatic
-interface AMIConfig extends InterpolableObject {
-  InterpolableString amiName
+abstract class AMIConfig implements InterpolableObject<AMIConfig> {
+  abstract InterpolableString getAmiName()
 
-  InterpolableString amiDescription
+  abstract InterpolableString getAmiDescription()
 
   @JsonProperty('ami_virtualization_type')
-  InterpolableString amiVirtType // TODO: Enum
+  abstract InterpolableString getAmiVirtType() // TODO: Enum
 
-  InterpolableStringArray amiUsers
+  abstract InterpolableStringArray getAmiUsers()
 
-  InterpolableStringArray amiGroups
+  abstract InterpolableStringArray getAmiGroups()
 
-  InterpolableStringArray amiProductCodes
+  abstract InterpolableStringArray getAmiProductCodes()
 
-  InterpolableStringArray amiRegions
+  abstract InterpolableStringArray getAmiRegions()
 
   @JsonProperty('skip_region_validation')
-  InterpolableBoolean amiSkipRegionValidation
+  abstract InterpolableBoolean getAmiSkipRegionValidation()
 
   @JsonProperty('tags')
-  TagMap amiTags
+  abstract TagMap getAmiTags()
 
   @JsonProperty('ena_support')
-  InterpolableBoolean AMIENASupport
+  abstract InterpolableBoolean getAMIENASupport()
 
   @JsonProperty('sriov_support')
-  InterpolableBoolean AMISriovNetSupport
+  abstract InterpolableBoolean getAMISriovNetSupport()
 
   @JsonProperty('force_deregister')
-  InterpolableBoolean AMIForceDeregister
+  abstract InterpolableBoolean getAMIForceDeregister()
 
   @JsonProperty('force_delete_snapshot')
-  InterpolableBoolean AMIForceDeleteSnapshot
+  abstract InterpolableBoolean getAMIForceDeleteSnapshot()
 
   @JsonProperty('encrypt_boot')
-  InterpolableBoolean AMIEncryptBootVolume
+  abstract InterpolableBoolean getAMIEncryptBootVolume()
 
   @JsonProperty('kms_key_id')
-  InterpolableString AMIKmsKeyId
+  abstract InterpolableString getAMIKmsKeyId()
 
   @JsonProperty('region_kms_key_ids')
-  Map<InterpolableString, InterpolableString> AMIRegionKMSKeyIDs
+  abstract Map<InterpolableString, InterpolableString> getAMIRegionKMSKeyIDs()
 
-  TagMap snapshotTags
+  abstract TagMap getSnapshotTags()
 
-  InterpolableStringArray snapshotUsers
+  abstract InterpolableStringArray getSnapshotUsers()
 
-  InterpolableStringArray snapshotGroups
+  abstract InterpolableStringArray getSnapshotGroups()
 }

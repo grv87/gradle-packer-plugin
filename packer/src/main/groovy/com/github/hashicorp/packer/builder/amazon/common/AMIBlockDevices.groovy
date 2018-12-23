@@ -9,8 +9,8 @@ import org.gradle.api.tasks.Nested
 @AutoImplement
 @CompileStatic
 // DONE
-interface AMIBlockDevices extends InterpolableObject {
+abstract class AMIBlockDevices implements InterpolableObject<AMIBlockDevices> {
   @JsonProperty('ami_block_device_mappings')
   @Nested
-  List<BlockDevice> amiMappings
+  abstract List<BlockDevice> getAmiMappings()
 }

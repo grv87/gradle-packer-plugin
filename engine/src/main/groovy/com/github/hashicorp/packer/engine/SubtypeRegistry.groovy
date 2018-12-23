@@ -11,7 +11,7 @@ import groovy.transform.Synchronized
 @CompileStatic
 final class SubtypeRegistry<T extends InterpolableObject> implements ModuleProvider {
   @SuppressWarnings('UnstableApiUsage')
-  private final String className = (Class<T>)new TypeToken<T>(this.class) { }.rawType.simpleName
+  private final String className = new TypeToken<T>(this.class) { }.rawType.simpleName
   private final Map<String, Class<? extends T>> subtypeRegistry = [:]
   private SimpleModule module = null
 

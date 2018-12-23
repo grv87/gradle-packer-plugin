@@ -3,6 +3,7 @@ package com.github.hashicorp.packer.builder.amazon.common
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.ComputedInput
+import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.base.InterpolableObject
 import com.github.hashicorp.packer.engine.types.InterpolableString
@@ -13,43 +14,42 @@ import org.gradle.api.tasks.Optional
 
 @AutoImplement
 @CompileStatic
-interface AccessConfig extends InterpolableObject {
+abstract class AccessConfig implements InterpolableObject<AccessConfig> {
   @Internal
-  InterpolableString accessKey
+  abstract InterpolableString getAccessKey()
 
   @Input
   @Optional
-  InterpolableString customEndpointEc2
+  abstract InterpolableString getCustomEndpointEc2()
 
   @Internal
-  InterpolableString mfaCode
+  abstract InterpolableString getMfaCode()
 
   @JsonProperty('profile')
   @Internal
-  InterpolableString profileName
+  abstract InterpolableString getProfileName()
 
   @JsonProperty('region')
   @Input
   // required
-  InterpolableString rawRegion
+  abstract InterpolableString getRawRegion()
 
   @Internal
-  InterpolableString secretKey
+  abstract InterpolableString getSecretKey()
 
   @JsonProperty('skip_region_validation')
+  @Default({Boolean.FALSE})
   @Internal
-  InterpolableBoolean skipValidation = InterpolableBoolean.withDefault(false)
+  abstract InterpolableBoolean getSkipValidation()
 
   // ?
-  InterpolableBoolean skipMetadataApiCheck
+  abstract InterpolableBoolean getSkipMetadataApiCheck()
 
   @Internal
-  InterpolableString token // TODO: This will also be read from the AWS_SESSION_TOKEN environmental variable
+  abstract InterpolableString token // TODO: This will also be read from the AWS_SESSION_TOKEN environmental variable
 
-  abstract class AccessConfigImpl implements AccessConfig {
-    @ComputedInput
-    String getOwner() {
-      // TODO
-    }
+  @ComputedInput
+  String getOwner() {
+    // TODO
   }
 }

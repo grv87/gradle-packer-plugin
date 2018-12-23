@@ -9,8 +9,8 @@ import groovy.transform.CompileStatic
 
 @AutoImplement
 @CompileStatic
-interface AmiFilterOptions extends InterpolableObject {
-  Map<InterpolableString, InterpolableString> filters
-  InterpolableStringArray owners
-  InterpolableBoolean mostRecent
+abstract class AmiFilterOptions implements InterpolableObject<AmiFilterOptions> {
+  abstract Map<InterpolableString, InterpolableString> getFilters()
+  abstract InterpolableStringArray getOwners()
+  abstract InterpolableBoolean getMostRecent()
 }

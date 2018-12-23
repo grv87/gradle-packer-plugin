@@ -66,28 +66,28 @@ class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is s
     InterpolableString inventoryDirectory
     InterpolableString inventoryFile
 
-//    @Override
-//    protected void doInterpolate() {
-//      super.doInterpolate()
-//      /*preventBootstrapSudo.interpolate context
-//      version.interpolate context
-//      bootstrapCommand.interpolate context
-//      moduleDirs*.interpolate context
-//      module.interpolate context
-//      workingDirectory.interpolate context
-//      params.values*.interpolate context
-//      preventSudo.interpolate context
-//
-//      bootstrap.interpolate context.withTemplateVariables([
-//        'Sudo': !preventBootstrapSudo.interpolatedValue,
-//        'Version': version.interpolatedValue,
-//      ])
-//      executeCommand.interpolate context.withTemplateVariables([
-//        'WorkingDirectory': workingDirectory.interpolatedValue,
-//        'Sudo': !preventSudo.interpolatedValue,
-//        'ParamsJSON': JsonOutput.toJson(params),
-//        'Module': module.interpolatedValue,
-//      ])*/
-//    }
+    @Override
+    protected void doInterpolate() {
+      super.doInterpolate()
+      preventBootstrapSudo.interpolate context
+      version.interpolate context
+      bootstrapCommand.interpolate context
+      moduleDirs*.interpolate context
+      module.interpolate context
+      workingDirectory.interpolate context
+      params.values*.interpolate context
+      preventSudo.interpolate context
+
+      bootstrap.interpolate context.withTemplateVariables([
+        'Sudo': !preventBootstrapSudo.interpolatedValue,
+        'Version': version.interpolatedValue,
+      ])
+      executeCommand.interpolate context.withTemplateVariables([
+        'WorkingDirectory': workingDirectory.interpolatedValue,
+        'Sudo': !preventSudo.interpolatedValue,
+        'ParamsJSON': JsonOutput.toJson(params),
+        'Module': module.interpolatedValue,
+      ])
+    }
   }
 }
