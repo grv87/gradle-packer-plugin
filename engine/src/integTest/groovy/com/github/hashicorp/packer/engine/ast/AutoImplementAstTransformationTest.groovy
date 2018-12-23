@@ -82,7 +82,7 @@ class AutoImplementAstTransformationTest {
   /*
    * CAVEAT:
    * We pass serializationTest as file so that we can debug it.
-   * Perfect way is to write resource to temp file and debug from there. But for simple test environment
+   * The perfect way is to write resource to temp file and debug from there. But for simple test environment
    * this looks like unnecessary complication
    */
   @Test
