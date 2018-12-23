@@ -1,0 +1,80 @@
+/*buildscript {
+  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}*/
+plugins {
+  id 'org.fidata.project.java'
+  id 'org.fidata.project.groovy'
+  id 'org.fidata.plugin'
+}
+
+description = 'Runs Packer builds from Gradle'
+tags.set(['packer', 'devops', 'vm'])
+license = 'LGPL-3.0-or-later'
+publicReleases = true
+contacts {
+  'grv87@yandex.ru' {
+    moniker 'Basil Peace'
+    github 'grv87'
+    roles 'owner', 'developer'
+  }
+}
+
+ext.rootDir = file('..')
+
+apply from: new File(ext.rootDir, 'plugin/gradle/dependencies-validate-compile.gradle')
+
+dependencies {
+  implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
+}
+
+sourceSets.main.groovy.srcDirs new File(project.ext.rootDir,  'plugin/src/validate/groovy')
+
+/*
+ * WORKAROUND:
+ * https://github.com/DanySK/javadoc.io-linker/issues/5
+ * `org.danilopianini.javadoc.io-linker` plugin doesn't work with `java-library` plugin
+ * <grv87 2018-06-23>
+ */
+afterEvaluate {
+  jvm.javadocLinks['org.ysb33r.grolifant'] = uri("https://ysb33rorg.gitlab.io/grolifant/${ configurations.getByName('compileClasspath').resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleGroup == 'org.ysb33r.gradle' && it.moduleName == 'grolifant' }.moduleVersion }/api/")
+}
+
+gradlePlugin {
+  plugins {
+    packerBasePlugin {
+      id = 'org.fidata.packer-base'
+      implementationClass = 'org.fidata.gradle.packer.PackerBasePlugin'
+    }
+    packerPlugin {
+      id = 'org.fidata.packer'
+      implementationClass = 'org.fidata.gradle.packer.PackerPlugin'
+    }
+  }
+}
+
+tasks.named('codenarcMain').configure {
+  disabledRules.add 'JavaIoPackageAccess'
+  disabledRules.add 'ClassJavadoc' // TODO
+}
+tasks.named('codenarcFunctionalTest').configure { disabledRules.add 'JavaIoPackageAccess' }
+
+stutter {
+  sparse = true
+  java(8) {
+    compatibleRange '3.1'
+  }
+  java(9) {
+    compatibleRange '3.1'
+  }
+}
+
+pluginBundle {
+  plugins {
+    packerBasePlugin {
+      displayName = 'Packer base plugin'
+    }
+    packerPlugin {
+      displayName = 'Packer plugin'
+    }
+  }
+}

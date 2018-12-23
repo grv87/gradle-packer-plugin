@@ -1,9 +1,0 @@
-import static org.codehaus.groovy.control.CompilePhase.*
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import org.codehaus.groovy.ast.ClassNode
-import com.github.hashicorp.packer.engine.testfixtures.AstTransformationAssert
-import groovy.transform.ASTTest
-
-@ASTTest(phase = $compilePhase, value = {
-  AstTransformationAssert.assertAstTransformation($compilePhase, new URL($expectedUrl), (ClassNode)node, AutoImplement)
-})

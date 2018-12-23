@@ -43,5 +43,5 @@ apply from: new File(ext.rootDir, 'gradle/feature-previews.gradle')
   'plugin',
 ].each {
   include it
-  project(":$it").projectDir = new File(ext.rootDir, "subprojects/$it")
+  project(":$it").projectDir = new File(ext.rootDir, it)
 }
