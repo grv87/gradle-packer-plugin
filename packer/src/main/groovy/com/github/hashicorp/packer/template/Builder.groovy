@@ -49,9 +49,6 @@ abstract class Builder implements InterpolableObject<Builder> {
   abstract BuilderHeader getHeader()
 
   final Tuple2<Artifact, List<Provider<Boolean>>> run() {
-    if (!interpolated) {
-      throw new IllegalStateException('') // TODO
-    }
     // Stage 4
     doRun()
   }

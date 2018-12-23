@@ -1,4 +1,4 @@
-package org.fidata.gradle.utils
+package org.fidata.utils
 
 import static org.ysb33r.grolifant.api.StringUtils.stringize
 import groovy.transform.CompileStatic

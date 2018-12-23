@@ -19,13 +19,11 @@
  */
 package org.fidata.gradle.packer.tasks
 
-import static org.fidata.gradle.utils.StringUtils.stringize
+import static org.fidata.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.OnlyExcept
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.ProviderFactory
-import javax.inject.Inject
 import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptReadOnlyArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
 import org.gradle.api.provider.Provider

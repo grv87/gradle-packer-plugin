@@ -19,49 +19,50 @@
  */
 package com.github.hashicorp.packer.builder.amazon
 
+import static org.fidata.utils.InetAddressUtils.isLocalHost
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.github.hashicorp.packer.builder.amazon.common.AMIConfig
 import com.github.hashicorp.packer.builder.amazon.common.AccessConfig
 import com.github.hashicorp.packer.builder.amazon.common.BlockDevices
 import com.github.hashicorp.packer.builder.amazon.common.RunConfig
 import com.github.hashicorp.packer.builder.amazon.common.TagMap
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.fidata.aws.ec2.InstanceTypeUtils
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
-class AmazonEbs extends Builder {
+@AutoImplement
+abstract class AmazonEbs extends Builder {
   @Inline
-  AccessConfig accessConfig
+  abstract AccessConfig getAccessConfig()
 
   @Inline
-  AMIConfig amiConfig
+  abstract AMIConfig getAmiConfig()
 
   @Inline
-  BlockDevices blockDevices
+  abstract BlockDevices getBlockDevices()
 
   @Inline
-  RunConfig runConfig
+  abstract RunConfig getRunConfig()
 
   @JsonProperty('run_volume_tags')
   @Internal
-  TagMap volumeRunTags
+  abstract TagMap getVolumeRunTags()
 
   @Override
-  protected void doInterpolate() {
-    accessConfig?.interpolate context
-    amiConfig?.interpolate context
-    blockDevices?.interpolate context
-    runConfig?.interpolate context
-    volumeRunTags?.interpolate context
+  protected final Tuple2<Artifact, List<Provider<Boolean>>> doRun() {
+    // TODO
   }
 
   @Override
-  protected Tuple2<Artifact, List<Provider<Boolean>>> doRun() {
-    // TODO
+  final int getLocalCpusUsed() {
+    // TODO: null customEndpointEc2 ?
+    // TOTEST: if this doesn't work with Eucalyptus then this makes no sense
+    isLocalHost(accessConfig.customEndpointEc2.interpolated) ? InstanceTypeUtils.NUMBER_OF_CPU_CORES[runConfig.instanceType.interpolated] : 0
   }
 }

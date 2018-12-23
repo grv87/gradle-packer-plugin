@@ -31,6 +31,8 @@ import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
 import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
+import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
@@ -44,74 +46,78 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
-class VirtualBoxOvf extends Builder {
+@AutoImplement
+abstract class VirtualBoxOvf extends Builder {
   @Inline
-  HTTPConfig httpConfig
+  abstract HTTPConfig getHttpConfig()
 
   @Inline
-  FloppyConfig floppyConfig
+  abstract FloppyConfig getFloppyConfig()
 
   @Inline
-  BootConfig bootConfig
+  abstract BootConfig getBootConfig()
 
   @Inline
-  ExportConfig exportConfig
+  abstract ExportConfig getExportConfig()
 
   @Inline
-  ExportOpts exportOpts
+  abstract ExportOpts getExportOpts()
 
   @Inline
-  OutputConfig outputConfig
+  abstract OutputConfig getOutputConfig()
 
   @Inline
-  RunConfig runConfig
+  abstract RunConfig getRunConfig()
 
   @Inline
-  SSHConfig sshConfig
+  abstract SSHConfig getSshConfig()
 
   @Inline
-  ShutdownConfig shutdownConfig
+  abstract ShutdownConfig getShutdownConfig()
 
   @Inline
-  VBoxManageConfig vboxManageConfig
+  abstract VBoxManageConfig getVboxManageConfig()
 
   @Inline
-  VBoxManagePostConfig vboxManagePostConfig
+  abstract VBoxManagePostConfig getVboxManagePostConfig()
 
   @Inline
-  VBoxVersionConfig vboxVersionConfig
+  abstract VBoxVersionConfig getVboxVersionConfig()
 
   @Input
-  InterpolableString checksum
+  abstract InterpolableString getChecksum()
 
   @Input
-  InterpolableChecksumType checksumType
+  abstract InterpolableChecksumType getChecksumType()
 
-  InterpolableVBoxGuestAdditionsMode guestAdditionsMode = InterpolableVBoxGuestAdditionsMode.withDefault(VBoxGuestAdditionsMode.UPLOAD)
+  @Default({ VBoxGuestAdditionsMode.UPLOAD })
+  abstract InterpolableVBoxGuestAdditionsMode getGuestAdditionsMode()
 
-  InterpolableString guestAdditionsPath
+  abstract InterpolableString getGuestAdditionsPath()
 
-  InterpolableString guestAdditionsSHA256
+  abstract InterpolableString getGuestAdditionsSHA256()
 
-  InterpolableString guestAdditionsURL
-
-  @Input
-  InterpolableStringArray importFlags
+  abstract InterpolableString getGuestAdditionsURL()
 
   @Input
-  InterpolableString importOpts
+  abstract InterpolableStringArray getImportFlags()
 
-  InterpolableString sourcePath
+  @Input
+  abstract InterpolableString getImportOpts()
 
-  InterpolableString targetPath
+  abstract InterpolableString getSourcePath()
+
+  abstract InterpolableString getTargetPath()
 
   @Internal // name of the OVF file for the new virtual machine, without the file extension
-  // @Default(value = 'packer-BUILDNAME') // TODO
-  InterpolableString vmName
+  @Default({ 'packer-{{ .BuildName }}' }) // TODO
+  abstract InterpolableString getVmName()
 
   @Input
-  InterpolableBoolean keepRegistered = InterpolableBoolean.withDefault(false)
+  @Default({ Boolean.FALSE })
+  abstract InterpolableBoolean getKeepRegistered()
 
   @Input
-  InterpolableBoolean skipExport = InterpolableBoolean.withDefault(false) // TODO: handle
+  @Default({ Boolean.FALSE })
+  abstract InterpolableBoolean getSkipExport() // TODO: handle
 }

@@ -3,10 +3,8 @@ package com.github.hashicorp.packer.template
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem
 import static org.apache.commons.io.FilenameUtils.separatorsToUnix
 import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS
+import static org.fidata.utils.CollectionUtils.flattenValue
 import java.nio.file.Paths
-import org.gradle.api.provider.Provider
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableList
 import javax.annotation.concurrent.Immutable
@@ -283,19 +281,6 @@ final class Context {
     }
 
     // TODO: Find usable Gradle built-in/third-party library method
-    private static flattenValue(Object value) {
-      if (Callable.isInstance(value)) {
-        flattenValue(((Callable)value).call())
-      } else if (Provider.isInstance(value)) {
-        flattenValue(((Provider)value).get())
-      } else if (Supplier.isInstance(value)) {
-        flattenValue(((Supplier) value).get())
-      } else {
-        // If it is not Serializable then we get cast error here - it's what expected
-        (Serializable)value
-      }
-    }
-
     @Override
     final Serializable get(Object key) {
       String stringKey = (String)key

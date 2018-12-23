@@ -32,6 +32,8 @@ import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import com.github.hashicorp.packer.engine.annotations.AutoImplement
+import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableInteger
@@ -46,82 +48,91 @@ import org.gradle.api.tasks.Internal
 import com.google.common.primitives.UnsignedInteger
 
 @CompileStatic
-class VirtualBoxIso extends Builder {
+@AutoImplement
+abstract class VirtualBoxIso extends Builder {
   @Inline
-  HTTPConfig httpConfig
+  abstract HTTPConfig getHttpConfig()
 
   @Inline
-  ISOConfig isoConfig
+  abstract ISOConfig getIsoConfig()
 
   @Inline
-  FloppyConfig floppyConfig
+  abstract FloppyConfig getFloppyConfig()
 
   @Inline
-  BootConfig bootConfig
+  abstract BootConfig getBootConfig()
 
   @Inline
-  ExportConfig exportConfig
+  abstract ExportConfig getExportConfig()
 
   @Inline
-  ExportOpts exportOpts
+  abstract ExportOpts getExportOpts()
 
   @Inline
-  OutputConfig outputConfig
+  abstract OutputConfig getOutputConfig()
 
   @Inline
-  RunConfig runConfig
+  abstract RunConfig getRunConfig()
 
   @Inline
-  ShutdownConfig shutdownConfig
+  abstract ShutdownConfig getShutdownConfig()
 
   @Inline
-  SSHConfig sshConfig
+  abstract SSHConfig getSshConfig()
 
   @Inline
-  VBoxManageConfig vboxManageConfig
+  abstract VBoxManageConfig getVboxManageConfig()
 
   @Inline
-  VBoxManagePostConfig vboxManagePostConfig
+  abstract VBoxManagePostConfig getVboxManagePostConfig()
 
   @Inline
-  VBoxVersionConfig vboxVersionConfig
+  abstract VBoxVersionConfig getVboxVersionConfig()
 
   @Input
-  InterpolableUnsignedInteger diskSize = InterpolableUnsignedInteger.withDefault(UnsignedInteger.valueOf(40000L))
+  @Default({ UnsignedInteger.valueOf(40000L) })
+  abstract InterpolableUnsignedInteger getDiskSize()
 
-  InterpolableVBoxGuestAdditionsMode guestAdditionsMode = InterpolableVBoxGuestAdditionsMode.withDefault(VBoxGuestAdditionsMode.UPLOAD)
+  @Default({ VBoxGuestAdditionsMode.UPLOAD })
+  abstract InterpolableVBoxGuestAdditionsMode getGuestAdditionsMode()
 
-  InterpolableString guestAdditionsPath
+  abstract InterpolableString getGuestAdditionsPath()
 
-  InterpolableString guestAdditionsSHA256
+  abstract InterpolableString getGuestAdditionsSHA256()
 
-  InterpolableString guestAdditionsURL
-
-  @Input
-  InterpolableString guestOSType = InterpolableString.withDefault('other') // TODO: Enum ? (VBoxManage list ostypes)
-
-  @Input
-  InterpolableBoolean hardDriveDiscard
+  abstract InterpolableString getGuestAdditionsURL()
 
   @Input
-  InterpolableString hardDriveInterface = InterpolableString.withDefault('ide') // TODO: Enum
+  @Default({ 'other' })
+  abstract InterpolableString getGuestOSType() // TODO: Enum ? (VBoxManage list ostypes)
 
   @Input
-  InterpolableInteger sataPortCount = InterpolableInteger.withDefault(1)
+  abstract InterpolableBoolean getHardDriveDiscard()
 
   @Input
-  InterpolableBoolean hardDriveNonrotational
+  @Default({ 'ide' })
+  abstract InterpolableString getHardDriveInterface() // TODO: Enum
 
   @Input
-  InterpolableString isoInterface = InterpolableString.withDefault('ide') // TODO: Enum
+  @Default({ 1 })
+  abstract InterpolableInteger getSataPortCount()
 
   @Input
-  InterpolableBoolean keepRegistered = InterpolableBoolean.withDefault(false)
+  abstract InterpolableBoolean getHardDriveNonrotational()
 
   @Input
-  InterpolableBoolean skipExport = InterpolableBoolean.withDefault(false) // TODO: handle
+  @Default({ 'ide' })
+  abstract InterpolableString getIsoInterface() // TODO: Enum
+
+  @Input
+  @Default({ Boolean.FALSE })
+  abstract InterpolableBoolean getKeepRegistered()
+
+  @Input
+  @Default({ Boolean.FALSE })
+  abstract InterpolableBoolean getSkipExport() // TODO: handle
 
   @Internal // name of the OVF file for the new virtual machine, without the file extension
-  // @Default(value = 'packer-BUILDNAME') // TODO
-  InterpolableString vmName
+  @Default({ 'packer-{{ .BuildName }}' }) // TODO
+  abstract InterpolableString getVmName()
 }
