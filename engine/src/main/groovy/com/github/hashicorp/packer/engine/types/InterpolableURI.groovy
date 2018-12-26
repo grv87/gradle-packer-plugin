@@ -2,6 +2,7 @@ package com.github.hashicorp.packer.engine.types
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.hashicorp.packer.engine.annotations.ComputedInternal
+import com.github.hashicorp.packer.engine.exceptions.ValueNotInterpolatedYetException
 import com.github.hashicorp.packer.engine.types.base.InterpolableValue
 import com.github.hashicorp.packer.engine.types.base.SimpleInterpolableString
 import com.github.hashicorp.packer.template.Context
@@ -11,6 +12,12 @@ import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> extends InterpolableValue<Object, URI, ThisInterface> {
+  @ComputedInternal
+  URI getFileURI()
+
+  @ComputedInternal
+  URI getNonFileURI()
+
   @KnownImmutable
   class ImmutableRaw<
     ThisInterface extends InterpolableURI<ThisInterface>,
@@ -43,6 +50,16 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
 
     protected static final URI doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
       context.resolveUri raw.interpolate(context)
+    }
+
+    @Override
+    URI getFileURI() {
+      throw new ValueNotInterpolatedYetException()
+    }
+
+    @Override
+    URI getNonFileURI() {
+      throw new ValueNotInterpolatedYetException()
     }
   }
 
@@ -78,6 +95,16 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
     protected static final URI doInterpolatePrimitive(Context context, SimpleInterpolableString raw) {
       context.resolveUri raw.interpolate(context)
     }
+
+    @Override
+    URI getFileURI() {
+      throw new ValueNotInterpolatedYetException()
+    }
+
+    @Override
+    URI getNonFileURI() {
+      throw new ValueNotInterpolatedYetException()
+    }
   }
 
   @InheritConstructors
@@ -85,7 +112,7 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
     ThisInterface extends InterpolableURI<ThisInterface>,
     AlreadyInterpolatedClass extends AlreadyInterpolated<ThisInterface>
   > extends InterpolableValue.Interpolated<Object, URI, InterpolableURI, AlreadyInterpolatedClass> implements InterpolableURI<ThisInterface> {
-    @ComputedInternal
+    @Override
     URI getFileURI() {
       /*
        * WORKAROUND:
@@ -96,7 +123,7 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
       'file'.equals(interpolated?.scheme) ? interpolated : null
     }
 
-    @ComputedInternal
+    @Override
     URI getNonFileURI() {
       /*
        * WORKAROUND:
@@ -113,7 +140,7 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
   class AlreadyInterpolated<
     ThisInterface extends InterpolableURI<ThisInterface>
   > extends InterpolableValue.AlreadyInterpolated<Object, URI, InterpolableURI> implements InterpolableURI<ThisInterface> {
-    @ComputedInternal
+    @Override
     URI getFileURI() {
       /*
        * WORKAROUND:
@@ -124,7 +151,7 @@ interface InterpolableURI<ThisInterface extends InterpolableURI<ThisInterface>> 
       'file'.equals(interpolated?.scheme) ? interpolated : null
     }
 
-    @ComputedInternal
+    @Override
     URI getNonFileURI() {
       /*
        * WORKAROUND:

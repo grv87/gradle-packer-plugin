@@ -36,14 +36,36 @@ import com.github.hashicorp.packer.engine.annotations.Default
 import com.github.hashicorp.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.engine.types.InterpolableBoolean
 import com.github.hashicorp.packer.engine.types.InterpolableChecksumType
+import com.github.hashicorp.packer.engine.types.InterpolableInputURI
 import com.github.hashicorp.packer.engine.types.InterpolableString
 import com.github.hashicorp.packer.engine.types.InterpolableStringArray
 import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
+import com.google.inject.Injector
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+import org.apache.commons.compress.utils.IOUtils
+import org.apache.commons.io.FilenameUtils
+import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.internal.impldep.org.apache.commons.io.FilenameUtils
+import org.jclouds.ContextBuilder
+import org.jclouds.cim.ResourceAllocationSettingData
+import org.jclouds.compute.stub.StubApiMetadata
+import org.jclouds.http.functions.ParseSax
+import org.jclouds.http.functions.config.SaxParserModule
+import org.jclouds.ovf.Envelope
+import org.jclouds.ovf.VirtualHardwareSection
+import org.jclouds.ovf.VirtualSystem
+import java.nio.file.Path
+import java.nio.file.Paths
+
+import static org.apache.commons.io.FilenameUtils.getExtension
 
 @CompileStatic
 @AutoImplement
@@ -105,8 +127,10 @@ abstract class VirtualBoxOvf extends Builder {
   @Input
   abstract InterpolableString getImportOpts()
 
-  abstract InterpolableString getSourcePath()
+  @Nested
+  abstract InterpolableInputURI getSourcePath()
 
+  @Internal
   abstract InterpolableString getTargetPath()
 
   @Internal // name of the OVF file for the new virtual machine, without the file extension
@@ -120,4 +144,68 @@ abstract class VirtualBoxOvf extends Builder {
   @Input
   @Default({ Boolean.FALSE })
   abstract InterpolableBoolean getSkipExport() // TODO: handle
+
+  private static Integer getCpusUsedFromOvf(File ovfFile) {
+    ovfFile.withInputStream { InputStream inputStream ->
+      Injector injector = new ContextBuilder(new StubApiMetadata()).buildInjector()
+      Set<VirtualHardwareSection> virtualHardwareSections =
+        injector.getInstance(ParseSax.Factory).create(injector.getInstance(ParseSax.HandlerWithResult<Envelope>/*EnvelopeHandler*/))
+        .parse(inputStream).virtualSystem.virtualHardwareSections
+      if (virtualHardwareSections.size() != 1) {
+        // TODO: log warning
+        return null
+      }
+      List<ResourceAllocationSettingData> processorData = virtualHardwareSections[0].items.findAll { ResourceAllocationSettingData resourceAllocationSettingData ->
+        resourceAllocationSettingData.resourceType == ResourceAllocationSettingData.ResourceType.PROCESSOR
+      }
+      if (processorData.size() != 1) {
+        // TODO: log warning
+        return null
+      }
+      if (processorData[0].virtualQuantityUnits != null && processorData[0].virtualQuantityUnits != 'count') {
+        // TODO: log warning
+        return null
+      }
+      return processorData[0].virtualQuantity.toInteger() // TODO
+    }
+  }
+
+  private static final String OVF = 'ovf'
+
+  @Override
+  final int getLocalCpusUsed() {
+    Path sourcePath = Paths.get(sourcePath.fileURI)
+    Integer originalCpus = null
+    if (sourcePath) {
+      switch (getExtension(sourcePath.toString())) {
+        case OVF:
+          originalCpus = getCpusUsedFromOvf(sourcePath.toFile())
+          break
+        case 'ova':
+          sourcePath.toFile().withInputStream { InputStream ovaInputStream ->
+            new GzipCompressorInputStream(ovaInputStream).withStream { InputStream gzInputStream ->
+              new TarArchiveInputStream(gzInputStream).withStream { TarArchiveInputStream tarInputStream ->
+                TarArchiveEntry tarEntry
+                while ((tarEntry = tarInputStream.nextEntry) != null) {
+                  if (FilenameUtils.getExtension(tarEntry.name) == OVF) {
+                    if (originalCpus == null) {
+                      originalCpus = getCpusUsedFromOvf(tarEntry.file)
+                    } else {
+                      // TODO: log warning
+                    }
+                  }
+                }
+              }
+            }
+          }
+          break
+        default:
+          // TODO: log warning
+          null
+      }
+    }
+    VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
+      vboxManageCommand*.interpolated
+    }, originalCpus)
+  }
 }

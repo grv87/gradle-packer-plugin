@@ -43,6 +43,7 @@ import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMo
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
+import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import com.google.common.primitives.UnsignedInteger
@@ -135,4 +136,11 @@ abstract class VirtualBoxIso extends Builder {
   @Internal // name of the OVF file for the new virtual machine, without the file extension
   @Default({ 'packer-{{ .BuildName }}' }) // TODO
   abstract InterpolableString getVmName()
+
+  @Override
+  final int getLocalCpusUsed() {
+    VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
+      vboxManageCommand*.interpolated
+    })
+  }
 }

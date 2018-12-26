@@ -3,6 +3,9 @@ package org.fidata.aws.ec2
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 
+/**
+ * Actual as of: 2018-12-24
+ */
 @CompileStatic
 class InstanceTypeUtils {
   static final Map<String, Integer> NUMBER_OF_CPU_CORES = ImmutableMap.<String, Integer>builder()
@@ -130,7 +133,7 @@ class InstanceTypeUtils {
     .put('p3.2xlarge', 8)
     .put('p3.8xlarge', 32)
     .put('p3.16xlarge', 64)
-    .put('p3dn.24xlarge*', 96)
+    .put('p3dn.24xlarge', 96)
     .put('p2.xlarge', 4)
     .put('p2.8xlarge', 32)
     .put('p2.16xlarge', 64)
