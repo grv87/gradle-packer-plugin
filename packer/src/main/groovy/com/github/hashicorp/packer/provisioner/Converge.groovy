@@ -19,13 +19,13 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.github.hashicorp.packer.engine.annotations.ComputedInputFiles
+import org.fidata.packer.engine.annotations.ComputedInputFiles
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableStringArray
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input

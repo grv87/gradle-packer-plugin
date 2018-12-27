@@ -1,6 +1,6 @@
 package org.fidata.gradle.packer.tasks
 
-import com.github.hashicorp.packer.engine.Engine
+import org.fidata.packer.engine.Engine
 import com.github.hashicorp.packer.template.Template
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.PackerBasePlugin

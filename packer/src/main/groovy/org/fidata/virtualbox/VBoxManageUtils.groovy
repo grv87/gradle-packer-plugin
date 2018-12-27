@@ -1,6 +1,6 @@
 package org.fidata.virtualbox
 
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableString
 
 final class VBoxManageUtils {
   static getCpusUsed(List<List<String>> vboxManageCommands, Integer originalCpus) {

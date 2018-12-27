@@ -2,7 +2,7 @@ package com.github.hashicorp.packer.builder
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
-import com.github.hashicorp.packer.engine.annotations.Inline
+import org.fidata.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.helper.Communicator
 
 @CompileStatic

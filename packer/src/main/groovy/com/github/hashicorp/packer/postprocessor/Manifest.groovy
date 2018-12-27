@@ -19,14 +19,14 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableBoolean
 
 @CompileStatic
 class Manifest extends PostProcessor {

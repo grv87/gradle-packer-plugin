@@ -19,7 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import com.github.hashicorp.packer.engine.annotations.Inline
+import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 

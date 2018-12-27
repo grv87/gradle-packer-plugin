@@ -1,12 +1,12 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.ComputedInput
-import com.github.hashicorp.packer.engine.annotations.Default
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ComputedInput
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal

@@ -24,16 +24,16 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
-import com.github.hashicorp.packer.engine.exceptions.InvalidRawValueClassException
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
-import com.github.hashicorp.packer.engine.Mutability
-import com.github.hashicorp.packer.engine.Engine
-import com.github.hashicorp.packer.engine.SubtypeRegistry
+import org.fidata.packer.engine.exceptions.InvalidRawValueClassException
+import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
+import org.fidata.packer.engine.Mutability
+import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableBoolean
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -92,10 +92,6 @@ abstract class PostProcessor extends InterpolableObject {
   protected abstract Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
   protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
-
-  static void register(Engine engine) {
-    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
-  }
 
   static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {

@@ -1,9 +1,9 @@
 package com.github.hashicorp.packer.builder.virtualbox.common
 
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableUnsignedInteger
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal

@@ -5,10 +5,20 @@ plugins {
   id 'org.fidata.project.java'
   id 'org.fidata.project.groovy'
 }
+
+configurations.create 'groovyc'
+
 dependencies {
   api gradleApi()
-  // api 'org.codehaus.groovy:groovy:2.5.5'
+  /*
+   * WORKAROUND:
+   * Groovy compiler 2.5.4 has issue with inner classes
+   * https://issues.apache.org/jira/browse/GROOVY-8914
+   * <grv87 2018-12-27>
+   */
+  groovyc 'org.codehaus.groovy:groovy-all:2.5.5'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '[2.9, 3['
+  api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '[2.9, 3['
   api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '[2.9, 3['
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: '[2.9, 3['
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-guava', version: '[2.9, 3['
@@ -18,7 +28,18 @@ dependencies {
   api group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3.3, 4['
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
+  api group: 'com.github.zafarkhaja', name: 'java-semver', version: '[0, 1['
 }
+// TODO: move this to gradle-base-plugins
+tasks.withType(GroovyCompile).configureEach {
+  groovyClasspath = configurations.getByName('groovyc')
+}
+
+/*configurations.all {
+  resolutionStrategy {
+    force 'org.codehaus.groovy:groovy-all:2.5.5'
+  }
+}*/
 
 /*
  * WORKAROUND:

@@ -21,11 +21,31 @@ contacts {
 
 ext.rootDir = file('..')
 
+configurations.create 'groovyc'
+
 apply from: new File(ext.rootDir, 'plugin/gradle/dependencies-validate-compile.gradle')
 
 dependencies {
+  /*
+   * WORKAROUND:
+   * Groovy compiler 2.5.4 has issue with inner classes
+   * https://issues.apache.org/jira/browse/GROOVY-8914
+   * <grv87 2018-12-27>
+   */
+  groovyc 'org.codehaus.groovy:groovy-all:2.5.5'
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
 }
+
+// TODO: move this to gradle-base-plugins
+tasks.withType(GroovyCompile).configureEach {
+  groovyClasspath = configurations.getByName('groovyc')
+}
+
+/*configurations.all {
+  resolutionStrategy {
+    force 'org.codehaus.groovy:groovy-all:2.5.5'
+  }
+}*/
 
 sourceSets.main.groovy.srcDirs new File(project.ext.rootDir,  'plugin/src/validate/groovy')
 

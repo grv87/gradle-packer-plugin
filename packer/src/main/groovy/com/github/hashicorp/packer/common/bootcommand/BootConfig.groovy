@@ -1,9 +1,9 @@
 package com.github.hashicorp.packer.common.bootcommand
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.hashicorp.packer.engine.types.InterpolableDuration
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableDuration
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal

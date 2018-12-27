@@ -26,8 +26,8 @@ import com.github.hashicorp.packer.builder.amazon.common.AccessConfig
 import com.github.hashicorp.packer.builder.amazon.common.BlockDevices
 import com.github.hashicorp.packer.builder.amazon.common.RunConfig
 import com.github.hashicorp.packer.builder.amazon.common.TagMap
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.Inline
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder

@@ -2,12 +2,12 @@ package com.github.hashicorp.packer.helper
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Internal
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableInteger
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableDuration
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableInteger
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableDuration
 
 @CompileStatic
 // TODO: communicator/config ?

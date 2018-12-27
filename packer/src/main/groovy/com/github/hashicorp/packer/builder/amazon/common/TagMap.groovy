@@ -1,8 +1,8 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.base.InterpolableValue
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.base.InterpolableValue
 import com.github.hashicorp.packer.template.Context
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic

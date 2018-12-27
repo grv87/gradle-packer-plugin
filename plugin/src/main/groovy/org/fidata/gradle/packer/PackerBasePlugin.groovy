@@ -20,7 +20,7 @@
  */
 package org.fidata.gradle.packer
 
-import com.github.hashicorp.packer.engine.Engine
+import org.fidata.packer.engine.Engine
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP

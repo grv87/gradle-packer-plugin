@@ -22,13 +22,13 @@ package com.github.hashicorp.packer.template
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.github.hashicorp.packer.engine.Engine
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
-import com.github.hashicorp.packer.engine.SubtypeRegistry
+import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
+import org.fidata.packer.engine.SubtypeRegistry
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableDuration
+import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableDuration
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import com.google.common.reflect.TypeToken
@@ -113,8 +113,4 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
   }
 
   protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new SubtypeRegistry<Provisioner>()
-
-  static void register(Engine engine) {
-    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
-  }
 }

@@ -20,16 +20,16 @@
 package com.github.hashicorp.packer.provisioner
 
 import java.io.File as JavaFile
-import com.github.hashicorp.packer.engine.annotations.ComputedInputDirectory
-import com.github.hashicorp.packer.engine.annotations.ComputedInputFile
-import com.github.hashicorp.packer.engine.annotations.ComputedOutputDirectory
-import com.github.hashicorp.packer.engine.annotations.ComputedOutputFile
-import com.github.hashicorp.packer.engine.types.base.InterpolableEnum
+import org.fidata.packer.engine.annotations.ComputedInputDirectory
+import org.fidata.packer.engine.annotations.ComputedInputFile
+import org.fidata.packer.engine.annotations.ComputedOutputDirectory
+import org.fidata.packer.engine.annotations.ComputedOutputFile
+import org.fidata.packer.engine.types.base.InterpolableEnum
 import com.fasterxml.jackson.annotation.JsonValue
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.InheritConstructors
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional

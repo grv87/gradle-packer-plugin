@@ -32,14 +32,14 @@ import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.Default
-import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableInteger
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableUnsignedInteger
-import com.github.hashicorp.packer.engine.types.InterpolableVBoxGuestAdditionsMode
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableInteger
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableUnsignedInteger
+import org.fidata.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
@@ -133,7 +133,7 @@ abstract class VirtualBoxIso extends Builder {
   @Default({ Boolean.FALSE })
   abstract InterpolableBoolean getSkipExport() // TODO: handle
 
-  @Internal // name of the OVF file for the new virtual machine, without the file extension
+  @Internal // name of the OVF_FILE_EXTENSION file for the new virtual machine, without the file extension
   @Default({ 'packer-{{ .BuildName }}' }) // TODO
   abstract InterpolableString getVmName()
 

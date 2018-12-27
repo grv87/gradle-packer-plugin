@@ -20,8 +20,8 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.hashicorp.packer.engine.types.InterpolableDuration
-import com.github.hashicorp.packer.engine.types.InterpolableFile
+import org.fidata.packer.engine.types.InterpolableDuration
+import org.fidata.packer.engine.types.InterpolableFile
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import org.gradle.api.tasks.Input

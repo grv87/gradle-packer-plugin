@@ -1,7 +1,7 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
-import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.types.base.InterpolableObject
 import groovy.transform.CompileStatic
 
 @CompileStatic

@@ -13,7 +13,7 @@ final class CollectionUtils {
     } else if (Provider.isInstance(value)) {
       flattenValue(((Provider)value).get())
     } else if (Supplier.isInstance(value)) {
-      flattenValue(((Supplier) value).get())
+      flattenValue(((Supplier)value).get())
     } else {
       // If it is not Serializable then we get cast error here - it's what expected
       (Serializable)value

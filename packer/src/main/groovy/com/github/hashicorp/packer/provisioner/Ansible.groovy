@@ -21,9 +21,9 @@ package com.github.hashicorp.packer.provisioner
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableString
-import com.github.hashicorp.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableStringArray
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 

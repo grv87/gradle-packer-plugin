@@ -12,7 +12,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import com.fasterxml.uuid.Generators
 import com.fasterxml.uuid.NoArgGenerator
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.types.InterpolableString
 import com.samskivert.mustache.Mustache
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -320,9 +320,9 @@ final class Context {
 
     @Override
     Collection<Serializable> values() {
-      ImmutableList.copyOf((Collection<Serializable>)(parameterizedFunctions.values().collectMany { Map<String, ?> value ->
+      ImmutableList.copyOf((Collection<Serializable>)((parameterizedFunctions.values().collectMany { Map<String, ?> value ->
         value.values().collect { Object subvalue -> flattenValue(subvalue) }
-      } + parameterlessConstantFunctions))
+      } + parameterlessConstantFunctions.values())))
     }
 
     @Override

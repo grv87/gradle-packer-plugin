@@ -20,15 +20,15 @@
 package com.github.hashicorp.packer.template
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.github.hashicorp.packer.engine.Engine
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.ComputedInput
-import com.github.hashicorp.packer.engine.SubtypeRegistry
+import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ComputedInput
+import org.fidata.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
-import com.github.hashicorp.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableString
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -87,9 +87,5 @@ abstract class Builder implements InterpolableObject<Builder> {
     }
   }
 
-  protected static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
-
-  static void register(Engine engine) {
-    engine.registerCustomModuleProvider SUBTYPE_REGISTRY
-  }
+  static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
 }

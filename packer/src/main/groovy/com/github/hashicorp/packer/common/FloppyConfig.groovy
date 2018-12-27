@@ -1,7 +1,7 @@
 package com.github.hashicorp.packer.common
 
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableStringArray
 import groovy.transform.CompileStatic
 
 @CompileStatic

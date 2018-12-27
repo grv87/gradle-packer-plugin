@@ -5,15 +5,25 @@ plugins {
   id 'org.fidata.project.java'
   id 'org.fidata.project.groovy'
 }
+
+configurations.create 'groovyc'
+
 dependencies {
   // TOTEST: annotationProcessor project(path: ':engine'/*, configuration: 'apiElements'*/)
   api project(path: ':engine'/*, configuration: 'apiElements'*/)
-  // api 'org.codehaus.groovy:groovy:2.5.5'
+  /*
+   * WORKAROUND:
+   * Groovy compiler 2.5.4 has issue with inner classes
+   * https://issues.apache.org/jira/browse/GROOVY-8914
+   * <grv87 2018-12-27>
+   */
+  groovyc 'org.codehaus.groovy:groovy-all:2.5.5'
   // Provided by engine: api gradleApi()
   // Provided by engine: implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
   // api(group: 'org.apache.jclouds.labs', name: 'aliyun-ecs', version: '[2, 3[').status = 'integration'
   implementation group: 'org.apache.commons', name: 'commons-compress', version: '[1, 2['
+  implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
   implementation group: 'org.apache.jclouds.provider', name: 'aws-ec2', version: '[2, 3['
   implementation group: 'org.apache.jclouds.api', name: 'ec2', version: '[2, 3['
   implementation group: 'org.apache.jclouds.labs', name: 'azurecompute', version: '[2, 3['
@@ -29,6 +39,16 @@ dependencies {
   implementation group: 'org.apache.jclouds.labs', name: 'joyentcloud', version: '[2, 3['
   implementation group: 'org.apache.jclouds.labs', name: 'vagrant', version: '[2, 3['
 }
+
+tasks.withType(GroovyCompile).configureEach {
+  groovyClasspath = configurations.getByName('groovyc')
+}
+
+/*configurations.all {
+  resolutionStrategy {
+    force 'org.codehaus.groovy:groovy-all:2.5.5'
+  }
+}*/
 
 configurations.named('implementation').configure { exclude(group: 'org.slf4j', module: 'slf4j-api') }
 

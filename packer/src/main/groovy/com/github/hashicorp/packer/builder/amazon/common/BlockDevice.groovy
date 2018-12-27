@@ -1,13 +1,13 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
-import com.github.hashicorp.packer.engine.annotations.AutoImplement
-import com.github.hashicorp.packer.engine.annotations.Default
-import com.github.hashicorp.packer.engine.annotations.IgnoreIf
-import com.github.hashicorp.packer.engine.annotations.PostProcess
-import com.github.hashicorp.packer.engine.types.InterpolableBoolean
-import com.github.hashicorp.packer.engine.types.InterpolableLong
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.IgnoreIf
+import org.fidata.packer.engine.annotations.PostProcess
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableLong
+import org.fidata.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
 

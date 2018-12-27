@@ -19,22 +19,22 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.github.hashicorp.packer.engine.Mutability
-import com.github.hashicorp.packer.engine.types.InterpolableString
+import org.fidata.packer.engine.Mutability
+import org.fidata.packer.engine.types.InterpolableString
 
 import static Context.BUILD_NAME_VARIABLE_NAME
-import com.github.hashicorp.packer.engine.Engine
-import com.github.hashicorp.packer.engine.annotations.ComputedInternal
-import com.github.hashicorp.packer.engine.annotations.ComputedNested
+import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.annotations.ComputedInternal
+import org.fidata.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
 import java.nio.file.Path
 
-import com.github.hashicorp.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
+import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.hashicorp.packer.engine.types.base.InterpolableObject
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
