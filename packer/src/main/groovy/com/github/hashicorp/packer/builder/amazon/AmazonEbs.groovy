@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.builder.amazon
 
+import org.fidata.packer.engine.AbstractEngine
+
 import static org.fidata.utils.InetAddressUtils.isLocalHost
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.builder.amazon.common.AMIConfig
@@ -64,5 +66,9 @@ abstract class AmazonEbs extends Builder {
     // TODO: null customEndpointEc2 ?
     // TOTEST: if this doesn't work with Eucalyptus then this makes no sense
     isLocalHost(accessConfig.customEndpointEc2.interpolated) ? InstanceTypeUtils.NUMBER_OF_CPU_CORES[runConfig.instanceType.interpolated] : 0
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Builder).registerSubtype 'amazon-ebs', this
   }
 }

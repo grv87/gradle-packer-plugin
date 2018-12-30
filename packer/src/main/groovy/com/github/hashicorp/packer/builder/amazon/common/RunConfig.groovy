@@ -2,6 +2,7 @@ package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.types.InterpolableAWSEC2InstanceType
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableLong
@@ -37,7 +38,7 @@ class RunConfig extends InterpolableObject {
   InterpolableString instanceInitiatedShutdownBehavior
 
   @Internal
-  InterpolableString instanceType
+  InterpolableAWSEC2InstanceType instanceType
 
   @Internal
   TagMap /* Packer doesn't use TagMap here */ runTags

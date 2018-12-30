@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import org.fidata.packer.engine.exceptions.InvalidRawValueClassException
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import org.fidata.packer.engine.Mutability
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
@@ -91,7 +91,9 @@ abstract class PostProcessor extends InterpolableObject {
 
   protected abstract Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
-  protected static final SubtypeRegistry<PostProcessor> SUBTYPE_REGISTRY = new SubtypeRegistry<PostProcessor>()
+  static void register(AbstractEngine engine) {
+    engine.addSubtypeRegistry PostProcessor
+  }
 
   static final class PostProcessorArrayDefinition extends InterpolableObject {
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
@@ -147,15 +149,15 @@ abstract class PostProcessor extends InterpolableObject {
      * depending on rawValue actual type
      */
     @CompileDynamic
-    final PostProcessorArrayDefinition interpolateForBuilder(Context buildCtx) {
+    final PostProcessorArrayDefinition interpolateForBuilder(AbstractEngine engine, Context buildCtx) {
       if (context.buildName) {
         throw new ObjectAlreadyInterpolatedForBuilderException()
       }
       // Stage 3
-      interpolateRawValueForBuilder buildCtx, rawValue
+      interpolateRawValueForBuilder engine, buildCtx, rawValue
     }
 
-    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, ArrayClass rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, ArrayClass rawValue) {
       ArrayClass result = (ArrayClass)(rawValue*.interpolateForBuilder(buildCtx).findAll())
       if (result.empty == false) {
         new PostProcessorArrayDefinition(result)
@@ -164,7 +166,7 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessorDefinition rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, PostProcessorDefinition rawValue) {
       PostProcessorDefinition result = rawValue.interpolateForBuilder(buildCtx)
       if (result) {
         new PostProcessorArrayDefinition(result)
@@ -173,7 +175,7 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+    private static PostProcessorArrayDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, Object rawValue) {
       throw new InvalidRawValueClassException(rawValue)
     }
 
@@ -278,7 +280,7 @@ abstract class PostProcessor extends InterpolableObject {
       interpolateRawValueForBuilder buildCtx, rawValue
     }
 
-    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, PostProcessor rawValue) {
+    private static PostProcessorDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, PostProcessor rawValue) {
       PostProcessor result = rawValue.interpolateForBuilder(buildCtx)
       if (result) {
         new PostProcessorDefinition(result)
@@ -287,11 +289,11 @@ abstract class PostProcessor extends InterpolableObject {
       }
     }
 
-    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, String rawValue) {
-      new PostProcessorDefinition(Engine.ABSTRACT_TYPE_MAPPING_REGISTRY.instantiate(SUBTYPE_REGISTRY[rawValue], Mutability.IMMUTABLE)) // TODO
+    private static PostProcessorDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, String rawValue) {
+      new PostProcessorDefinition(engine.abstractTypeMappingRegistry.instantiate(PostProcessor, rawValue, Mutability.IMMUTABLE)) // TODO
     }
 
-    private static PostProcessorDefinition interpolateRawValueForBuilder(Context buildCtx, Object rawValue) {
+    private static PostProcessorDefinition interpolateRawValueForBuilder(AbstractEngine engine, Context buildCtx, Object rawValue) {
       throw new InvalidRawValueClassException(rawValue)
     }
 

@@ -20,6 +20,7 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import org.fidata.packer.engine.types.InterpolableInteger
@@ -80,5 +81,9 @@ class Powershell extends Provisioner<Configuration> {
 
     @Internal
     List<InterpolableInteger> validExitCodes
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'powershell', this
   }
 }

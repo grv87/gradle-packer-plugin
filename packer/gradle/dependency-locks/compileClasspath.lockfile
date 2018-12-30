@@ -3,9 +3,13 @@
 # This file is expected to be part of source control.
 aopalliance:aopalliance:1.0
 asm:asm:3.1
+com.amazonaws:aws-java-sdk-core:1.11.475
+com.amazonaws:aws-java-sdk-ec2:1.11.475
+com.amazonaws:jmespath-java:1.11.475
 com.fasterxml.jackson.core:jackson-annotations:2.9.0
 com.fasterxml.jackson.core:jackson-core:2.9.8
 com.fasterxml.jackson.core:jackson-databind:2.9.8
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.6.7
 com.github.zafarkhaja:java-semver:0.9.0
 com.google.code.findbugs:jsr305:3.0.2
 com.google.code.gson:gson:2.5
@@ -28,16 +32,21 @@ com.jcraft:jzlib:1.1.3
 com.samskivert:jmustache:1.14
 com.squareup.okhttp:okhttp:2.2.0
 com.squareup.okio:okio:1.2.0
+commons-codec:commons-codec:1.10
 commons-io:commons-io:2.6
+commons-logging:commons-logging:1.2
 javax.annotation:jsr250-api:1.0
 javax.inject:javax.inject:1
 javax.ws.rs:javax.ws.rs-api:2.0.1
+joda-time:joda-time:2.8.1
 name.neykov:vagrant-java-bindings:0.2.0
 net.i2p.crypto:eddsa:0.1.0
 net.iharder:base64:2.3.8
 net.java.dev.jna:jna-platform:4.1.0
 net.java.dev.jna:jna:4.1.0
 org.apache.commons:commons-compress:1.18
+org.apache.httpcomponents:httpclient:4.5.5
+org.apache.httpcomponents:httpcore:4.4.9
 org.apache.jclouds.api:cloudstack:2.1.1
 org.apache.jclouds.api:docker:2.1.1
 org.apache.jclouds.api:ec2:2.1.1
@@ -70,3 +79,4 @@ org.checkerframework:checker-qual:2.5.2
 org.codehaus.mojo:animal-sniffer-annotations:1.14
 org.projectlombok:lombok:1.18.4
 org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+software.amazon.ion:ion-java:1.0.2

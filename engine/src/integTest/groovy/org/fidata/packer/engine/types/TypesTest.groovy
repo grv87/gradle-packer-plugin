@@ -1,6 +1,6 @@
 package org.fidata.packer.engine.types
 
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.Mutability
 import com.github.hashicorp.packer.template.Context
 import org.apache.commons.lang3.SerializationUtils
@@ -14,7 +14,7 @@ class TypesTest {
 
   @Test
   void testEngine() {
-    Engine engine = new Engine()
+    AbstractEngine engine = new AbstractEngine()
     InterpolableLong interpolableLong = engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE)
     assert InterpolableLong.Raw.isInstance(interpolableLong)
   }

@@ -1,6 +1,6 @@
 package org.fidata.packer.engine.ast.valid.customRegister
 
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.types.InterpolableLong
@@ -16,7 +16,7 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
   @Default({ 1L })
   abstract InterpolableLong getSingleField()
 
-  static final void register(Engine e) {
+  static final void register(AbstractEngine e) {
     // do some stuff
     new Random().nextInt()
   }

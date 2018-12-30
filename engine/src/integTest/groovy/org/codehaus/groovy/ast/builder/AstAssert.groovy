@@ -27,12 +27,16 @@
  *  The following changes were made to the original:
  *  * Properties referencing ClassNode are compared by type name only
  *  * Added support for ModuleNode, CompareToNullExpression and OptimizingBooleanExpression types
- *  * Added path argument so that failed assertion reports what exactly is different
+ *  * Added path argument so that failed assertions could report what exactly is different
  *  * Indentation changed to two spaces
+ *  * Added special handling for Generated annotation (value of date member is not compared with expected,
+ *  only format is checked)
  */
 package org.codehaus.groovy.ast.builder
 
 import org.junit.Assert
+import javax.annotation.Generated
+import java.time.OffsetDateTime
 
 /**
  *
@@ -100,10 +104,20 @@ class AstAssert {
     AnnotationNode : { expected, actual, path ->
       // assertSyntaxTree([expected.classNode], [actual.classNode], "${ path }.classNode")
       assertNameOnly expected, actual, path, 'classNode'
+      /*
+       * CAVEAT:
+       * Special handling for Generated annotation.
+       * date member can't be matched correctly
+       */
+      boolean isGeneratedAnnotation = expected.classNode.name == Generated.canonicalName // TOTEST
 
       Assert.assertEquals("$path: Wrong members keyset", expected.members.keySet(), actual.members.keySet())
       expected.members.each { key, value ->
-        assertSyntaxTree([value], [actual.members[key]], "${ path }.members[$key]")
+        if (isGeneratedAnnotation && key == 'date') {
+          OffsetDateTime.parse(actual.members[key])
+        } else {
+          assertSyntaxTree([value], [actual.members[key]], "${ path }.members[$key]")
+        }
       }
     },
     ClassNode : { expected, actual, path ->

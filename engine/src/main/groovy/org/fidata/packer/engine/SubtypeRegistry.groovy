@@ -6,40 +6,51 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 import org.fidata.packer.engine.types.base.InterpolableObject
 import com.google.common.reflect.TypeToken
 import groovy.transform.CompileStatic
-import groovy.transform.Synchronized
+import org.fidata.version.VersionAdapter
+// import groovy.transform.Synchronized
 
 @CompileStatic
-final class SubtypeRegistry<T extends InterpolableObject> extends Module {
+abstract class SubtypeRegistry<BaseType extends InterpolableObject<BaseType>> extends Module {
   @SuppressWarnings('UnstableApiUsage')
-  private final String className = new TypeToken<T>(this.class) { }.rawType.simpleName
-  private final Map<String, Class<? extends T>> subtypeRegistry = [:]
+  private final String moduleName = new TypeToken<SubtypeRegistry<BaseType>>(this.class) { }.toString()
+  private final String tClassName = new TypeToken<BaseType>(this.class) { }.toString()
+  private final Map<String, Class<? extends BaseType>> subtypeRegistry = [:]
 
-  @Synchronized
-  void registerSubtype(String name, Class<? extends T> clazz) {
+  private SubtypeRegistry() {}
+
+  static <T extends InterpolableObject> SubtypeRegistry<T> forType(Class<T> baseType) {
+    new SubtypeRegistry<T>(){ } // TOTEST
+  }
+
+  // @Synchronized
+  void registerSubtype(String name, Class<? extends BaseType> clazz) {
     if (subtypeRegistry.containsKey(name)) {
-      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [className, name]))
+      throw new IllegalArgumentException(sprintf('%s with type %s is already registered', [tClassName, name]))
     }
     subtypeRegistry[name] = clazz
   }
 
-  @Synchronized
-  Class<? extends T> getAt(String name) {
+  // @Synchronized
+  Class<? extends BaseType> getAt(String name) {
     subtypeRegistry[name]
   }
 
   @Override
   String getModuleName() {
-    return null
+    return moduleName
   }
+
+  @Lazy
+  private VersionAdapter version = VersionAdapter.mavenVersionFor(this.class.classLoader, 'org.fidata', 'gradle-packer-plugin') // TODO: ???
 
   @Override
   Version version() {
-    return null
+    return this.version.asJackson()
   }
 
   @Override
   void setupModule(SetupContext context) {
-    subtypeRegistry.each { String key, Class<? extends T> value ->
+    subtypeRegistry.each { String key, Class<? extends BaseType> value ->
       context.registerSubtypes(new NamedType(value, key))
     }
   }

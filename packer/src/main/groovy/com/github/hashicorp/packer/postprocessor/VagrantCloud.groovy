@@ -22,6 +22,7 @@ package com.github.hashicorp.packer.postprocessor
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
+import org.fidata.packer.engine.AbstractEngine
 
 @CompileStatic
 class VagrantCloud extends PostProcessor {
@@ -38,4 +39,8 @@ class VagrantCloud extends PostProcessor {
   String vagrantCloudUrl
 
   String boxDownloadUrl
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant-cloud', this
+  }
 }

@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
@@ -60,7 +61,7 @@ class Manifest extends PostProcessor {
     }
   }
 
-  static {
-    SUBTYPE_REGISTRY.registerSubtype 'manifest', Manifest
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'manifest', this
   }
 }

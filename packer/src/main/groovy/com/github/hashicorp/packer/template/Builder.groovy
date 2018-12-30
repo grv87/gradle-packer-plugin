@@ -20,7 +20,7 @@
 package com.github.hashicorp.packer.template
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedInput
 import org.fidata.packer.engine.SubtypeRegistry
@@ -87,5 +87,7 @@ abstract class Builder implements InterpolableObject<Builder> {
     }
   }
 
-  static final SubtypeRegistry<Builder> SUBTYPE_REGISTRY = new SubtypeRegistry<Builder>()
+  static void register(AbstractEngine engine) {
+    engine.addSubtypeRegistry Builder
+  }
 }

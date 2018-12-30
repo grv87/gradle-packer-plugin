@@ -1,6 +1,7 @@
 package org.fidata.gradle.packer.tasks
 
-import org.fidata.packer.engine.Engine
+
+import org.fidata.packer.engine.AbstractEngine
 import com.github.hashicorp.packer.template.Template
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.PackerBasePlugin
@@ -9,7 +10,7 @@ import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 
 @CompileStatic
 class PackerBuild extends AbstractPackerBuild implements PackerOnlyExceptArgument, PackerTemplateArgument {
-  private static final Engine ENGINE = new Engine()
+  private static final AbstractEngine ENGINE = new AbstractEngine()
   
   private Template template
 

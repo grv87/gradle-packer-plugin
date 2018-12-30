@@ -22,6 +22,7 @@ package com.github.hashicorp.packer.postprocessor
 import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
+import org.fidata.packer.engine.AbstractEngine
 
 @CompileStatic
 class Vagrant extends PostProcessor {
@@ -35,4 +36,8 @@ class Vagrant extends PostProcessor {
   Map<String, Object> override
 
   String vagrantfileTemplate
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant', this
+  }
 }

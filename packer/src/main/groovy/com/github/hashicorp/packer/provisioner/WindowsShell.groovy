@@ -20,6 +20,7 @@
 package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import groovy.transform.CompileStatic
@@ -61,5 +62,9 @@ class WindowsShell extends Provisioner<Configuration> {
 
     @Internal
     InterpolableDuration startRetryTimeout
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'windows-shell', this
   }
 }

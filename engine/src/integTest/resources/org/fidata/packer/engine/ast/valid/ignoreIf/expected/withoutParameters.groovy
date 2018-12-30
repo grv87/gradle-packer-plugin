@@ -7,13 +7,15 @@ import com.fasterxml.jackson.annotation.OptBoolean
 import org.fidata.packer.engine.types.InterpolableLong
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.Mutability
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+
+import javax.annotation.Generated
 
 @CompileStatic
 abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
@@ -37,6 +39,7 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     this.@thirdField
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:50:39+03:00')
   protected IgnoreIfTest(
     InterpolableLong firstField,
     InterpolableLong secondField,
@@ -48,8 +51,9 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
   }
 
   @KnownImmutable
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:50:48+03:00')
   static final class ImmutableImpl extends IgnoreIfTest {
-    ImmutableImpl(Engine engine) {
+    ImmutableImpl(AbstractEngine engine) {
       this(
         engine,
         (InterpolableLong)null,
@@ -61,7 +65,7 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     @JsonCreator
     ImmutableImpl(
       @JacksonInject(useInput = OptBoolean.FALSE)
-        Engine engine,
+        AbstractEngine engine,
       @JsonProperty('first_field')
         InterpolableLong firstField,
       @JsonProperty('second_field')
@@ -77,8 +81,9 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:50:52+03:00')
   static final class Impl extends IgnoreIfTest {
-    Impl(Engine engine) {
+    Impl(AbstractEngine engine) {
       this(
         engine,
         (InterpolableLong)null,
@@ -90,7 +95,7 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     @JsonCreator
     Impl(
       @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
+      AbstractEngine engine,
       @JsonProperty('first_field')
       InterpolableLong firstField,
       @JsonProperty('second_field')
@@ -106,6 +111,7 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
     }
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:50:57+03:00')
   static final class Interpolated extends IgnoreIfTest {
     protected Interpolated(Context context, IgnoreIfTest from) {
       super(
@@ -117,11 +123,13 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
   }
 
   @Override
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:51:01+03:00')
   final IgnoreIfTest interpolate(Context context) {
     return new Interpolated(context, this)
   }
 
-  static final void register(Engine engine) {
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:51:04+03:00')
+  static final void register(AbstractEngine engine) {
     engine.abstractTypeMappingRegistry.registerAbstractTypeMapping IgnoreIfTest, Impl, ImmutableImpl
   }
 }

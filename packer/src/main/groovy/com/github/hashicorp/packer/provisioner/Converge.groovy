@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ComputedInputFiles
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
@@ -123,5 +124,9 @@ class Converge extends Provisioner<Configuration> {
         'Module': module.interpolatedValue,
       ])*/
     }
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'converge', this
   }
 }

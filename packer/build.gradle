@@ -17,7 +17,7 @@ dependencies {
    * https://issues.apache.org/jira/browse/GROOVY-8914
    * <grv87 2018-12-27>
    */
-  groovyc 'org.codehaus.groovy:groovy-all:2.5.5'
+  groovyc group: 'org.codehaus.groovy', name: 'groovy-all', version: '[2.5.5, 3['
   // Provided by engine: api gradleApi()
   // Provided by engine: implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
@@ -38,6 +38,7 @@ dependencies {
   implementation group: 'org.apache.jclouds.labs', name: 'joyent-cloudapi', version: '[2, 3['
   implementation group: 'org.apache.jclouds.labs', name: 'joyentcloud', version: '[2, 3['
   implementation group: 'org.apache.jclouds.labs', name: 'vagrant', version: '[2, 3['
+  implementation group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '[1, 2['
 }
 
 tasks.withType(GroovyCompile).configureEach {

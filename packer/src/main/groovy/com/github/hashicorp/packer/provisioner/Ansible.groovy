@@ -21,6 +21,7 @@ package com.github.hashicorp.packer.provisioner
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
@@ -89,5 +90,9 @@ class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is s
         'Module': module.interpolatedValue,
       ])
     }
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'ansible', this
   }
 }

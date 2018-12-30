@@ -32,6 +32,7 @@ import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.Inline
@@ -142,5 +143,9 @@ abstract class VirtualBoxIso extends Builder {
     VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
       vboxManageCommand*.interpolated
     })
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Builder).registerSubtype 'virtualbox-iso', this
   }
 }

@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
@@ -28,5 +29,9 @@ class ShellLocal extends Provisioner<Configuration> {
   static class Configuration extends Provisioner.Configuration {
     @Inline
     com.github.hashicorp.packer.common.ShellLocal config
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'shell-local', this
   }
 }

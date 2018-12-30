@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.postprocessor
 
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
@@ -27,4 +28,8 @@ import com.github.hashicorp.packer.template.PostProcessor
 class ShellLocal extends PostProcessor {
   @Inline
   com.github.hashicorp.packer.common.ShellLocal config
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'shell-local', this
+  }
 }

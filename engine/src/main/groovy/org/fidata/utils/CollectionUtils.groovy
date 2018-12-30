@@ -7,6 +7,12 @@ import java.util.function.Supplier
 
 @CompileStatic
 final class CollectionUtils {
+  /**
+   *
+   * @param value
+   * @return
+   * @throws TODO
+   */
   static Serializable flattenValue(Object value) {
     if (Callable.isInstance(value)) {
       flattenValue(((Callable)value).call())

@@ -20,16 +20,11 @@
  */
 package org.fidata.gradle.packer
 
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import com.github.hashicorp.packer.template.Builder
-import com.github.hashicorp.packer.template.PostProcessor
-import com.github.hashicorp.packer.template.Provisioner
-import com.github.hashicorp.packer.builder.Null
-import com.github.hashicorp.packer.postprocessor.Manifest
-import com.github.hashicorp.packer.provisioner.File
+
 import org.fidata.gradle.packer.tasks.PackerBuild
 import org.fidata.gradle.packer.tasks.PackerValidate
 import groovy.transform.CompileStatic
@@ -44,7 +39,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
  */
 @CompileStatic
 class PackerBasePlugin implements Plugin<Project> {
-  private final Engine engine = new Engine()
+  private final AbstractEngine engine = new AbstractEngine()
 
   static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
 

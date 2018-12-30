@@ -19,11 +19,12 @@
  */
 package com.github.hashicorp.packer.template
 
+
 import org.fidata.packer.engine.Mutability
 import org.fidata.packer.engine.types.InterpolableString
 
 import static Context.BUILD_NAME_VARIABLE_NAME
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ComputedInternal
 import org.fidata.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
@@ -177,7 +178,7 @@ class Template implements InterpolableObject {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  static Template readFromFile(Engine engine, File file, Mutability mutability = Mutability.IMMUTABLE) {
+  static Template readFromFile(AbstractEngine engine, File file, Mutability mutability = Mutability.IMMUTABLE) {
     Template template = (Template)file.withInputStream { InputStream inputStream ->
       engine.getObjectMapperFacade(mutability).readValue(inputStream, Template)
     }
@@ -185,14 +186,14 @@ class Template implements InterpolableObject {
     template
   }
 
-  static Template readValue(Engine engine, String string, Mutability mutability = Mutability.IMMUTABLE) {
+  static Template readValue(AbstractEngine engine, String string, Mutability mutability = Mutability.IMMUTABLE) {
     Template template = engine.getObjectMapperFacade(mutability).readValue(string, Template)
     template
   }
 
   void writeValue(Writer writer) {
     /* TODO file.withInputStream { InputStream inputStream ->
-      Engine.get(mutability).writeValue
+      AbstractEngine.get(mutability).writeValue
         .readValue(inputStream, Template)
     }*/
   }

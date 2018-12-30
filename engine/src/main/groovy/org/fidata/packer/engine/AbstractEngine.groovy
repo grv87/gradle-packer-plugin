@@ -1,12 +1,15 @@
 package org.fidata.packer.engine
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.google.common.reflect.TypeToken
-
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase
 import static com.fasterxml.jackson.databind.InjectableValues.Std as InjectableValuesStd
+import com.google.common.collect.ImmutableMap
+import groovy.transform.KnownImmutable
+import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver
+import com.fasterxml.jackson.core.Version
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.google.common.reflect.TypeToken
+import org.fidata.version.VersionAdapter
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import org.fidata.packer.engine.types.InterpolableInputDirectory
@@ -18,11 +21,8 @@ import org.fidata.packer.engine.types.InterpolableStringArray
 import org.fidata.packer.engine.types.InterpolableURI
 import org.fidata.packer.engine.types.InterpolableUnsignedInteger
 import org.fidata.packer.engine.types.base.InterpolableValue
-
 import java.lang.reflect.Constructor
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.fasterxml.jackson.databind.module.SimpleModule
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableBoolean
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -40,26 +40,27 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule
 import groovy.transform.CompileStatic
-import groovy.transform.Synchronized
+// import groovy.transform.Synchronized
 
-/*
- * This class acts as ObjectMapper facade
+/**
+ * This class acts as {@link ObjectMapper} facade
  * providing only required methods
- * and hiding any configuration options
+ * and hiding any configuration options.
+ *
+ * This class should be extended, not instantiated directly
  */
 @CompileStatic
-final class Engine<T> {
+abstract class AbstractEngine<T extends InterpolableObject<T>> {
   @SuppressWarnings('UnstableApiUsage')
   private final Class<T> tClass = new TypeToken<T>(this.class) { }.rawType
 
   public static final PropertyNamingStrategyBase PROPERTY_NAMING_STRATEGY = (PropertyNamingStrategyBase)PropertyNamingStrategy.SNAKE_CASE
 
-  @Lazy
-  private Map<Mutability, ObjectMapper> objectMappers = ImmutableMap.copyOf(
-    Mutability.values().collectEntries { Mutability mutability ->
-      [(mutability): new ObjectMapper()]
-    }
-  )
+  private final Mutability mutability
+
+  protected AbstractEngine(Mutability mutability) {
+    this.@mutability = mutability
+  }
 
   private final AbstractTypeMappingRegistry abstractTypeMappingRegistry = new AbstractTypeMappingRegistry()
 
@@ -67,34 +68,95 @@ final class Engine<T> {
     this.@abstractTypeMappingRegistry
   }
 
-  Engine() {
-    addSubtypeRegistry abstractTypeMappingRegistry
-    addSubtypeRegistry InterpolableValue.Serializer.SERIALIZER_MODULE
+  private final Map<Class<? extends InterpolableObject>, SubtypeRegistry> subtypeRegistries = [:]
+
+  /*
+   * WORKAROUND:
+   * Without public we got compilation error:
+   * unexpected token: <
+   * Groovy bug
+   * <grv87 2018-12-30>
+   */
+  public <BaseType extends InterpolableObject<BaseType>> SubtypeRegistry<BaseType> addSubtypeRegistry(Class<BaseType> baseType) {
+    SubtypeRegistry<BaseType> subtypeRegistry = SubtypeRegistry.forType(baseType)
+    subtypeRegistries[baseType] = subtypeRegistry
+    subtypeRegistry
   }
 
-  @Synchronized
-  void addSubtypeRegistry(SubtypeRegistry<? extends InterpolableObject> subtypeRegistry) {
-    customModuleProviderRegistry.add subtypeRegistry
+  /*
+   * WORKAROUND:
+   * Without public we got compilation error:
+   * unexpected token: <
+   * Groovy bug
+   * <grv87 2018-12-30>
+   */
+  public <BaseType extends InterpolableObject<BaseType>> SubtypeRegistry<BaseType> getSubtypeRegistry(Class<BaseType> baseType) {
+    subtypeRegistries[baseType]
   }
 
-  // @KnownImmutable
+  private static final List<Module> DEFAULT_MODULES = ImmutableList.of(
+    (Module)new ParameterNamesModule(JsonCreator.Mode.PROPERTIES),
+    (Module)new GuavaModule(),
+    (Module)new AfterburnerModule(),
+    (Module)InterpolableValue.Serializer.SERIALIZER_MODULE
+  )
+
+  /*
+   * CAVEAT:
+   * Lazy initialization to avoid
+   * escaping `this` from constructor
+   */
+  @Lazy
+  private InjectableValuesStd injectableValues = {
+    InjectableValuesStd injectableValues = new InjectableValuesStd()
+    injectableValues.addValue AbstractEngine, this
+    injectableValues
+  }()
+
+  @Lazy
+  private ObjectMapper objectMapper = {
+    ObjectMapper objectMapper = new ObjectMapper()
+
+    // CAVEAT: This could be better done in InterpolableEnum, but it can't be done from Module
+    objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
+    objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
+
+    objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
+    objectMapper.propertyNamingStrategy = PROPERTY_NAMING_STRATEGY
+
+    objectMapper.registerModules DEFAULT_MODULES
+    objectMapper.registerModule abstractTypeMappingRegistry
+    objectMapper.registerModules subtypeRegistries.values()
+
+    objectMapper.injectableValues = injectableValues // TODO
+
+    objectMapper
+  }()
+
+  @KnownImmutable
   final static class AbstractTypeMapping {
     final boolean noArgConstructor
     final Map<Mutability, Class<? extends InterpolableObject>> implementations
-    final Map<Mutability, Constructor<? extends InterpolableObject>> constructors
+    @Lazy
+    Map<Mutability, Constructor<? extends InterpolableObject>> constructors = ImmutableMap.copyOf(implementations.collectEntries { Mutability mutability, Class<? extends InterpolableObject> implementation ->
+      // CAVEAT: Using public constructors only
+      [(mutability): noArgConstructor ? implementation.getConstructor() : implementation.getConstructor(AbstractEngine)]
+    })
     AbstractTypeMapping(boolean noArgConstructor, Map<Mutability, Class<? extends InterpolableObject>> implementations) {
       this.@noArgConstructor = noArgConstructor
       this.@implementations = ImmutableMap.copyOf(implementations)
-      this.@constructors = ImmutableMap.copyOf(implementations.collectEntries { Mutability key, Class<? extends InterpolableObject> implementation ->
-        // CAVEAT: Using public constructors only
-        [(key): noArgConstructor ? implementation.getConstructor() : implementation.getConstructor(Engine)]
-      })
+    }
+    AbstractTypeMapping(boolean noArgConstructor, Class<? extends InterpolableObject> mutableImplementation, Class<? extends InterpolableObject> immutableImplementation) {
+      this.@noArgConstructor = noArgConstructor
+      this.@implementations = ImmutableMap.of(
+        Mutability.MUTABLE, mutableImplementation,
+        Mutability.IMMUTABLE, immutableImplementation,
+      )
     }
   }
 
   final class AbstractTypeMappingRegistry extends Module {
     private final Map<Class<? extends InterpolableObject>, AbstractTypeMapping> registry = [:]
-    private final Map<Mutability, SimpleModule> modules = [:]
 
     AbstractTypeMappingRegistry() {
       // InterpolableValue descendants don't have built-in register methods
@@ -121,95 +183,63 @@ final class Engine<T> {
       registerAbstractTypeMapping InterpolableDuration, true, InterpolableDuration.Raw, InterpolableDuration.ImmutableRaw
     }
 
-    @Synchronized
-    <T extends InterpolableObject<T>> void registerAbstractTypeMapping(Class<? extends T> abstractClass, boolean noArgConstructor = false, Class<? extends T> mutableClass, Class<? extends T> immutableClass) {
+    // @Synchronized
+    public <T extends InterpolableObject<T>> void registerAbstractTypeMapping(Class<? extends T> abstractClass, boolean noArgConstructor = false, Class<? extends T> mutableImplementation, Class<? extends T> immutableImplementation) {
       if (registry.containsKey(abstractClass)) {
         throw new IllegalArgumentException(sprintf('Abstract type mapping for type %s is already registered', [abstractClass.canonicalName]))
       }
-      modules.clear()
-      registry[abstractClass] = new AbstractTypeMapping(noArgConstructor, [
-        (Mutability.MUTABLE): mutableClass,
-        (Mutability.IMMUTABLE): immutableClass
-      ])
+      registry[abstractClass] = new AbstractTypeMapping(noArgConstructor, mutableImplementation, immutableImplementation)
     }
 
-    @Synchronized
-    <T extends InterpolableObject<T>> T instantiate(Class<T> abstractClass, Mutability mutability) {
+    // @Synchronized
+    public <T extends InterpolableObject<T>> T instantiate(Class<T> abstractClass, Mutability mutability) {
       AbstractTypeMapping abstractTypeMapping = registry[abstractClass]
+      Constructor<T> constructor = abstractTypeMapping.constructors[mutability]
       if (abstractTypeMapping.noArgConstructor) {
-        (T)abstractTypeMapping.constructors[mutability].newInstance()
+        (T)constructor.newInstance()
       } else {
-        (T)abstractTypeMapping.constructors[mutability].newInstance(Engine.this)
+        (T)constructor.newInstance(AbstractEngine.this)
       }
+    }
+
+    // @Synchronized
+    public <T extends InterpolableObject<T>> T instantiate(Class<T> baseClass, String name, Mutability mutability) {
+      instantiate(AbstractEngine.this.getSubtypeRegistry(baseClass)[name], mutability)
     }
 
     @Override
     String getModuleName() {
-      return null
+      return this.class.canonicalName
     }
+
+    @Lazy
+    private VersionAdapter version = VersionAdapter.mavenVersionFor(this.class.classLoader, 'org.fidata', 'gradle-packer-plugin')
 
     @Override
     Version version() {
-      return null
+      this.@version.asJackson()
     }
 
     @Override
     void setupModule(SetupContext context) {
+      /*
+       * WORKAROUND:
+       * We have to instantiate SimpleAbstractTypeResolver
+       * since Jackson API don't use interfaces.
+       * See https://github.com/FasterXML/jackson-databind/issues/2214
+       * <grv87 2018-12-30>
+       */
+      SimpleAbstractTypeResolver abstractTypeResolver = new SimpleAbstractTypeResolver()
       registry.each { Class<? extends InterpolableObject> key, AbstractTypeMapping abstractTypeMapping ->
-        context.addAbstractTypeMapping key, abstractTypeMapping.implementations[mutability]
+        abstractTypeResolver.addMapping key, abstractTypeMapping.implementations[AbstractEngine.this.mutability]
       }
-
-      subtypeRegistry.each { String key, Class<? extends T> value ->
-        context.registerSubtypes(new NamedType(value, key))
-      }
+      context.addAbstractTypeResolver abstractTypeResolver
     }
   }
 
-  /*
-   * CAVEAT:
-   * We assume here and in ModuleProvider that nobody
-   * changes configuration of ObjectMapper's modules etc.
-   * We hide ObjectMapper behind Facade, but it is still possible
-   * to do something hazardous in custom deserializers etc.
-   * It's up to plugin authors to meet these expectations
-   */
-  private static final List<Module> DEFAULT_MODULES = ImmutableList.of(
-    (Module)new ParameterNamesModule(JsonCreator.Mode.PROPERTIES),
-    (Module)new GuavaModule(),
-    (Module)new AfterburnerModule(),
-  )
-
-  /*
-   * CAVEAT:
-   * Lazy initialization to avoid
-   * escaping `this` from constructor
-   */
-  @Lazy
-  private InjectableValuesStd injectableValues = {
-    InjectableValuesStd injectableValues = new InjectableValuesStd()
-    injectableValues.addValue Engine, this
-    injectableValues
-  }()
-
-  @Synchronized
-  private ObjectMapper getObjectMapper(Mutability mutability) {
-    ObjectMapperFacade facade = objectMappers[mutability]
-    Set<Module> customModules = customModuleProviderRegistry*.getModule(mutability).toSet()
-    if (facade != null && facade.@customModules == customModules) {
-      return facade
-    }
-    ObjectMapper objectMapper = new ObjectMapper()
-    objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
-    objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
-    objectMapper.serializationInclusion = JsonInclude.Include.NON_NULL
-    objectMapper.propertyNamingStrategy = PROPERTY_NAMING_STRATEGY
-    objectMapper.registerModules DEFAULT_MODULES
-    objectMapper.injectableValues = injectableValues
-
-    facade = new ObjectMapperFacade(objectMapper, customModules)
-    objectMappers[mutability] = facade
-    facade
-  }
+  /**********************************************************/
+  /* Facade for ObjectMapper methods
+  /**********************************************************/
 
   /**
    * Method to deserialize JSON content from given file into given Java type.
@@ -224,7 +254,7 @@ final class Engine<T> {
    *   expected for result type (or has other mismatch issues)
    */
   @SuppressWarnings('unchecked')
-  T readValue(File src, ) throws IOException, JsonParseException, JsonMappingException {
+  T readValue(File src) throws IOException, JsonParseException, JsonMappingException {
     objectMapper.readValue(src, tClass)
   }
 

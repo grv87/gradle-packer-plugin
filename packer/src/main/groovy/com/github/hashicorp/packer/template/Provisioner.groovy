@@ -22,7 +22,7 @@ package com.github.hashicorp.packer.template
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import org.fidata.packer.engine.SubtypeRegistry
 import groovy.transform.CompileStatic
@@ -40,7 +40,7 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner<P extends Configuration> extends InterpolableObject {
+abstract class Provisioner<P extends Configuration> implements InterpolableObject<Provisioner<P>> {
   final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   protected Provisioner() {
@@ -112,5 +112,7 @@ abstract class Provisioner<P extends Configuration> extends InterpolableObject {
     }
   }
 
-  protected static final SubtypeRegistry<Provisioner> SUBTYPE_REGISTRY = new SubtypeRegistry<Provisioner>()
+  static void register(AbstractEngine engine) {
+    engine.addSubtypeRegistry Provisioner
+  }
 }

@@ -19,6 +19,7 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ComputedInput
 import org.fidata.packer.engine.types.InterpolableFile
 import org.fidata.packer.engine.types.InterpolableInputDirectory
@@ -118,5 +119,9 @@ class ChefSolo extends Provisioner<Configuration> {
       guestOSType.interpolate context
       version.interpolate context
     }
+  }
+
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'chef-solo', this
   }
 }

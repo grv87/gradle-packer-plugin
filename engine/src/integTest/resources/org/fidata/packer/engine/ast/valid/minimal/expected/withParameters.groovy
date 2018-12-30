@@ -6,11 +6,13 @@ import com.fasterxml.jackson.annotation.OptBoolean
 import org.fidata.packer.engine.types.InterpolableLong
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.Mutability
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import com.github.hashicorp.packer.template.Context
 import groovy.transform.CompileStatic
 import groovy.transform.KnownImmutable
 import org.gradle.api.tasks.Input
+
+import javax.annotation.Generated
 
 @CompileStatic
 abstract class MinimalTest implements InterpolableObject<MinimalTest> {
@@ -21,6 +23,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     this.@singleField
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:47:03+03:00')
   protected MinimalTest(
     InterpolableLong singleField
   ) {
@@ -28,8 +31,9 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
   }
 
   @KnownImmutable
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:46:05+03:00')
   static final class ImmutableImpl extends MinimalTest {
-    ImmutableImpl(Engine engine) {
+    ImmutableImpl(AbstractEngine engine) {
       this(
         engine,
         (InterpolableLong)null,
@@ -39,7 +43,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     @JsonCreator
     ImmutableImpl(
       @JacksonInject(useInput = OptBoolean.FALSE)
-        Engine engine,
+        AbstractEngine engine,
       InterpolableLong singleField
     ) {
       super(
@@ -48,8 +52,9 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:44:25+03:00')
   static final class Impl extends MinimalTest {
-    Impl(Engine engine) {
+    Impl(AbstractEngine engine) {
       this(
         engine,
         (InterpolableLong)null,
@@ -59,7 +64,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     @JsonCreator
     Impl(
       @JacksonInject(useInput = OptBoolean.FALSE)
-      Engine engine,
+      AbstractEngine engine,
       InterpolableLong singleField
     ) {
       super(
@@ -68,6 +73,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
     }
   }
 
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:47:13+03:00')
   static final class Interpolated extends MinimalTest {
     protected Interpolated(Context context, MinimalTest from) {
       super(
@@ -77,11 +83,13 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
   }
 
   @Override
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:47:22+03:00')
   final MinimalTest interpolate(Context context) {
     return new Interpolated(context, this)
   }
 
-  static final void register(Engine engine) {
+  @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:47:29+03:00')
+  static final void register(AbstractEngine engine) {
     engine.abstractTypeMappingRegistry.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
   }
 }

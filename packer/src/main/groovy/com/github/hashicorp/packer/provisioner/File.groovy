@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import org.fidata.packer.engine.AbstractEngine
+
 import java.io.File as JavaFile
 import org.fidata.packer.engine.annotations.ComputedInputDirectory
 import org.fidata.packer.engine.annotations.ComputedInputFile
@@ -146,7 +148,7 @@ class File extends Provisioner<Configuration> {
     final class AlreadyInterpolated extends InterpolableEnum.AlreadyInterpolated<Direction, InterpolableDirection> implements InterpolableDirection { }
   }
 
-  static {
-    SUBTYPE_REGISTRY.registerSubtype 'file', File
+  static void register(AbstractEngine engine) {
+    engine.getSubtypeRegistry(Provisioner).registerSubtype 'file', this
   }
 }

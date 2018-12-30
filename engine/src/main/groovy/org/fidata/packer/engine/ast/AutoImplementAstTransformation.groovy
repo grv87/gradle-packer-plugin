@@ -1,5 +1,6 @@
 package org.fidata.packer.engine.ast
 
+
 import static org.codehaus.groovy.ast.tools.GeneralUtils.cloneParams
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorSuperS
 import static org.codehaus.groovy.ast.tools.GeneralUtils.ctorThisS
@@ -48,7 +49,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.fidata.packer.engine.Mutability
-import org.fidata.packer.engine.Engine
+import org.fidata.packer.engine.AbstractEngine
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.codehaus.groovy.syntax.SyntaxException
 import org.codehaus.groovy.ast.AnnotatedNode
@@ -85,6 +86,8 @@ import org.gradle.api.tasks.Optional
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.codehaus.groovy.ast.expr.ElvisOperatorExpression
+import javax.annotation.Generated
+import java.time.OffsetDateTime
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 @CompileStatic
@@ -112,7 +115,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
   )
   private static final VariableExpression CONTEXT_VAR_X = varX(CONTEXT_PARAM)
   private static final String ENGINE = 'engine'
-  private static final ClassNode ENGINE_CLASS = makeCached(Engine)
+  private static final ClassNode ENGINE_CLASS = makeCached(AbstractEngine)
   private static final Parameter ENGINE_PARAM = param(
     ENGINE_CLASS,
     ENGINE
@@ -175,6 +178,9 @@ class AutoImplementAstTransformation implements ASTTransformation {
     ENGINE_PARAM_WITH_ANNOTATION.addAnnotation(JACKSON_INJECT_ANNOTATION)
   }
   private static final AnnotationNode KNOWN_IMMUTABLE_ANNOTATION = new AnnotationNode(makeCached(KnownImmutable))
+  private static final ClassNode GENERATED_CLASS = makeCached(Generated)
+  private static final ConstantExpression GENERATOR_NAME = constX(this.canonicalName)
+  private static final String DATE = 'date'
 
   @Override
   void visit(ASTNode[] astNodes, SourceUnit source) {
@@ -283,7 +289,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
         AnnotationNode jsonPropertyAnnotation = getAnnotation(method, JSON_PROPERTY_CLASS)
         if (jsonPropertyAnnotation == null && !parameters) {
           jsonPropertyAnnotation = new AnnotationNode(JSON_PROPERTY_CLASS)
-          jsonPropertyAnnotation.addMember(VALUE, constX(Engine.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
+          jsonPropertyAnnotation.addMember(VALUE, constX(AbstractEngine.PROPERTY_NAMING_STRATEGY.translate(fieldName)))
         }
 
         AnnotationNode jsonAliasAnnotation = getAnnotation(method, JSON_ALIAS_CLASS)
@@ -458,7 +464,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
       return
     }
 
-    abstractClass.addConstructor(
+    addGeneratedAnnotation abstractClass.addConstructor(
       ACC_PROTECTED,
       abstractClassCtorParams.toArray(new Parameter[0]),
       EMPTY_CLASS_NODE_ARRAY,
@@ -468,7 +474,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
       )
     )
 
-    abstractClass.addMethod(
+    MethodNode interpolatedMethod = abstractClass.addMethod(
       INTERPOLATE,
       PUBLIC_FINAL,
       abstractClassRef,
@@ -487,7 +493,9 @@ class AutoImplementAstTransformation implements ASTTransformation {
           )
         )
       )
-    ).addAnnotation(OVERRIDE_ANNOTATION)
+    )
+    interpolatedMethod.addAnnotation(OVERRIDE_ANNOTATION)
+    addGeneratedAnnotation interpolatedMethod
 
     implClasses.each { Mutability key, ClassNode value ->
       value.addConstructor(
@@ -513,7 +521,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
       addClass source, abstractClass.module, value
     }
 
-    interpolatedClass.addConstructor(
+    addGeneratedAnnotation interpolatedClass.addConstructor(
       ACC_PROTECTED,
       params(
         CONTEXT_PARAM,
@@ -534,7 +542,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
     addClass source, abstractClass.module, interpolatedClass
 
     if (!registerMethodFound) {
-      abstractClass.addMethod(
+      addGeneratedAnnotation abstractClass.addMethod(
         REGISTER,
         PUBLIC_STATIC_FINAL,
         VOID_TYPE,
@@ -548,6 +556,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
   }
 
   private static void addClass(SourceUnit source, ModuleNode module, ClassNode classNode) {
+    addGeneratedAnnotation classNode
     module.addClass classNode
     // source.AST.addClass(mutableClass)
     // interfase.compileUnit.addClass(mutableClass)
@@ -578,5 +587,12 @@ class AutoImplementAstTransformation implements ASTTransformation {
   // Overcomes the fact that AnnotatedNode#getAnnotations(ClassNode) returns an array
   private static AnnotationNode getAnnotation(AnnotatedNode annotatedNode, ClassNode targetClass) {
     annotatedNode.annotations.find { implementsInterfaceOrSubclassOf(it.classNode, targetClass) }
+  }
+
+  private static void addGeneratedAnnotation(AnnotatedNode annotatedNode) {
+    AnnotationNode generatedAnnotation = new AnnotationNode(GENERATED_CLASS)
+    generatedAnnotation.members[VALUE] = GENERATOR_NAME
+    generatedAnnotation.members[DATE] = constX(OffsetDateTime.now().toString())
+    annotatedNode.addAnnotation generatedAnnotation
   }
 }
