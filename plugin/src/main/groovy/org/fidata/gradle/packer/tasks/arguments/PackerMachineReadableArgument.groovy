@@ -1,10 +1,9 @@
 package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
 
 @CompileStatic
 trait PackerMachineReadableArgument extends PackerArgument {
@@ -20,7 +19,7 @@ trait PackerMachineReadableArgument extends PackerArgument {
    * <grv87 2018-08-19>
    */
   @SuppressWarnings('UnnecessaryGetter')
-  @Internal
+  // TOTEST: @ExtraProcessed
   @Override
   List<String> getCmdArgs() {
     List<String> cmdArgs = super.getCmdArgs()

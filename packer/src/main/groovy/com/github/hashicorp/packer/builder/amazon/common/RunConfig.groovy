@@ -1,6 +1,10 @@
 package com.github.hashicorp.packer.builder.amazon.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.annotations.LaunchedVMConfiguration
+import org.fidata.packer.engine.annotations.Timing
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.InterpolableAWSEC2InstanceType
 import org.fidata.packer.engine.types.InterpolableBoolean
@@ -13,84 +17,81 @@ import com.github.hashicorp.packer.helper.Communicator
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Internal
 
+@AutoImplement
 @CompileStatic
-class RunConfig extends InterpolableObject {
-  @Internal
-  InterpolableBoolean associatePublicIpAddress
+abstract class RunConfig implements InterpolableObject<RunConfig> {
+  @LaunchedVMConfiguration
+  abstract InterpolableBoolean getAssociatePublicIpAddress()
+
+  @LaunchedVMConfiguration
+  abstract InterpolableString getAvailabilityZone()
 
   @Internal
-  InterpolableString availabilityZone
+  abstract InterpolableLong getBlockDurationMinutes()
 
   @Internal
-  InterpolableLong blockDurationMinutes
+  abstract InterpolableBoolean getDisableStopInstance()
 
   @Internal
-  InterpolableBoolean disableStopInstance
+  abstract InterpolableBoolean getEnableT2Unlimited()
 
-  @Internal
-  InterpolableBoolean enableT2Unlimited
-
-  @Internal
-  InterpolableString iamInstanceProfile
+  @LaunchedVMConfiguration // TODO
+  abstract InterpolableString getIamInstanceProfile()
 
   @JsonProperty('shutdown_behavior')
   @Internal
-  InterpolableString instanceInitiatedShutdownBehavior
+  abstract InterpolableString getInstanceInitiatedShutdownBehavior()
+
+  @LaunchedVMConfiguration
+  @ExtraProcessed
+  abstract InterpolableAWSEC2InstanceType getInstanceType()
+
+  @LaunchedVMConfiguration
+  abstract TagMap /* Packer doesn't use TagMap here */ getRunTags()
+
+  @LaunchedVMConfiguration
+  abstract InterpolableString getSecurityGroupId()
+
+  @LaunchedVMConfiguration
+  abstract InterpolableStringArray getSecurityGroupIds()
+
+  @ExtraProcessed
+  abstract InterpolableString getSourceAmi()
+
+  @ExtraProcessed
+  abstract AmiFilterOptions getSourceAmiFilter()
 
   @Internal
-  InterpolableAWSEC2InstanceType instanceType
+  abstract InterpolableString getSpotPrice()
 
   @Internal
-  TagMap /* Packer doesn't use TagMap here */ runTags
+  abstract InterpolableString getSpotPriceAutoProduct()
 
   @Internal
-  InterpolableString securityGroupId
+  abstract Map<InterpolableString, InterpolableString> getSpotTags()
+
+  @LaunchedVMConfiguration
+  abstract InterpolableString getSubnetId()
 
   @Internal
-  InterpolableStringArray securityGroupIds
-
-  @Internal
-  InterpolableString sourceAmi
-
-  @Internal
-  AmiFilterOptions sourceAmiFilter
-
-  @Internal
-  InterpolableString spotPrice
-
-  @Internal
-  InterpolableString spotPriceAutoProduct
-
-  @Internal
-  Map<InterpolableString, InterpolableString> spotTags
-
-  @Internal
-  InterpolableString subnetId
-
-  @Internal
-  InterpolableString temporaryKeyPairName
+  abstract InterpolableString getTemporaryKeyPairName()
 
   @JsonProperty('temporary_security_group_source_cidr')
   @Internal
-  InterpolableString temporarySGSourceCidr
+  abstract InterpolableString getTemporarySGSourceCidr()
 
   @Internal
-  InterpolableString userData
+  abstract InterpolableString getUserData()
 
   @Internal
-  InterpolableString userDataFile
+  abstract InterpolableString getUserDataFile()
 
-  @Internal
-  InterpolableString vpcId
+  @LaunchedVMConfiguration
+  abstract InterpolableString getVpcId()
 
-  @Internal
-  InterpolableDuration windowsPasswordTimeout
+  @Timing
+  abstract InterpolableDuration getWindowsPasswordTimeout()
 
   @Inline
-  Communicator comm
-
-  @Override
-  protected void doInterpolate() {
-
-  }
+  abstract Communicator getComm()
 }

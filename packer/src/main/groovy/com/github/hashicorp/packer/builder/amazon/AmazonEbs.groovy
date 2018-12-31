@@ -19,9 +19,9 @@
  */
 package com.github.hashicorp.packer.builder.amazon
 
-import org.fidata.packer.engine.AbstractEngine
-
 import static org.fidata.utils.InetAddressUtils.isLocalHost
+import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.LaunchedVMConfiguration
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.hashicorp.packer.builder.amazon.common.AMIConfig
 import com.github.hashicorp.packer.builder.amazon.common.AccessConfig
@@ -35,11 +35,10 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.fidata.aws.ec2.InstanceTypeUtils
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Internal
 
 @CompileStatic
 @AutoImplement
-abstract class AmazonEbs extends Builder {
+abstract class AmazonEbs extends Builder<AmazonEbs> {
   @Inline
   abstract AccessConfig getAccessConfig()
 
@@ -53,7 +52,7 @@ abstract class AmazonEbs extends Builder {
   abstract RunConfig getRunConfig()
 
   @JsonProperty('run_volume_tags')
-  @Internal
+  @LaunchedVMConfiguration
   abstract TagMap getVolumeRunTags()
 
   @Override

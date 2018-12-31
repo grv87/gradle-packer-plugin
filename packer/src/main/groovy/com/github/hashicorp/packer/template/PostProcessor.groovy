@@ -19,16 +19,17 @@
  */
 package com.github.hashicorp.packer.template
 
-
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.exceptions.InvalidRawValueClassException
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import org.fidata.packer.engine.Mutability
 import org.fidata.packer.engine.AbstractEngine
-import org.fidata.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
@@ -36,7 +37,6 @@ import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
 @JsonTypeInfo(
@@ -44,27 +44,24 @@ import org.gradle.api.tasks.Nested
   include = JsonTypeInfo.As.PROPERTY,
   property = 'type'
 )
+@AutoImplement
 @CompileStatic
 // REVIEWED
-abstract class PostProcessor extends InterpolableObject {
+abstract class PostProcessor<ThisClass extends PostProcessor> implements InterpolableObject<ThisClass> {
   protected PostProcessor() {
   }
 
   @JsonUnwrapped
-  @Internal
+  @ExtraProcessed
   // TODO
-  OnlyExcept onlyExcept
+  abstract OnlyExcept getOnlyExcept()
 
   @Input
-  String type
+  abstract String getType()
 
-  @Internal
-  InterpolableBoolean keepInputArtifacts = InterpolableBoolean.withDefault(false)
-
-  @Override
-  protected void doInterpolate() {
-    keepInputArtifacts.interpolate context
-  }
+  @ExtraProcessed
+  @Default({ Boolean.FALSE })
+  abstract InterpolableBoolean getKeepInputArtifacts()
 
   final PostProcessor interpolateForBuilder(Context buildCtx) {
     if (context.buildName) {

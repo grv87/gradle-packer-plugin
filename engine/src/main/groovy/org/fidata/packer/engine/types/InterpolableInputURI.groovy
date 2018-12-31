@@ -1,5 +1,6 @@
 package org.fidata.packer.engine.types
 
+import org.fidata.packer.engine.annotations.ComputedInput
 import org.fidata.packer.engine.annotations.ComputedInputFile
 import org.fidata.packer.engine.annotations.ComputedInternal
 import groovy.transform.CompileStatic
@@ -15,7 +16,8 @@ interface InterpolableInputURI extends InterpolableURI<InterpolableInputURI> {
   @Override
   URI getFileURI() // TODO: RegularFile ?
 
-  @ComputedInternal
+  @ComputedInput
+  @Optional
   @Override
   URI getNonFileURI()
 

@@ -31,7 +31,7 @@ trait Artifact {
    * artifact is not made up of files, then this will be empty.
    */
   @OutputFiles
-  final FileCollection files = projectLayout.files()
+  final FileCollection files = projectLayout.files() // MARK2
 
   /**
    * The ID for the artifact, if it has one. This is not guaranteed to

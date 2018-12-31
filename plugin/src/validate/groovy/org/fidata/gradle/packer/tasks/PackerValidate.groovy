@@ -24,10 +24,13 @@ import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 class PackerValidate extends AbstractPackerValidate implements PackerOnlyExceptArgument, PackerTemplateArgument {
   @InputFile
+  @PathSensitive(PathSensitivity.NONE)
   @Override
   RegularFileProperty getTemplateFile() {
     PackerTemplateArgument.super.templateFile

@@ -19,10 +19,16 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import groovy.json.JsonOutput
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedInputFiles
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
+import org.fidata.packer.engine.annotations.ContextVar
+import org.fidata.packer.engine.annotations.ContextVars
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
@@ -30,51 +36,63 @@ import org.fidata.packer.engine.types.InterpolableStringArray
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Input
-    InterpolableBoolean bootstrap = InterpolableBoolean.withDefault(true)
+    @ContextVars([
+      @ContextVar(key = 'Sudo', value = { preventBootstrapSudo.interpolated }),
+      @ContextVar(key = 'Version', value = { version.interpolated }),
+    ])
+    @Default({ Boolean.TRUE })
+    abstract InterpolableBoolean getBootstrap()
 
     @Input
-    InterpolableString version
+    abstract InterpolableString getVersion()
 
     @Input
-    InterpolableString bootstrapCommand
+    abstract InterpolableString getBootstrapCommand()
 
     @Input
-    InterpolableBoolean preventBootstrapSudo
+    abstract InterpolableBoolean getPreventBootstrapSudo()
 
     @Nested
-    List<ModuleDir> moduleDirs
+    abstract List<ModuleDir> getModuleDirs()
 
     @Input
-    InterpolableString module
+    abstract InterpolableString getModule()
 
     @Input
-    InterpolableString workingDirectory
+    abstract InterpolableString getWorkingDirectory()
 
     @Input
-    Map<String, InterpolableString> params
+    abstract Map<String, InterpolableString> getParams()
 
     @Input
-    InterpolableString executeCommand
+    @ContextVars([ // TODO
+      @ContextVar(key = 'WorkingDirectory', value = { workingDirectory.interpolated }),
+      @ContextVar(key = 'Sudo', value = { preventSudo.interpolated }),
+      @ContextVar(key = 'ParamsJSON', value = { new JsonOutput().toJson(params) }),
+      @ContextVar(key = 'Module', value = { module.interpolated }),
+    ])
+    abstract InterpolableString getExecuteCommand()
 
     @Input
-    InterpolableBoolean preventSudo
+    abstract InterpolableBoolean getPreventSudo()
 
-    static class ModuleDir extends InterpolableObject {
-      @Internal
-      InterpolableString/*File*/ source
+    @AutoImplement
+    abstract static class ModuleDir implements InterpolableObject<ModuleDir> {
+      @ExtraProcessed
+      abstract InterpolableString/*File*/ getSource()
 
       @Input
-      InterpolableString destination
+      abstract InterpolableString getDestination()
 
-      @Internal
-      InterpolableStringArray exclude
+      @ExtraProcessed
+      abstract InterpolableStringArray getExclude()
 
       // TODO
 
@@ -99,30 +117,6 @@ class Converge extends Provisioner<Configuration> {
           inputFileTree = context.resolveDirectory(source.get()).asFileTree
         }
       }
-    }
-
-    @Override
-    protected void doInterpolate() {
-      super.doInterpolate()
-      preventBootstrapSudo.interpolate context
-      version.interpolate context
-      bootstrapCommand.interpolate context
-      moduleDirs*.interpolate context
-      module.interpolate context
-      workingDirectory.interpolate context
-      params.values()*.interpolate context
-      preventSudo.interpolate context
-
-      /*TODO bootstrap.interpolate context.withTemplateVariables([
-        'Sudo': !preventBootstrapSudo.interpolatedValue,
-        'Version': version.interpolatedValue,
-      ])
-      executeCommand.interpolate context.withTemplateVariables([
-        'WorkingDirectory': workingDirectory.interpolatedValue,
-        'Sudo': !preventSudo.interpolatedValue,
-        'ParamsJSON': JsonOutput.toJson(params),
-        'Module': module.interpolatedValue,
-      ])*/
     }
   }
 

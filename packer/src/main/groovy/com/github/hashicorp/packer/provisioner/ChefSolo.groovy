@@ -19,8 +19,14 @@
  */
 package com.github.hashicorp.packer.provisioner
 
+import groovy.cli.Option
+import jdk.nashorn.internal.ir.annotations.Ignore
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedInput
+import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.annotations.IgnoreIf
+import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableFile
 import org.fidata.packer.engine.types.InterpolableInputDirectory
 import groovy.transform.CompileStatic
@@ -28,96 +34,77 @@ import com.github.hashicorp.packer.template.Provisioner
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 class ChefSolo extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Input
-    InterpolableString chefEnvironment
+    abstract InterpolableString getChefEnvironment()
 
     @Input
-    InterpolableString configTemplate
+    abstract InterpolableString getConfigTemplate()
 
     @Nested
-    List<InterpolableInputDirectory> cookbookPaths
+    abstract List<InterpolableInputDirectory> getCookbookPaths()
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
-    InterpolableFile rolesPath
+    abstract InterpolableFile getRolesPath()
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
-    InterpolableFile dataBagsPath
+    abstract InterpolableFile getDataBagsPath()
 
-    @Internal
-    InterpolableFile encryptedDataBagSecretPath
+    @ExtraProcessed
+    abstract InterpolableFile getEncryptedDataBagSecretPath()
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
-    InterpolableFile environmentsPath
+    abstract InterpolableFile getEnvironmentsPath()
 
     @Input
-    InterpolableString executeCommand
+    abstract InterpolableString getExecuteCommand()
 
     @Input
-    InterpolableString installCommand
+    abstract InterpolableString getInstallCommand()
 
     @Input
-    InterpolableString remoteCookbookPaths
+    abstract InterpolableString getRemoteCookbookPaths()
 
     @Input
-    InterpolableString json // TOTEST
+    abstract InterpolableString getJson() // TOTEST
 
     @Internal
-    InterpolableBoolean preventSudo
+    abstract InterpolableBoolean getPreventSudo()
 
     @Input
-    InterpolableStringArray runList
+    abstract InterpolableStringArray getRunList()
 
     @Input
-    InterpolableBoolean skipInstall
+    abstract InterpolableBoolean getSkipInstall()
+
+    @Staging
+    abstract InterpolableString getStagingDirectory()
 
     @Internal
-    InterpolableString stagingDirectory
+    abstract InterpolableString getGuestOSType()
 
-    @Internal
-    InterpolableString guestOSType
-
-    @Internal
-    InterpolableString version
-
-    @ComputedInput
+    @Input
     @Optional
-    String getInterpolatedVersion() {
-      skipInstall?.interpolatedValue ? null : version.interpolatedValue
-    }
-
-    @Override
-    protected void doInterpolate() {
-      super.doInterpolate()
-      chefEnvironment.interpolate context
-      configTemplate.interpolate context
-      cookbookPaths*.interpolate context
-      rolesPath.interpolate context
-      dataBagsPath.interpolate context
-      encryptedDataBagSecretPath.interpolate context
-      environmentsPath.interpolate context
-      executeCommand.interpolate context
-      installCommand.interpolate context
-      remoteCookbookPaths.interpolate context
-      json.interpolate context
-      preventSudo.interpolate context
-      runList.interpolate context
-      skipInstall.interpolate context
-      stagingDirectory.interpolate context
-      guestOSType.interpolate context
-      version.interpolate context
-    }
+    @IgnoreIf({ -> skipInstall.interpolatedValue != Boolean.TRUE })
+    abstract InterpolableString getVersion()
   }
 
   static void register(AbstractEngine engine) {

@@ -22,74 +22,57 @@ package com.github.hashicorp.packer.provisioner
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ConnectionSetting
+import org.fidata.packer.engine.annotations.Credential
+import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
 class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is somewhere wrong
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Internal
-    InterpolableString command
+    abstract InterpolableString getCommand()
 
     @Input
-    InterpolableStringArray extraArguments
+    abstract InterpolableStringArray getExtraArguments()
 
     @Input
-    InterpolableStringArray ansibleEnvVars
+    abstract InterpolableStringArray getAnsibleEnvVars()
 
     @Input
-    InterpolableString playbookFile
+    abstract InterpolableString getPlaybookFile()
 
     @Input
-    InterpolableStringArray groups
-    InterpolableStringArray emptyGroups
-    InterpolableString hostAlias
+    abstract InterpolableStringArray getGroups()
+    abstract InterpolableStringArray getEmptyGroups()
+    abstract InterpolableString getHostAlias()
+
+    @Credential
+    abstract InterpolableString getUser()
+
+    @ConnectionSetting
+    abstract InterpolableString getLocalPort()
+
+    @ConnectionSetting
+    abstract InterpolableString getSshHostKeyFile()
+
+    @ConnectionSetting
+    abstract InterpolableString getSshAuthorizedKeyFile()
 
     @Internal
-    InterpolableString user
-
-    @Internal
-    InterpolableString localPort
-
-    @Internal
-    InterpolableString sshHostKeyFile
-
-    @Internal
-    InterpolableString sshAuthorizedKeyFile
-
-    @Internal
-    InterpolableString sftpCmd
-    InterpolableBoolean skipVersionCheck
-    InterpolableBoolean useSFTP
-    InterpolableString inventoryDirectory
-    InterpolableString inventoryFile
-
-    @Override
-    protected void doInterpolate() {
-      super.doInterpolate()
-      preventBootstrapSudo.interpolate context
-      version.interpolate context
-      bootstrapCommand.interpolate context
-      moduleDirs*.interpolate context
-      module.interpolate context
-      workingDirectory.interpolate context
-      params.values*.interpolate context
-      preventSudo.interpolate context
-
-      bootstrap.interpolate context.withTemplateVariables([
-        'Sudo': !preventBootstrapSudo.interpolatedValue,
-        'Version': version.interpolatedValue,
-      ])
-      executeCommand.interpolate context.withTemplateVariables([
-        'WorkingDirectory': workingDirectory.interpolatedValue,
-        'Sudo': !preventSudo.interpolatedValue,
-        'ParamsJSON': JsonOutput.toJson(params),
-        'Module': module.interpolatedValue,
-      ])
-    }
+    @Default({ '/usr/lib/sftp-server -e' })
+    abstract InterpolableString getSftpCmd()
+    abstract InterpolableBoolean getSkipVersionCheck()
+    abstract InterpolableBoolean getUseSFTP()
+    abstract InterpolableString getInventoryDirectory()
+    abstract InterpolableString getInventoryFile()
   }
 
   static void register(AbstractEngine engine) {

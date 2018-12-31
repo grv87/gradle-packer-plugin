@@ -23,15 +23,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedInput
-import org.fidata.packer.engine.SubtypeRegistry
 import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
+import org.fidata.packer.engine.annotations.ComputedInternal
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -41,7 +41,7 @@ import org.gradle.api.tasks.Internal
 @AutoImplement
 @CompileStatic
 // REVIEWED
-abstract class Builder implements InterpolableObject<Builder> {
+abstract class Builder<ThisClass extends Builder> implements InterpolableObject<ThisClass> {
   protected Builder() {
   }
 
@@ -70,12 +70,12 @@ abstract class Builder implements InterpolableObject<Builder> {
    *
    * @return Number of local CPUs used for build
    */
-  @Internal
+  @ComputedInternal
   abstract int getLocalCpusUsed()
 
   @AutoImplement
   abstract static class BuilderHeader implements InterpolableObject<BuilderHeader> {
-    @Internal
+    @ExtraProcessed
     abstract InterpolableString getName()
 
     @Input

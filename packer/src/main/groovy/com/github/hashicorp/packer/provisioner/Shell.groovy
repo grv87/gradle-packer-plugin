@@ -21,66 +21,75 @@ package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Timing
+import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 class Shell extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Internal
-    Boolean binary
+    abstract Boolean getBinary()
 
     @Input
     @Optional
-    List<String> inline
+    abstract List<String> getInline()
 
     @Input // TODO
-    String inlineShebang
+    abstract String getInlineShebang()
 
     @InputFile
+    @PathSensitive(PathSensitivity.NONE) // TODOC
     @Optional
-    InterpolableFile script
+    abstract InterpolableFile getScript()
 
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE) // TODOC
     @Optional
-    List<InterpolableFile> scripts
+    abstract List<InterpolableFile> getScripts()
 
     @JsonProperty('environment_vars')
     @Input
     @Optional
-    List<String> vars
+    abstract List<String> getVars()
 
-    @Internal
-    String remoteEnvVarPath
+    @Staging
+    abstract String getRemoteEnvVarPath()
 
-    @Internal
-    String remoteFolder
+    @Staging
+    abstract String getRemoteFolder()
 
-    @Internal
-    String remoteFile
+    @Staging
+    abstract String getRemoteFile()
 
     // TODO: defaults to remote_folder/remote_file
-    @Internal
-    String remotePath
+    @Staging
+    abstract String getRemotePath()
 
     @Input // TODO
-    List<String> executeCommand
+    abstract List<String> getExecuteCommand()
 
-    @Internal
-    InterpolableDuration startRetryTimeout // TODO: parse Raw
+    @Timing
+    abstract InterpolableDuration getStartRetryTimeout() // TODO: parse Raw
 
     @Input
-    Boolean skipClean
+    abstract Boolean getSkipClean()
 
-    @Internal
-    Boolean expectDisconnect
+    @Timing
+    abstract Boolean getExpectDisconnect()
   }
 
   static void register(AbstractEngine engine) {

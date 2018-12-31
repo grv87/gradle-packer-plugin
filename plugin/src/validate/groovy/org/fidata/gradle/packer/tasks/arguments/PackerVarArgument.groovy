@@ -1,13 +1,12 @@
 package org.fidata.gradle.packer.tasks.arguments
 
-import org.fidata.gradle.packer.PackerPluginExtension
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.provider.MapProperty
 import groovy.transform.CompileStatic
-import org.gradle.api.tasks.Internal
 
 @CompileStatic
 trait PackerVarArgument extends PackerArgument {
-  @Internal
+  @ExtraProcessed
   final MapProperty<String, String> variables = project.objects.mapProperty(String, String).empty()
 
   /*

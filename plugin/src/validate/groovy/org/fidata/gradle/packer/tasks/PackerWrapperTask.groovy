@@ -20,6 +20,7 @@
 package org.fidata.gradle.packer.tasks
 
 import static org.ysb33r.grolifant.api.StringUtils.stringize
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.file.Directory
 import groovy.transform.CompileStatic
 import org.fidata.gradle.packer.PackerExecSpec
@@ -28,12 +29,11 @@ import org.fidata.gradle.packer.tasks.arguments.PackerArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateReadOnlyArgument
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.tasks.Internal
 import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> implements PackerArgument {
-  @Internal
+  @ExtraProcessed
   final MapProperty<String, String> env = project.objects.mapProperty(String, String).empty()
 
   @Override
@@ -42,7 +42,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
     environment args
   }
 
-  @Internal
+  @ExtraProcessed
   @Override
   Map<String, String> getEnvironment() {
     env.get()
@@ -55,7 +55,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
     }
   }
 
-  @Internal
+  @ExtraProcessed
   final DirectoryProperty workingDir = project.objects.directoryProperty().convention project.provider({
     if (PackerTemplateReadOnlyArgument.isInstance(this)) {
       DirectoryProperty directoryProperty = project.objects.directoryProperty()
@@ -72,7 +72,7 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
   private final PackerToolExtension packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)
 
   @Override
-  @Internal // @Nested TODO: Detect version ? / plugins ?
+  @ExtraProcessed // @Nested TODO: Detect version ? / plugins ?
   protected PackerToolExtension getToolExtension() {
     this.packerToolExtension
   }

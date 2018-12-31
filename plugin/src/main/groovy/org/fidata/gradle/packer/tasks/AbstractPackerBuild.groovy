@@ -21,9 +21,8 @@ package org.fidata.gradle.packer.tasks
 
 import org.fidata.gradle.packer.PackerEnginePlugin
 import org.fidata.packer.engine.AbstractEngine
-
-import static org.fidata.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.OnlyExcept
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.provider.Property
@@ -57,7 +56,7 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   @Internal
   final Property<Boolean> force
 
-  @Internal
+  @Console
   final Property<Boolean> debug
 
   // @Inject
@@ -143,7 +142,7 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
     result
   }
 
-  @Internal
+  @ExtraProcessed
   abstract Template getTemplate()
 
   @Nested

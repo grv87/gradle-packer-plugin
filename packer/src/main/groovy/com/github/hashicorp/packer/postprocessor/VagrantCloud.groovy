@@ -23,22 +23,26 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Credential
 
+@AutoImplement
 @CompileStatic
-class VagrantCloud extends PostProcessor {
-  String tag
+abstract class VagrantCloud extends PostProcessor<VagrantCloud> {
+  abstract String getTag()
 
-  String version
+  abstract String getVersion()
 
-  String versionDescription
+  abstract String getVersionDescription()
 
-  Boolean noRelease
+  abstract Boolean getNoRelease()
 
-  String accessToken
+  @Credential
+  abstract String getAccessToken()
 
-  String vagrantCloudUrl
+  abstract String getVagrantCloudUrl()
 
-  String boxDownloadUrl
+  abstract String getBoxDownloadUrl()
 
   static void register(AbstractEngine engine) {
     engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant-cloud', this

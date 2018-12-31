@@ -21,47 +21,56 @@ package com.github.hashicorp.packer.provisioner
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Timing
+import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
+import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 class WindowsShell extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Internal
-    Boolean binary
+    abstract Boolean getBinary()
 
     @Input
     @Optional
-    List<String> inline
+    abstract List<String> getInline()
 
     @InputFile
+    @PathSensitive(PathSensitivity.NONE) // TODOC
     @Optional
-    InterpolableFile script
+    abstract InterpolableFile getScript()
 
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE) // TODOC
     @Optional
-    List<InterpolableFile> scripts
+    abstract List<InterpolableFile> getScripts()
 
     @JsonProperty('environment_vars')
     @Input
     @Optional
-    List<String> vars
+    abstract List<String> getVars()
 
-    @Internal
-    String remotePath
+    @Staging
+    abstract String getRemotePath()
 
     @Input // TODO
-    String executeCommand
+    abstract String getExecuteCommand()
 
-    @Internal
-    InterpolableDuration startRetryTimeout
+    @Timing
+    abstract InterpolableDuration getStartRetryTimeout()
   }
 
   static void register(AbstractEngine engine) {

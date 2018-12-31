@@ -19,22 +19,21 @@
  */
 package com.github.hashicorp.packer.template
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
-import org.fidata.packer.engine.Mutability
-import org.fidata.packer.engine.annotations.AutoImplement
-import org.fidata.packer.engine.types.InterpolableString
-
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import org.fidata.packer.engine.annotations.ExtraProcessed
 
 import static Context.BUILD_NAME_VARIABLE_NAME
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.types.InterpolableString
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ComputedInternal
 import org.fidata.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
 import java.nio.file.Path
-
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
 import org.gradle.api.provider.Provider
@@ -61,7 +60,7 @@ abstract class Template implements InterpolableObject<Template> {
   @Optional
   abstract String getMinVersion()
 
-  @Internal
+  @ExtraProcessed
   abstract Map<String, InterpolableString> getVariables()
 
   @Console
@@ -185,7 +184,7 @@ abstract class Template implements InterpolableObject<Template> {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  static Template readFromFile(AbstractEngine<Template> engine, File file) {
+  static Template readFromFile(AbstractEngine<Template> engine, File file) { // MARK1
     Template template = file.withInputStream { InputStream inputStream ->
       engine.readValue(inputStream)
     }
@@ -201,8 +200,9 @@ abstract class Template implements InterpolableObject<Template> {
   private static final String COMMENT_KEY_PREFIX = '_'
   private static final Pattern COMMENT_KEY_PREFIX_PATTERN = ~/\A$COMMENT_KEY_PREFIX(.+)\z/
 
+  @Internal
   @JsonAnyGetter
-  Map<String, Object> commentsForJson() {
+  Map<String, Object> getCommentsForJson() {
     comments.collectEntries { String key, Object value ->
       ["$COMMENT_KEY_PREFIX$key": value]
     }
@@ -213,6 +213,8 @@ abstract class Template implements InterpolableObject<Template> {
     Matcher matcher = name =~ COMMENT_KEY_PREFIX_PATTERN
     if (matcher.matches()) {
       comments.put matcher.group(1), value
+    } else {
+      throw UnrecognizedPropertyException.from(null, this, name, null)
     }
   }
 }

@@ -19,26 +19,92 @@
  */
 package com.github.hashicorp.packer.common
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ContextVar
+import org.fidata.packer.engine.annotations.ContextVars
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.annotations.IgnoreIf
+import org.fidata.packer.engine.annotations.PostProcess
+import org.fidata.packer.engine.annotations.Staging
+import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableFile
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
+@AutoImplement
 @CompileStatic
-class ShellLocal extends InterpolableObject {
-  InterpolableStringArray inline
+abstract class ShellLocal implements InterpolableObject<ShellLocal> {
+  @JsonAlias('command')
+  @Input
+  @Optional
+  abstract InterpolableStringArray getInline()
 
-  InterpolableString inlineShebang
+  @Input
+  @Default({ '/bin/sh -e' })
+  @IgnoreIf({ !inline.interpolated })
+  abstract InterpolableString getInlineShebang()
 
-  InterpolableString tempfileExtension
+  @ExtraProcessed
+  abstract InterpolableStringArray getOnlyOn() // TODO
 
-  InterpolableString script
+  /*
+   * CAVEAT: We assume script is not trying to get its own filename
+   * TODOC
+   */
+  @Staging
+  @IgnoreIf({ !inline.interpolated })
+  @PostProcess({ String interpolated -> interpolated.replaceFirst(/\A\./, '') })
+  abstract InterpolableString getTempfileExtension()
 
-  InterpolableStringArray scripts
+  @InputFile
+  /*
+   * CAVEAT: We assume script is not trying to get its own path and filename
+   * TODOC
+   */
+  @PathSensitive(PathSensitivity.NONE)
+  @Optional
+  abstract InterpolableFile getScript()
 
-  InterpolableStringArray environmentVars
+  @InputFiles
+  /*
+   * CAVEAT: We assume scripts are not trying to get their own paths and filenames
+   * TODOC
+   */
+  @PathSensitive(PathSensitivity.NONE)
+  // TODO: Preserve order
+  @Optional
+  abstract InterpolableStringArray getScripts()
 
-  InterpolableStringArray executeCommand
+  @Input
+  @ContextVars([ // TODO
+    @ContextVar(key = 'WinRMPassword', value = { '' }),
+  ])
+  @Optional
+  abstract InterpolableStringArray getEnvironmentVars()
 
-  InterpolableStringArray useLinuxPathing
+  @Input
+  @Default({ ['/bin/sh', '-c', '{{.Vars}}', '{{.Script}}'] }) // TODO
+  @ContextVars([ // TODO
+    @ContextVar(key = 'Vars', value = { '' }),
+    @ContextVar(key = 'Script', value = { '' }),
+    @ContextVar(key = 'Command', value = { '' }), // Deprecated
+    @ContextVar(key = 'WinRMPassword', value = { '' }),
+  ])
+  abstract InterpolableStringArray getExecuteCommand()
+
+  @Internal
+  @Default({ Boolean.FALSE })
+  // @IgnoreIf() TODO: not Windows
+  abstract InterpolableBoolean getUseLinuxPathing()
 }

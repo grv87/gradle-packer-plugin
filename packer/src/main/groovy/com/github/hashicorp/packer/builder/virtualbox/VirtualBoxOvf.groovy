@@ -34,7 +34,9 @@ import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Inline
+import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableChecksumType
 import org.fidata.packer.engine.types.InterpolableInputURI
@@ -47,13 +49,12 @@ import com.github.hashicorp.packer.template.Builder
 import org.fidata.ovf.OvfUtils
 import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import java.nio.file.Paths
 
 @CompileStatic
 @AutoImplement
-abstract class VirtualBoxOvf extends Builder {
+abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   @Inline
   abstract HTTPConfig getHttpConfig()
 
@@ -114,10 +115,10 @@ abstract class VirtualBoxOvf extends Builder {
   @Nested
   abstract InterpolableInputURI getSourcePath()
 
-  @Internal
+  @Staging
   abstract InterpolableString getTargetPath()
 
-  @Internal // name of the OVF_FILE_EXTENSION file for the new virtual machine, without the file extension
+  @ExtraProcessed // name of the OVF_FILE_EXTENSION file for the new virtual machine, without the file extension
   @Default({ 'packer-{{ .BuildName }}' }) // TODO
   abstract InterpolableString getVmName()
 

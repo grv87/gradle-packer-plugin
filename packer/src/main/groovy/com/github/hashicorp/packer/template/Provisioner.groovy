@@ -19,18 +19,17 @@
  */
 package com.github.hashicorp.packer.template
 
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.annotations.Timing
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
-import org.fidata.packer.engine.SubtypeRegistry
 import groovy.transform.CompileStatic
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import com.google.common.reflect.TypeToken
 import java.lang.reflect.Field
 
@@ -40,44 +39,39 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner<P extends Configuration> implements InterpolableObject<Provisioner<P>> {
+abstract class Provisioner<P extends Configuration, ThisClass extends Provisioner<P, ThisClass>> implements InterpolableObject<ThisClass> {
   final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   protected Provisioner() {
   }
 
   @JsonUnwrapped
-  @Internal
-  OnlyExcept onlyExcept
+  @ExtraProcessed
+  abstract OnlyExcept getOnlyExcept()
 
   @Input // TODO
-  String type
+  abstract String getType()
 
-  static class Configuration extends InterpolableObject {
+  abstract static class Configuration implements InterpolableObject<Configuration> {
     protected Configuration() {
     }
 
-    @Internal
-    InterpolableDuration pauseBefore
-
-    @Override
-    protected void doInterpolate() {
-      pauseBefore.interpolate context
-    }
+    @Timing
+    abstract InterpolableDuration getPauseBefore()
   }
 
-  @Internal
-  Map<String, P> override
+  @ExtraProcessed
+  abstract Map<String, P> getOverride()
 
   @Inline
-  P configuration
+  abstract P getConfiguration()
 
   /**
    * Interpolates instance of the provisioner for specific builder.
    * * Copies `override` configuration
    */
   @Override
-  final protected void doInterpolate() {
+  final protected void doInterpolate() { // MARK1
     configuration.interpolate context
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {

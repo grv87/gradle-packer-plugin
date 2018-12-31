@@ -25,17 +25,17 @@ import com.github.hashicorp.packer.template.PostProcessor
 import org.fidata.packer.engine.AbstractEngine
 
 @CompileStatic
-class Vagrant extends PostProcessor {
-  Integer compressionLevel
+abstract class Vagrant extends PostProcessor<Vagrant> {
+  abstract Integer getCompressionLevel()
 
-  List<String> include
+  abstract List<String> getInclude()
 
   @JsonProperty('output')
-  String outputPath
+  abstract String getOutputPath()
 
-  Map<String, Object> override
+  abstract Map<String, Object> getOverride()
 
-  String vagrantfileTemplate
+  abstract String getVagrantfileTemplate()
 
   static void register(AbstractEngine engine) {
     engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant', this

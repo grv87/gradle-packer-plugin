@@ -20,15 +20,18 @@
 package com.github.hashicorp.packer.provisioner
 
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
+import org.fidata.packer.engine.types.base.InterpolableObject
 
 @CompileStatic
 class ShellLocal extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
     @Inline
-    com.github.hashicorp.packer.common.ShellLocal config
+    abstract com.github.hashicorp.packer.common.ShellLocal getConfig()
   }
 
   static void register(AbstractEngine engine) {

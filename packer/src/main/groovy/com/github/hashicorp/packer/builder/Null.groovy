@@ -3,19 +3,15 @@ package com.github.hashicorp.packer.builder
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.helper.Communicator
 
+@AutoImplement
 @CompileStatic
-class Null extends Builder {
+abstract class Null extends Builder<Null> {
   @Inline
-  Communicator commConfig
-
-  @Override
-  protected void doInterpolate() {
-    super.doInterpolate()
-    commConfig.interpolate context
-  }
+  abstract Communicator getCommConfig()
 
   static void register(AbstractEngine engine) {
     engine.getSubtypeRegistry(Builder).registerSubtype 'null', this

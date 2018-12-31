@@ -2,8 +2,10 @@ package com.github.hashicorp.packer.helper
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import groovy.transform.CompileStatic
+import org.fidata.packer.engine.annotations.Timing
+import org.fidata.packer.engine.annotations.ConnectionSetting
+import org.fidata.packer.engine.annotations.Credential
 import org.fidata.packer.engine.types.base.InterpolableObject
-import org.gradle.api.tasks.Internal
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableInteger
 import org.fidata.packer.engine.types.InterpolableBoolean
@@ -11,136 +13,100 @@ import org.fidata.packer.engine.types.InterpolableDuration
 
 @CompileStatic
 // TODO: communicator/config ?
-class Communicator extends InterpolableObject {
+abstract class Communicator implements InterpolableObject<Communicator> {
   // SSH
-  @Internal
-  InterpolableString sshHost
+  @ConnectionSetting
+  abstract InterpolableString getSshHost()
 
-  @Internal
-  InterpolableInteger sshPort
+  @ConnectionSetting
+  abstract InterpolableInteger getSshPort()
 
-  @Internal
-  InterpolableString sshUsername
+  @Credential
+  abstract InterpolableString getSshUsername()
 
-  @Internal
-  InterpolableString sshPassword
+  @Credential
+  abstract InterpolableString getSshPassword()
 
-  @Internal
-  InterpolableString sshPrivateKey
+  @Credential
+  abstract InterpolableString getSshPrivateKey()
 
-  @Internal
-  InterpolableBoolean sshPty
+  @ConnectionSetting
+  abstract InterpolableBoolean getSshPty()
 
   @JsonAlias('ssh_wait_timeout')
-  @Internal
-  InterpolableDuration sshTimeout
+  @Timing
+  abstract InterpolableDuration getSshTimeout()
 
-  @Internal
-  InterpolableBoolean sshAgentAuth
+  @ConnectionSetting
+  abstract InterpolableBoolean getSshAgentAuth()
 
-  @Internal
-  InterpolableBoolean sshDisableAgentForwarding
+  @ConnectionSetting
+  abstract InterpolableBoolean getSshDisableAgentForwarding()
 
-  @Internal
-  InterpolableInteger sshHandshakeAttempts
+  @Timing
+  abstract InterpolableInteger getSshHandshakeAttempts()
 
-  @Internal
-  InterpolableString sshBastionHost
+  @ConnectionSetting
+  abstract InterpolableString getSshBastionHost()
 
-  @Internal
-  InterpolableInteger sshBastionPort
+  @ConnectionSetting
+  abstract InterpolableInteger getSshBastionPort()
 
-  @Internal
-  InterpolableBoolean sshBastionAgentAuth
+  @ConnectionSetting
+  abstract InterpolableBoolean getSshBastionAgentAuth()
 
-  @Internal
-  InterpolableString sshBastionUsername
+  @Credential
+  abstract InterpolableString getSshBastionUsername()
 
-  @Internal
-  InterpolableString sshBastionPassword
+  @Credential
+  abstract InterpolableString getSshBastionPassword()
 
-  @Internal
-  InterpolableString sshBastionPrivateKey
+  @Credential
+  abstract InterpolableString getSshBastionPrivateKey()
 
-  @Internal
-  InterpolableString sshFileTransferMethod
+  @ConnectionSetting
+  abstract InterpolableString getSshFileTransferMethod()
 
-  @Internal
-  InterpolableString sshProxyHost
+  @ConnectionSetting
+  abstract InterpolableString getSshProxyHost()
 
-  @Internal
-  InterpolableInteger sshProxyPort
+  @ConnectionSetting
+  abstract InterpolableInteger getSshProxyPort()
 
-  @Internal
-  InterpolableString sshProxyUsername
+  @Credential
+  abstract InterpolableString getSshProxyUsername()
 
-  @Internal
-  InterpolableString sshProxyPassword
+  @Credential
+  abstract InterpolableString getSshProxyPassword()
 
-  @Internal
-  InterpolableDuration sshKeepAliveInterval
+  @Timing
+  abstract InterpolableDuration getSshKeepAliveInterval()
 
-  @Internal
-  InterpolableDuration sshReadWriteTimeout
+  @Timing
+  abstract InterpolableDuration getSshReadWriteTimeout()
 
   // winrm
-  @Internal
-  InterpolableString winrmUser
+  @Credential
+  abstract InterpolableString getWinrmUser()
 
-  @Internal
-  InterpolableString winrmPassword
+  @Credential
+  abstract InterpolableString getWinrmPassword()
 
-  @Internal
-  InterpolableString winrmHost
+  @ConnectionSetting
+  abstract InterpolableString getWinrmHost()
 
-  @Internal
-  InterpolableInteger winrmPort
+  @ConnectionSetting
+  abstract InterpolableInteger getWinrmPort()
 
-  @Internal
-  InterpolableDuration winrmTimeout
+  @Timing
+  abstract InterpolableDuration getWinrmTimeout()
 
-  @Internal
-  InterpolableBoolean winrmUseSSL
+  @ConnectionSetting
+  abstract InterpolableBoolean getWinrmUseSSL()
 
-  @Internal
-  InterpolableBoolean winrmInsecure
+  @ConnectionSetting
+  abstract InterpolableBoolean getWinrmInsecure()
 
-  @Internal
-  InterpolableBoolean winrmUseNTLM
-
-  @Override
-  protected void doInterpolate() {
-    sshHost.interpolate context
-    sshPort.interpolate context
-    sshUsername.interpolate context
-    sshPassword.interpolate context
-    sshPrivateKey.interpolate context
-    sshPty.interpolate context
-    sshTimeout.interpolate context
-    sshAgentAuth.interpolate context
-    sshDisableAgentForwarding.interpolate context
-    sshHandshakeAttempts.interpolate context
-    sshBastionHost.interpolate context
-    sshBastionPort.interpolate context
-    sshBastionAgentAuth.interpolate context
-    sshBastionHost.interpolate context
-    sshBastionUsername.interpolate context
-    sshBastionPassword.interpolate context
-    sshBastionPrivateKey.interpolate context
-    sshFileTransferMethod.interpolate context
-    sshProxyHost.interpolate context
-    sshProxyPort.interpolate context
-    sshProxyUsername.interpolate context
-    sshProxyPassword.interpolate context
-    sshKeepAliveInterval.interpolate context
-    sshReadWriteTimeout.interpolate context
-    winrmUser.interpolate context
-    winrmPassword.interpolate context
-    winrmHost.interpolate context
-    winrmPort.interpolate context
-    winrmTimeout.interpolate context
-    winrmUseSSL.interpolate context
-    winrmInsecure.interpolate context
-    winrmUseNTLM.interpolate context
-  }
+  @ConnectionSetting
+  abstract InterpolableBoolean getWinrmUseNTLM()
 }

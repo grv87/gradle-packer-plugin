@@ -32,8 +32,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
 abstract class AbstractPackerValidate extends PackerWrapperTask implements PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
@@ -58,6 +59,7 @@ abstract class AbstractPackerValidate extends PackerWrapperTask implements Packe
   }
 
   @InputFile
+  @PathSensitive(PathSensitivity.NONE)
   @Override
   Provider<RegularFile> getTemplateFile() {
     PackerTemplateReadOnlyArgument.super.templateFile

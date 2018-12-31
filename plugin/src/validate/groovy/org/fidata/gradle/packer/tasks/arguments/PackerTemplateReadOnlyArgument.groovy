@@ -1,13 +1,13 @@
 package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Internal
 
 @CompileStatic
 trait PackerTemplateReadOnlyArgument extends PackerArgument {
-  @Internal
+  @ExtraProcessed
   final Provider<RegularFile> templateFile
 
   /*

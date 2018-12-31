@@ -1,22 +1,24 @@
 package com.github.hashicorp.packer.common.bootcommand
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Timing
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 
+@AutoImplement
 @CompileStatic
-class BootConfig extends InterpolableObject {
+abstract class BootConfig implements InterpolableObject<BootConfig> {
   @JsonProperty('boot_keygroup_interval')
-  @Internal
-  InterpolableDuration bootGroupInterval
+  @Timing
+  abstract InterpolableDuration getBootGroupInterval()
 
-  @Internal
-  InterpolableDuration bootWait
+  @Timing
+  abstract InterpolableDuration getBootWait()
 
   @Input
-  InterpolableString bootCommand
+  abstract InterpolableString getBootCommand()
 }

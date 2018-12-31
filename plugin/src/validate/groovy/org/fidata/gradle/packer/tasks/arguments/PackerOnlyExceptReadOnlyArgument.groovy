@@ -2,13 +2,13 @@ package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.OnlyExcept
-import org.gradle.api.tasks.Internal
+import org.fidata.packer.engine.annotations.ExtraProcessed
 
 @CompileStatic
 trait PackerOnlyExceptReadOnlyArgument extends PackerArgument {
   protected /* TOTEST */ OnlyExcept onlyExcept
 
-  @Internal
+  @ExtraProcessed
   OnlyExcept getOnlyExcept() {
     this.onlyExcept
   }

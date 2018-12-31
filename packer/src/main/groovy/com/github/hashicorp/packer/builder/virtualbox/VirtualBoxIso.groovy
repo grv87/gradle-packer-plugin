@@ -35,6 +35,7 @@ import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableInteger
@@ -46,12 +47,11 @@ import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import com.google.common.primitives.UnsignedInteger
 
 @CompileStatic
 @AutoImplement
-abstract class VirtualBoxIso extends Builder {
+abstract class VirtualBoxIso extends Builder<VirtualBoxIso> {
   @Inline
   abstract HTTPConfig getHttpConfig()
 
@@ -134,7 +134,7 @@ abstract class VirtualBoxIso extends Builder {
   @Default({ Boolean.FALSE })
   abstract InterpolableBoolean getSkipExport() // TODO: handle
 
-  @Internal // name of the OVF_FILE_EXTENSION file for the new virtual machine, without the file extension
+  @ExtraProcessed // name of the OVF_FILE_EXTENSION file for the new virtual machine, without the file extension
   @Default({ 'packer-{{ .BuildName }}' }) // TODO
   abstract InterpolableString getVmName()
 

@@ -20,6 +20,10 @@
 package com.github.hashicorp.packer.provisioner
 
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.types.base.InterpolableObject
 
 import java.io.File as JavaFile
 import org.fidata.packer.engine.annotations.ComputedInputDirectory
@@ -33,7 +37,6 @@ import com.github.hashicorp.packer.template.Provisioner
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.InheritConstructors
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -41,18 +44,21 @@ import java.util.regex.Pattern
 
 @CompileStatic
 class File extends Provisioner<Configuration> {
-  static class Configuration extends Provisioner.Configuration {
-    @Internal
-    InterpolableString source
+  @AutoImplement
+  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+    @ExtraProcessed
+    abstract InterpolableString getSource()
 
-    @Internal
-    InterpolableString destination
+    @ExtraProcessed
+    abstract InterpolableString getDestination()
 
-    @Internal
-    InterpolableDirection direction = InterpolableDirection.withDefault(Direction.UPLOAD)
+    @ExtraProcessed
+    @Default({ Direction.UPLOAD })
+    abstract InterpolableDirection getDirection()
 
-    @Internal
-    InterpolableBoolean generated = InterpolableBoolean.withDefault(false)
+    @ExtraProcessed
+    @Default({ Boolean.FALSE })
+    abstract InterpolableBoolean getGenerated()
 
     private Boolean isDirectory
 

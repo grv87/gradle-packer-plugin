@@ -20,31 +20,27 @@
 package com.github.hashicorp.packer.postprocessor
 
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.Default
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.fidata.packer.engine.types.InterpolableBoolean
 
+@AutoImplement
 @CompileStatic
-class Manifest extends PostProcessor {
+abstract class Manifest extends PostProcessor<Manifest> {
   @JsonProperty('output')
-  @Internal
-  InterpolableString/*File*/ outputPath = InterpolableString.withDefault('packer-manifest.json')
+  @Default({ 'packer-manifest.json' })
+  @ExtraProcessed
+  abstract InterpolableString/*File*/ getOutputPath()
 
   @Input
-  InterpolableBoolean stripPath
-
-  @Override
-  protected void doInterpolate() {
-    // TODO
-    super.doInterpolate()
-    outputPath.interpolate context
-    stripPath.interpolate context
-  }
+  abstract InterpolableBoolean getStripPath()
 
   @Override
   protected Tuple3<com.github.hashicorp.packer.packer.Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(com.github.hashicorp.packer.packer.Artifact priorArtifact) {

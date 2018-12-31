@@ -103,6 +103,24 @@ saves results in Gradle's cache.
 	*	`timestamp`
 	*	`uuid`
 
+## Gradle Offline Mode
+
+This plugin doesn't respect Gradle's `--offline` command line argument.
+
+1.  Although it is feasible to detect that
+    specific builder/provisioner/post-processor doesn't require
+    network connection itself, it is not so for provisioning scripts.
+    VirtualBox VM created from local ISO could be provisioned
+    with scripts that run `apt-get install` inside.
+    There is no (simple) way to detect it and prevent running such task
+    in offline mode.
+    Generally, Packer builds almost always require network connection.
+
+2.  I haven't seen live examples where Gradle's `--offline`
+    command line argument is used for something useful
+    except testing and debugging purposes. So, I see little benefit
+    in its support.
+
 ## Notes
 1.	Gradle (as of 3.2) [can't handle URLs](
 https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
