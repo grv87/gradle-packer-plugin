@@ -9,7 +9,7 @@ import org.gradle.api.tasks.Internal
 @CompileStatic
 trait PackerArgument {
   @Internal
-  List<Object> getCmdArgs() {
+  List<String> getCmdArgs() {
     []
   }
 }

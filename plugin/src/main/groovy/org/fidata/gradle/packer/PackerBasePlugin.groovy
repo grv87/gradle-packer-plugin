@@ -20,13 +20,14 @@
  */
 package org.fidata.gradle.packer
 
-import org.fidata.packer.engine.AbstractEngine
-
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-
-import org.fidata.gradle.packer.tasks.PackerBuild
+import com.google.common.collect.ImmutableList
 import org.fidata.gradle.packer.tasks.PackerValidate
+import com.github.hashicorp.packer.template.Template
+import org.fidata.packer.engine.AbstractEngine
+import org.fidata.gradle.packer.tasks.PackerBuild
+import org.fidata.gradle.packer.tasks.AbstractPackerValidate
 import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -39,31 +40,41 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
  */
 @CompileStatic
 class PackerBasePlugin implements Plugin<Project> {
-  private final AbstractEngine engine = new AbstractEngine()
+  private PackerEnginePlugin enginePlugin
 
   static final String PACKER_VALIDATE_TASK_NAME = 'packerValidate'
 
   private TaskProvider<Task> packerValidateProvider
 
   TaskProvider<Task> getPackerValidateProvider() {
-    this.packerValidateProvider
+    this.@packerValidateProvider
+  }
+
+  private static final List<Class<Task>> TASK_CLASSES  = ImmutableList.<Task>of(PackerBuild, PackerValidate)
+
+  AbstractEngine<Template> getEngine() {
+    this.@enginePlugin.engine
   }
 
   void apply(Project project) {
+    this.@enginePlugin = project.gradle.plugins.apply(PackerEnginePlugin)
+
     project.pluginManager.apply LifecycleBasePlugin
 
-    for (Class taskClass : [PackerBuild, PackerValidate]) {
+    TASK_CLASSES.each { Class<Task> taskClass ->
       project.extensions.extraProperties[taskClass.simpleName] = taskClass
     }
+
     packerValidateProvider = project.tasks.register(PACKER_VALIDATE_TASK_NAME) { Task packerValidate ->
       packerValidate.group = VERIFICATION_GROUP
-      packerValidate.dependsOn project.tasks.withType(PackerValidate)
+      packerValidate.dependsOn project.tasks.withType(AbstractPackerValidate)
     }
     project.plugins.withType(LifecycleBasePlugin) {
       project.tasks.named(CHECK_TASK_NAME).configure { Task check ->
         check.dependsOn packerValidateProvider
       }
     }
+
     project.extensions.create(PackerToolExtension.NAME, PackerToolExtension, project)
   }
 }

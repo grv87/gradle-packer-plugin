@@ -1,5 +1,5 @@
 /*
- * PackerValidate class
+ * AbstractPackerValidate class
  * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -20,34 +20,13 @@
 package org.fidata.gradle.packer.tasks
 
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.tasks.arguments.PackerOnlyExceptArgument
 import org.fidata.gradle.packer.tasks.arguments.PackerTemplateArgument
-import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
 
 @CompileStatic
-class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgument, PackerVarArgument, PackerTemplateArgument {
-  @Input
-  @Optional
-  Property<Boolean> syntaxOnly = project.objects.property(Boolean)
-
-  @Internal
-  @Override
-  @SuppressWarnings('UnnecessaryGetter') // TODO
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = PackerTemplateArgument.super.getCmdArgs()
-    if (syntaxOnly.getOrElse(false)) {
-      cmdArgs.add 0, '-syntax-only' // Template should be the last, so we insert in the start
-    }
-    cmdArgs
-  }
-
+class PackerValidate extends AbstractPackerValidate implements PackerOnlyExceptArgument, PackerTemplateArgument {
   @InputFile
   @Override
   RegularFileProperty getTemplateFile() {
@@ -55,15 +34,6 @@ class PackerValidate extends PackerWrapperTask implements PackerOnlyExceptArgume
   }
 
   PackerValidate() {
-    syntaxOnly.set false
-    this.@org_fidata_gradle_packer_tasks_arguments_PackerTemplateReadOnlyArgument__templateFile = newInputFile() // TOTEST: it should be still internal
-    outputs.upToDateWhen { true } // TODO ? Is it standard for code quality tasks ?
-  }
-
-  @Override
-  protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
-    PackerExecSpec result = super.configureExecSpec(execSpec)
-    result.command 'validate'
-    result
+    super(project.objects.fileProperty())
   }
 }

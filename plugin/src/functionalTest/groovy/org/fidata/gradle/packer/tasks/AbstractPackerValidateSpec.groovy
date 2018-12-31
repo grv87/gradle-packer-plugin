@@ -9,10 +9,10 @@ import org.ysb33r.grolifant.api.exec.AbstractCommandExecSpec
 import spock.lang.Specification
 
 /**
- * Specification for {@code PackerValidate} Gradle task class
+ * Specification for {@code AbstractPackerValidate} Gradle task class
  */
 @CompileStatic
-class PackerValidateSpec extends Specification {
+class AbstractPackerValidateSpec extends Specification {
   // fields
   @Rule
   final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -50,9 +50,9 @@ class PackerValidateSpec extends Specification {
     project.apply plugin: 'org.fidata.packer-base'
 
     when:
-    'instance of PackerValidate task is created'
+    'instance of AbstractPackerValidate task is created'
     File template = new File(testProjectDir.root, 'template.json')
-    PackerValidate packerValidateTemplate = project.tasks.create('packerValidate-template', PackerValidate) {
+    AbstractPackerValidate packerValidateTemplate = project.tasks.create('packerValidate-template', AbstractPackerValidate) {
       templateFile = template
     }
 

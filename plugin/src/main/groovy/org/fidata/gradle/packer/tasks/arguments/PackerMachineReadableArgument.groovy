@@ -9,19 +9,8 @@ import org.gradle.api.tasks.Optional
 @CompileStatic
 trait PackerMachineReadableArgument extends PackerArgument {
   @Console
-  @Optional
-  final Property<Boolean> machineReadable = project.objects.property(Boolean)
-
-  /*TOTEST
-  @Console
-  @Optional
-  Boolean getMachineReadable() {
-    this.machineReadable
-  }
-
-  void setMachineReadable(Boolean machineReadable) {
-    this.machineReadable = machineReadable
-  }*/
+  // @Optional
+  final Property<Boolean> machineReadable = project.objects.property(Boolean).convention(false)
 
   /*
    * WORKAROUND:
@@ -33,16 +22,11 @@ trait PackerMachineReadableArgument extends PackerArgument {
   @SuppressWarnings('UnnecessaryGetter')
   @Internal
   @Override
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
+  List<String> getCmdArgs() {
+    List<String> cmdArgs = super.getCmdArgs()
     if (machineReadable.getOrElse(false)) {
       cmdArgs.add '-machine-readable'
     }
     cmdArgs
-  }
-
-  // TODO (make custom chained method and call from instance constructor ?)
-  PackerMachineReadableArgument() {
-    machineReadable.set false
   }
 }

@@ -40,6 +40,10 @@ class OnlyExcept {
     !only.empty ? only.size() : originalSize - except.size()
   }
 
+  OnlyExcept() {
+    this(null, null)
+  }
+
   OnlyExcept(ImmutableList<String> only, ImmutableList<String> except) {
     this.only = only ?: ImmutableList.<String>of()
     this.except = except ?: ImmutableList.<String>of()

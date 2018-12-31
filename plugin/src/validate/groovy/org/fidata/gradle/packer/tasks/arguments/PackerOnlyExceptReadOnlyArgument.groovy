@@ -2,16 +2,13 @@ package org.fidata.gradle.packer.tasks.arguments
 
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.OnlyExcept
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
 
 @CompileStatic
 trait PackerOnlyExceptReadOnlyArgument extends PackerArgument {
   protected /* TOTEST */ OnlyExcept onlyExcept
 
   @Internal
-  @Optional
   OnlyExcept getOnlyExcept() {
     this.onlyExcept
   }
@@ -24,13 +21,13 @@ trait PackerOnlyExceptReadOnlyArgument extends PackerArgument {
    * <grv87 2018-08-19>
    */
   @SuppressWarnings('UnnecessaryGetter')
-  @Internal
+  // TOTEST: @Internal
   @Override
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
-    if (onlyExcept?.only?.empty == false) {
+  List<String> getCmdArgs() {
+    List<String> cmdArgs = super.getCmdArgs()
+    if (onlyExcept?.only?.empty == Boolean.FALSE) {
       cmdArgs.add "-only=${ onlyExcept.only.join(',')}"
-    } else if (onlyExcept?.except?.empty  == false) {
+    } else if (onlyExcept?.except?.empty == Boolean.FALSE) {
       cmdArgs.add "-except=${ onlyExcept.except.join(',')}"
     }
     cmdArgs

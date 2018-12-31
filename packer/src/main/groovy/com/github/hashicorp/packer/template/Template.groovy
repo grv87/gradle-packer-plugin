@@ -19,9 +19,14 @@
  */
 package com.github.hashicorp.packer.template
 
-
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import org.fidata.packer.engine.Mutability
+import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.types.InterpolableString
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 import static Context.BUILD_NAME_VARIABLE_NAME
 import org.fidata.packer.engine.AbstractEngine
@@ -43,67 +48,69 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 
 @CompileStatic
-// REVIEWED
-class Template implements InterpolableObject {
+@AutoImplement
+abstract class Template implements InterpolableObject<Template> {
   // TODO
-  Path path
+  abstract Path getPath()
 
   @Console
-  String description
+  abstract String getDescription()
 
   @JsonProperty('min_packer_version')
   @Input
   @Optional
-  String minVersion
+  abstract String getMinVersion()
 
   @Internal
-  Map<String, InterpolableString> variables
+  abstract Map<String, InterpolableString> getVariables()
 
   @Console
-  List<String> sensitiveVariables
+  abstract List<String> getSensitiveVariables()
 
   @Nested
-  /* TODO: Map<String, Builder> */ List<Builder> builders
+  abstract /* TODO: Map<String, Builder> */ List<Builder> getBuilders()
 
   @Nested
-  List<Provisioner> provisioners
+  abstract List<Provisioner> getProvisioners()
 
   @JsonProperty('post-processors')
   @Nested
-  List<PostProcessor.PostProcessorArrayDefinition> postProcessors
+  abstract List<PostProcessor.PostProcessorArrayDefinition> getPostProcessors()
+
+  // Note that this is
+  @ComputedInternal
+  abstract Map<String, Object> getComments()
 
   // TODO
-  Map<String, String> comments
+  // byte[] rawContents
 
   // TODO
-  byte[] rawContents
-
-  private Context envCtx
-
-  /**
-   * Context used to interpolate variables.
-   * Have {@code env} function
-   * @return Context used to interpolate variables
-   */
-  @ComputedInternal
-  Context getenvCtx() {
-    this.envCtx
-  }
-
-  private Context variablesCtx
-
-  /**
-   * Context used to interpolate template itself.
-   * Doesn't have {@code env} function, but have variables
-   * @return Context used to interpolate template itself
-   */
-  @ComputedInternal
-  Context getvariablesCtx() {
-    this.variablesCtx
-  }
+  //  private Context envCtx
+  //
+  //  /**
+  //   * Context used to interpolate variables.
+  //   * Have {@code env} function
+  //   * @return Context used to interpolate variables
+  //   */
+  //  @ComputedInternal
+  //  Context getenvCtx() {
+  //    this.envCtx
+  //  }
+  //
+  //  private Context variablesCtx
+  //
+  //  /**
+  //   * Context used to interpolate template itself.
+  //   * Doesn't have {@code env} function, but have variables
+  //   * @return Context used to interpolate template itself
+  //   */
+  //  @ComputedInternal
+  //  Context getvariablesCtx() {
+  //    this.variablesCtx
+  //  }
 
   @Override
-  protected void doInterpolate() {
+  protected Template interpolate() {
     super.doInterpolate() // TOTEST
 
     // Stage 1
@@ -178,23 +185,34 @@ class Template implements InterpolableObject {
     // artifacts = projectLayout.configurableFiles()
   // }
 
-  static Template readFromFile(AbstractEngine engine, File file, Mutability mutability = Mutability.IMMUTABLE) {
-    Template template = (Template)file.withInputStream { InputStream inputStream ->
-      engine.getObjectMapperFacade(mutability).readValue(inputStream, Template)
+  static Template readFromFile(AbstractEngine<Template> engine, File file) {
+    Template template = file.withInputStream { InputStream inputStream ->
+      engine.readValue(inputStream)
     }
     template.path = file.toPath()
     template
   }
 
-  static Template readValue(AbstractEngine engine, String string, Mutability mutability = Mutability.IMMUTABLE) {
-    Template template = engine.getObjectMapperFacade(mutability).readValue(string, Template)
+  static Template readValue(AbstractEngine<Template> engine, String string) {
+    Template template = engine.readValue(string)
     template
   }
 
-  void writeValue(Writer writer) {
-    /* TODO file.withInputStream { InputStream inputStream ->
-      AbstractEngine.get(mutability).writeValue
-        .readValue(inputStream, Template)
-    }*/
+  private static final String COMMENT_KEY_PREFIX = '_'
+  private static final Pattern COMMENT_KEY_PREFIX_PATTERN = ~/\A$COMMENT_KEY_PREFIX(.+)\z/
+
+  @JsonAnyGetter
+  Map<String, Object> commentsForJson() {
+    comments.collectEntries { String key, Object value ->
+      ["$COMMENT_KEY_PREFIX$key": value]
+    }
+  }
+
+  @JsonAnySetter
+  void addCommentFromJson(String name, Object value) {
+    Matcher matcher = name =~ COMMENT_KEY_PREFIX_PATTERN
+    if (matcher.matches()) {
+      comments.put matcher.group(1), value
+    }
   }
 }

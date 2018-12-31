@@ -1,7 +1,6 @@
-#!/usr/bin/env groovy
 /*
- * Build script for gradle-packer-plugin
- * Copyright © 2016-2018  Basil Peace
+ * AbstractPackerValidate class
+ * Copyright © 2018  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -18,27 +17,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
  */
-/*buildscript {
-  configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}*/
-plugins {
-  id 'org.fidata.project' version '6.0.0-gradle-5-0-SNAPSHOT'
-}
+package org.fidata.gradle.packer.tasks
 
-description = 'Runs Packer builds from Gradle'
-tags.set(['packer', 'devops', 'vm'])
-license = 'LGPL-3.0-or-later'
-publicReleases = true
-contacts {
-  'grv87@yandex.ru' {
-    moniker 'Basil Peace'
-    github 'grv87'
-    roles 'owner', 'developer'
+import groovy.transform.CompileStatic
+import javax.inject.Inject
+
+@CompileStatic
+class PackerValidateAutoConfigurable extends AbstractPackerValidate {
+  @Inject
+  PackerValidateAutoConfigurable(File templateFile) {
+    super(project.layout.file(project.provider({ templateFile })))
   }
-}
-
-tasks.named('codenarcBuildSrc').configure { disabledRules.add 'JavaIoPackageAccess' }
-
-wrapper {
-  gradleVersion = '5.1-rc-3'
 }

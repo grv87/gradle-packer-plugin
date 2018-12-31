@@ -18,11 +18,11 @@ trait PackerTemplateReadOnlyArgument extends PackerArgument {
    * <grv87 2018-08-19>
    */
   @SuppressWarnings('UnnecessaryGetter')
-  @Internal
+  // TOTEST: @Internal
   @Override
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
-    cmdArgs.add templateFile
+  List<String> getCmdArgs() {
+    List<String> cmdArgs = super.getCmdArgs()
+    cmdArgs.add templateFile.get().toString()
     cmdArgs
   }
 }

@@ -61,6 +61,10 @@ afterEvaluate {
 
 gradlePlugin {
   plugins {
+    packerEnginePlugin {
+      id = 'org.fidata.packer-engine'
+      implementationClass = 'org.fidata.gradle.packer.PackerEnginePlugin'
+    }
     packerBasePlugin {
       id = 'org.fidata.packer-base'
       implementationClass = 'org.fidata.gradle.packer.PackerBasePlugin'
@@ -81,15 +85,18 @@ tasks.named('codenarcFunctionalTest').configure { disabledRules.add 'JavaIoPacka
 stutter {
   sparse = true
   java(8) {
-    compatibleRange '3.1'
+    compatibleRange '5.1-rc-1'
   }
   java(9) {
-    compatibleRange '3.1'
+    compatibleRange '5.1-rc-1'
   }
 }
 
 pluginBundle {
   plugins {
+    packerEnginePlugin {
+      displayName = 'Packer engine plugin'
+    }
     packerBasePlugin {
       displayName = 'Packer base plugin'
     }

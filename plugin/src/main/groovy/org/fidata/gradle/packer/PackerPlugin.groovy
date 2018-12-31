@@ -20,166 +20,116 @@
  */
 package org.fidata.gradle.packer
 
-import org.fidata.gradle.packer.exceptions.SharedDataNotFound
-
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
-import static org.apache.commons.io.FilenameUtils.removeExtension
-import static org.apache.commons.io.FileUtils.iterateFiles
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.ASSEMBLE_TASK_NAME
+import groovy.transform.PackageScope
+import org.apache.commons.io.FilenameUtils
+import org.fidata.gradle.packer.tasks.PackerValidateAutoConfigurable
+import org.fidata.gradle.packer.tasks.PackerWrapperTask
+import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.Mutability
 import com.github.hashicorp.packer.template.Builder
 import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.template.OnlyExcept
 import com.github.hashicorp.packer.template.Template
 import groovy.transform.CompileStatic
-import org.fidata.gradle.packer.internal.SharedData
 import org.fidata.gradle.packer.tasks.AbstractPackerBuild
 import org.fidata.gradle.packer.tasks.PackerBuildAutoConfigurable
-import org.fidata.gradle.packer.tasks.PackerValidate
-import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
+import org.fidata.gradle.packer.tasks.AbstractPackerValidate
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.Task
-import org.gradle.api.file.Directory
-import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.initialization.Settings
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 /**
  * `org.fidata.packer` plugin
+ *
+ * TODO: No concept of subproject is supported
  */
 @CompileStatic
-class PackerPlugin implements Plugin<Project>, Plugin<Settings> {
+class PackerPlugin implements Plugin<Project> {
   // internal
-  private static final String PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME = 'packer'
-
-  void apply(Settings settings) {
-    SharedData.SourceSetDescriptor sourceSetDescriptor = new SharedData.SourceSetDescriptor()
-
-    // TOTHINK: use `FileVisitor` to get pure `Path`s
-    iterateFiles(settings.rootDir, ['json'].toArray(new String[1]), true) { File templateFile ->
-      // TODO: Settings don't have logger ?
-      // settings.logger.debug(sprintf('org.fidata.packer: Processing %s template', [templateFile]))
-      File templateDir = templateFile.parentFile
-      String templateName = removeExtension(templateFile.toPath().fileName.toString())
-      String projectPath = /* TOTEST settings.rootDir.toPath().relativize( or Project.relativePath*/templateDir.toPath().resolve(templateName)/*)*/.toString().replace(File.separatorChar, ':' as char)
-
-      settings.include projectPath
-      ProjectDescriptor projectDescriptor = settings.project(projectPath)
-      projectDescriptor.projectDir = templateDir
-      projectDescriptor.buildFileName = "${ templateName }.gradle"
-
-      Template template = Template.readFromFile(templateFile)
-      template.interpolate new Context(null, null, templateFile, settings.settingsDir.toPath())
-
-      sourceSetDescriptor.templateDescriptors.add new SharedData.SourceSetDescriptor.TemplateDescriptor(projectPath, template)
-
-      // TOTHINK: String aName = name ?: template.variablesCtx.templateName ?: file.toPath().fileName.toString()
-
-      template.builders.each { Builder builder ->
-        String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFileName
-        String subprojectPath = "$projectPath:$buildName"
-
-        settings.include subprojectPath
-        ProjectDescriptor subpprojectDescriptor = settings.project(subprojectPath)
-        subpprojectDescriptor.projectDir = templateDir
-        subpprojectDescriptor.buildFileName = "$templateName-${ buildName }.gradle"
-
-        sourceSetDescriptor.buildDescriptors.add new SharedData.SourceSetDescriptor.BuildDescriptor(projectPath, template, buildName)
-      }
-      // projectDescriptor.path
-
-      // TODO: https://github.com/gradle/gradle/issues/5546 ?
-      ExtensionContainer extensions = ((ExtensionAware)settings.gradle).extensions
-      SharedData sharedData = extensions.findByType(SharedData)
-      if (!sharedData) {
-        sharedData = new SharedData()
-        extensions.add PACKER_PLUGIN_SHARED_DATA_EXTENSION_NAME, sharedData
-      }
-      sharedData.sourceSets[settings.rootProject.path] = sourceSetDescriptor // TOTEST
-    }
-  }
-
   static final String PACKER_EXTENSION_NAME = 'packer'
 
   static final String PACKER_BUILD_TASK_NAME = 'packerBuild'
 
+  private PackerBasePlugin basePlugin
+
+  @PackageScope
+  Project project
+
+  AbstractEngine<Template> getEngine() {
+    this.@basePlugin.engine
+  }
+
+  TaskProvider<Task> getPackerValidateProvider() {
+    this.@basePlugin.packerValidateProvider
+  }
+
+  private PackerPluginExtension extension
+
   void apply(Project project) {
-    project.pluginManager.apply PackerBasePlugin
-    TaskProvider<Task> packerValidateProvider  = project.plugins.getPlugin(PackerBasePlugin).packerValidateProvider
+    this.@project = project
+    this.@basePlugin = project.plugins.apply(PackerBasePlugin)
 
-    project.allprojects { Project childProject ->
+    // TOTEST that this is not affect configuration-on-demand
+    // TOTHINK
+    /*project.allprojects { Project childProject ->
       childProject.pluginManager.apply LifecycleBasePlugin
-      childProject.extensions.create PACKER_EXTENSION_NAME, PackerPluginExtension, childProject
+      childProject.extensions.create PACKER_EXTENSION_NAME, PackerPluginExtension, this, project
+    }*/
+    extension = project.extensions.create(PACKER_EXTENSION_NAME, PackerPluginExtension, this)
+  }
+
+  @PackageScope
+  void addTemplate(Object templatePath, String name = null) { // TODO: support custom configure closure
+    File templateFile = this.@project.file(templatePath)
+    File defaultWorkingDir = templateFile.parentFile
+
+    Template template = Template.readFromFile(engine, templateFile, Mutability.IMMUTABLE)
+    template.interpolate new Context(null, null, templateFile, defaultWorkingDir.toPath())
+
+    String aName = name ?: template.variablesCtx.templateName ?: FilenameUtils.getBaseName(templateFile.toString()) // MARK1
+
+    TaskProvider<AbstractPackerValidate> validateProvider = project.tasks.register("$PackerBasePlugin.PACKER_VALIDATE_TASK_NAME-$aName", PackerValidateAutoConfigurable,
+      templateFile
+    ) { AbstractPackerValidate validate ->
+      validate.variables.putAll extension.variables
+      validate.env.putAll extension.env
+      validate.workingDir.set extension.workingDir
+      validate.syntaxOnly.set true
+    }
+    packerValidateProvider.configure { Task packerValidate ->
+      packerValidate.dependsOn validateProvider
     }
 
-    // TODO: https://github.com/gradle/gradle/issues/5546 ?
-    SharedData sharedData = ((ExtensionAware)(project.gradle)).extensions.findByType(SharedData)
-    if (!sharedData) {
-      throw new SharedDataNotFound()
-    }
+    template.builders.each { Builder builder ->
+      String buildName = builder.header.buildName // TODO: replace : and path characters in buildName; toSafeFileName
 
-    SharedData.SourceSetDescriptor sourceSet = sharedData.sourceSets[project.path]
-    if (!sourceSet) {
-      throw new SharedDataNotFound()
-    }
-
-    sourceSet.templateDescriptors.each { SharedData.SourceSetDescriptor.TemplateDescriptor templateDescriptor ->
-      Project subproject = project.project(templateDescriptor.projectPath)
-      TaskProvider<PackerValidate> validateProvider = subproject.tasks.register(PackerBasePlugin.PACKER_VALIDATE_TASK_NAME, PackerValidate) { PackerValidate validate ->
-        validate.templateFile.set templateDescriptor.template.path.toFile()
-        validate.syntaxOnly.set true
-        validate.configure configureClosure(project, subproject.layout.projectDirectory/*.dir(templateDescriptor.template.path.parent.toAbsolutePath().toString())*/)
+      TaskProvider<AbstractPackerBuild> buildProvider = project.tasks.register("$PACKER_BUILD_TASK_NAME-$aName-$buildName", PackerBuildAutoConfigurable,
+        template,
+        OnlyExcept.only([buildName])
+      ) { AbstractPackerBuild build ->
+        build.group = BUILD_GROUP
+        build.variables.putAll extension.variables
+        build.env.putAll extension.env
+        build.workingDir.set extension.workingDir
       }
-      subproject.plugins.withType(LifecycleBasePlugin) {
-        project.tasks.named(CHECK_TASK_NAME).configure { Task check ->
-          check.dependsOn validateProvider
-        }
+      buildProvider.configure { AbstractPackerBuild build ->
+        build.shouldRunAfter validateProvider
       }
-      packerValidateProvider.configure { Task packerValidate ->
-        packerValidate.dependsOn validateProvider
-      }
-    }
-
-    sourceSet.buildDescriptors.each { SharedData.SourceSetDescriptor.BuildDescriptor buildDescriptor ->
-      Project subproject = project.project(buildDescriptor.projectPath)
-      TaskProvider<AbstractPackerBuild> buildProvider = subproject.tasks.register(PACKER_BUILD_TASK_NAME, PackerBuildAutoConfigurable,
-        buildDescriptor.template,
-        OnlyExcept.only([buildDescriptor.buildName]),
-        configureClosure(project, subproject.layout.projectDirectory)
-      )
-      subproject.plugins.withType(LifecycleBasePlugin) {
-        project.tasks.named(BUILD_TASK_NAME).configure { Task build ->
-          build.dependsOn buildProvider
-        }
+      // TOTHINK
+      // 1) Need for this 2) Assemble task
+      project.tasks.named(ASSEMBLE_TASK_NAME).configure { Task assemble ->
+        assemble.dependsOn buildProvider
       }
     }
   }
 
-  private static Closure configureClosure(Project rootProject, Directory templateDir) { // TODO
-    { PackerVarArgument packerWrapperTask ->
-      packerWrapperTask.workingDir.set templateDir
+  private static Closure configureClosure() {
+    { PackerWrapperTask packerWrapperTask ->
 
-      Stack<Project> projects = new Stack<Project>()
-      Project project = packerWrapperTask.project
-      while (project) {
-        projects.push project
-        if (project == rootProject) {
-          break
-        }
-        project = project.parent
-      }
-      while (projects) {
-        project = projects.pop()
-        PackerPluginExtension extension = project.extensions.getByType(PackerPluginExtension)
-        packerWrapperTask.environment extension.environment
-        if (extension.workingDir.present) {
-          packerWrapperTask.workingDir.set extension.workingDir
-        }
-        packerWrapperTask.variables = extension.variables
-      }
+
     }
   }
 }

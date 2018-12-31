@@ -55,7 +55,6 @@ class ChefSolo extends Provisioner<Configuration> {
     InterpolableFile dataBagsPath
 
     @Internal
-    @Optional
     InterpolableFile encryptedDataBagSecretPath
 
     @InputDirectory

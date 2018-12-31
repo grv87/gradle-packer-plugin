@@ -1,22 +1,14 @@
 package org.fidata.gradle.packer.tasks.arguments
 
+import org.fidata.gradle.packer.PackerPluginExtension
+import org.gradle.api.provider.MapProperty
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
 
 @CompileStatic
 trait PackerVarArgument extends PackerArgument {
-  private Map<String, Object> variables
-
   @Internal
-  @Optional
-  Map<String, Object> getVariables() {
-    this.variables
-  }
-
-  void setVariables(Map<String, Object> variables) {
-    this.variables = variables
-  }
+  final MapProperty<String, String> variables = project.objects.mapProperty(String, String).empty()
 
   /*
    * WORKAROUND:
@@ -26,18 +18,13 @@ trait PackerVarArgument extends PackerArgument {
    * <grv87 2018-08-19>
    */
   @SuppressWarnings('UnnecessaryGetter')
-  @Internal
+  // TOTEST: @Internal
   @Override
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = (List<Object>)super.getCmdArgs()
-    List<Object> newCmdArgs = (List<Object>)variables?.collectMany { String key, Object value ->
-      [
-        '-var',
-        "${ key }=${ value }"
-      ]
-    }
-    if (newCmdArgs) {
-      cmdArgs.addAll cmdArgs
+  List<String> getCmdArgs() {
+    List<String> cmdArgs = super.getCmdArgs()
+    variables.get().each { String key, String value ->
+      cmdArgs.add '-var'
+      cmdArgs.add "$key=$value"
     }
     cmdArgs
   }

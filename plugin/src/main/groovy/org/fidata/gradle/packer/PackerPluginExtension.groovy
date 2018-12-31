@@ -22,22 +22,52 @@ package org.fidata.gradle.packer
 
 import org.gradle.api.file.DirectoryProperty
 import groovy.transform.CompileStatic
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.MapProperty
+import javax.inject.Inject
 
 /**
  * {@code packer} extension for Gradle project
  */
 @CompileStatic
 class PackerPluginExtension /*extends PackerToolExtension*/ {
-  private final Project project
+  private final PackerPlugin plugin
 
-  /* TODO: use map of Provider<String> ? */
-  Map<String, Object> environment = [:]
-  Map<String, Object> variables = [:]
+  final MapProperty<String, String> env
 
-  final DirectoryProperty workingDir = project.layout.directoryProperty()
+  final DirectoryProperty workingDir
 
-  PackerPluginExtension(Project project) {
-    this.project = project
+  final MapProperty<String, String> variables
+
+  void template(Object templateFile, String name = null) {
+    plugin.addTemplate templateFile
+  }
+
+  void templates(Object... templateFiles) {
+    templateFiles.each { Object templateFile ->
+      plugin.addTemplate templateFile
+    }
+  }
+
+  void templates(Iterable<Object> templateFiles) {
+    templateFiles.each { Object templateFile ->
+      plugin.addTemplate templateFile
+    }
+  }
+
+  void templateDir(Object templateDir) {
+    plugin.project.fileTree(dir: templateDir, include: '*.json').each { File file ->
+      template file
+    }
+  }
+
+  @Inject
+  PackerPluginExtension(PackerPlugin plugin) {
+    this.@plugin = plugin
+
+    ObjectFactory objects = plugin.project.objects
+    env = objects.mapProperty(String, String).empty()
+    workingDir = objects.directoryProperty()
+    variables = objects.mapProperty(String, String).empty()
   }
 }

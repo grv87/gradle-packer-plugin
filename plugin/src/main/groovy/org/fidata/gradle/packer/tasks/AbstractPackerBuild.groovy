@@ -19,6 +19,9 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import org.fidata.gradle.packer.PackerEnginePlugin
+import org.fidata.packer.engine.AbstractEngine
+
 import static org.fidata.utils.StringUtils.stringize
 import com.github.hashicorp.packer.template.OnlyExcept
 import org.gradle.api.file.RegularFile
@@ -32,7 +35,6 @@ import com.github.hashicorp.packer.template.Context
 import com.github.hashicorp.packer.enums.OnError
 import org.fidata.gradle.packer.tasks.arguments.PackerMachineReadableArgument
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.Optional
 import org.fidata.gradle.packer.PackerExecSpec
 import org.fidata.gradle.packer.tasks.arguments.PackerVarArgument
 import groovy.transform.CompileStatic
@@ -44,71 +46,28 @@ import org.gradle.api.tasks.Console
 @CompileStatic
 abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
   @Console
-  @Optional
-  final Property<Boolean> color = project.objects.property(Boolean)
+  final Property<Boolean> color
 
   @Internal
-  @Optional
-  final Property<Boolean> parallel = project.objects.property(Boolean)
+  final Property<Boolean> parallel
 
   @Internal
-  @Optional
-  final Property<OnError> onError = project.objects.property(OnError)
+  final Property<OnError> onError
 
   @Internal
-  @Override
-  @SuppressWarnings('UnnecessaryGetter') // TODO
-  List<Object> getCmdArgs() {
-    List<Object> cmdArgs = PackerTemplateReadOnlyArgument.super.getCmdArgs()
-    // Template should be the last, so we insert in the start
-    if (!color.getOrElse(true)) {
-      cmdArgs.add 0, '-color=false'
-    }
-    if (!parallel.getOrElse(true)) {
-      cmdArgs.add 0, '-parallel=false'
-    }
-    if (onError) {
-      /*if (onError == OnError.ASK &&  {
-        TODO: ASK will work in interactive mode only
-      }*/
-      cmdArgs.add 0, "-on-error=$onError"
-    }
-    if (project.gradle.startParameter.rerunTasks) {
-      cmdArgs.add 0, '-force' // TODO: as property / Use Gradle rebuild CL argument
-    }
-    if ((project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG) {
-      cmdArgs.add 0, '-debug'
-    }
-    cmdArgs
-  }
+  final Property<Boolean> force
 
   @Internal
-  protected abstract Template getTemplateForInterpolation()
-
-  @Internal
-  abstract Template getTemplate()
-
-  @Nested
-  final Provider<List<Template>> interpolatedTemplates = project.provider {
-    if (!template.interpolated) { // TODO
-      template.interpolate new Context(stringize(variables), stringize(environment), templateFile.get().asFile, workingDir.get().asFile.toPath())
-    }
-
-    List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(template.builders.size()))
-    for (Builder builder in template.builders) {
-      String buildName = builder.header.buildName
-      if (!onlyExcept.skip(buildName)) {
-        result.add template.interpolateForBuilder(buildName, project)
-      }
-    }
-    result
-  }
+  final Property<Boolean> debug
 
   // @Inject
   protected AbstractPackerBuild(/*TODO ProviderFactory providerFactory*/ Provider<RegularFile> templateFile, OnlyExcept onlyExcept = null) {
     PackerTemplateReadOnlyArgument.super.templateFile = templateFile
+
     PackerOnlyExceptReadOnlyArgument.super.onlyExcept = onlyExcept
-    color.set project.provider {
+
+    color = project.objects.property(Boolean)
+    color.convention project.provider {
       switch (project.gradle.startParameter.consoleOutput) {
         case ConsoleOutput.Plain:
           false
@@ -118,13 +77,22 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
           true
           break
         default:
-          null
+          // TODO: project.logger.warn
+          true
       }
     }
 
-    parallel.set true
+    parallel = project.objects.property(Boolean)
+    parallel.convention Boolean.TRUE
 
-    onError.set OnError.CLEANUP
+    onError = project.objects.property(OnError)
+    onError.convention OnError.CLEANUP
+
+    force = project.objects.property(Boolean)
+    force.convention project.gradle.startParameter.rerunTasks
+
+    debug = project.objects.property(Boolean)
+    debug.convention project.provider { (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG }
 
     outputs.upToDateWhen {
       interpolatedTemplates.get().every() { Template interpolatedTemplate ->
@@ -135,10 +103,64 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
     }
   }
 
+  // TOTEST: @Internal
+  @Override
+  @SuppressWarnings('UnnecessaryGetter') // TODO
+  List<String> getCmdArgs() {
+    List<String> cmdArgs = PackerTemplateReadOnlyArgument.super.getCmdArgs()
+
+    // Template should be the last, so we insert in the start
+    if (color.get() == Boolean.FALSE) {
+      cmdArgs.add 0, '-color=false'
+    }
+
+    if (parallel.get() == Boolean.FALSE) {
+      cmdArgs.add 0, '-parallel=false'
+    }
+
+    if (onError.present) {
+      /*if (onError == OnError.ASK &&  {
+        TODO: ASK will work in interactive mode only
+      }*/
+      cmdArgs.add 0, "-on-error=$onError"
+    }
+
+    if (force.get() == Boolean.TRUE) {
+      cmdArgs.add 0, '-force'
+    }
+
+    if (debug.get() == Boolean.TRUE) {
+      cmdArgs.add 0, '-debug'
+    }
+
+    cmdArgs
+  }
+
   @Override
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     PackerExecSpec result = super.configureExecSpec(execSpec)
     result.command 'build'
     result
+  }
+
+  @Internal
+  abstract Template getTemplate()
+
+  @Nested
+  final Provider<List<Template>> interpolatedTemplates = project.provider {
+    Template interpolatedTemplate = template.interpolate(new Context(variables.get(), environment, templateFile.get().asFile, workingDir.get().asFile.toPath())) // MARK1
+
+    List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(interpolatedTemplate.builders.size()))
+    for (Builder builder in interpolatedTemplate.builders) {
+      String buildName = builder.header.buildName
+      if (!onlyExcept.skip(buildName)) {
+        result.add interpolatedTemplate.interpolateForBuilder(buildName, project)
+      }
+    }
+    result
+  }
+
+  protected final AbstractEngine<Template> getEngine() {
+    project.gradle.plugins.getPlugin(PackerEnginePlugin).engine
   }
 }
