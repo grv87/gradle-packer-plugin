@@ -20,6 +20,7 @@
 package com.github.hashicorp.packer.common
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import go.runtime.GOOS
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ContextVar
 import org.fidata.packer.engine.annotations.ContextVars
@@ -30,6 +31,7 @@ import org.fidata.packer.engine.annotations.PostProcess
 import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableFile
+import org.fidata.packer.engine.types.InterpolableGOOS
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
@@ -48,15 +50,27 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
   @JsonAlias('command')
   @Input
   @Optional
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableStringArray getInline()
 
   @Input
   @Default({ '/bin/sh -e' })
   @IgnoreIf({ !inline.interpolated })
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableString getInlineShebang()
 
   @ExtraProcessed
-  abstract InterpolableStringArray getOnlyOn() // TODO
+  abstract List<InterpolableGOOS> getOnlyOn() // TODO
 
   /*
    * CAVEAT: We assume script is not trying to get its own filename
@@ -64,6 +78,12 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
    */
   @Staging
   @IgnoreIf({ !inline.interpolated })
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   @PostProcess({ String interpolated -> interpolated.replaceFirst(/\A\./, '') })
   abstract InterpolableString getTempfileExtension()
 
@@ -74,6 +94,12 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
    */
   @PathSensitive(PathSensitivity.NONE)
   @Optional
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableFile getScript()
 
   @InputFiles
@@ -84,6 +110,12 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
   @PathSensitive(PathSensitivity.NONE)
   // TODO: Preserve order
   @Optional
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableStringArray getScripts()
 
   @Input
@@ -91,6 +123,12 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
     @ContextVar(key = 'WinRMPassword', value = { '' }),
   ])
   @Optional
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableStringArray getEnvironmentVars()
 
   @Input
@@ -101,10 +139,22 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
     @ContextVar(key = 'Command', value = { '' }), // Deprecated
     @ContextVar(key = 'WinRMPassword', value = { '' }),
   ])
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableStringArray getExecuteCommand()
 
   @Internal
   @Default({ Boolean.FALSE })
   // @IgnoreIf() TODO: not Windows
+  @IgnoreIf({ ->
+    !onlyOn ||
+    !onlyOn.any { InterpolableGOOS interpolableGOOS ->
+      interpolableGOOS.interpolated == GOOS.current()
+    }
+  })
   abstract InterpolableBoolean getUseLinuxPathing()
 }

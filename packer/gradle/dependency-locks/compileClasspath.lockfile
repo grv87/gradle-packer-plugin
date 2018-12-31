@@ -45,6 +45,7 @@ net.iharder:base64:2.3.8
 net.java.dev.jna:jna-platform:4.1.0
 net.java.dev.jna:jna:4.1.0
 org.apache.commons:commons-compress:1.18
+org.apache.commons:commons-lang3:3.8.1
 org.apache.httpcomponents:httpclient:4.5.5
 org.apache.httpcomponents:httpcore:4.4.9
 org.apache.jclouds.api:cloudstack:2.1.1

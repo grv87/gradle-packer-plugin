@@ -23,6 +23,7 @@ dependencies {
   // api group: 'org.apache.jclouds', name: 'jclouds-all', version: '[2, 3['
   // api(group: 'org.apache.jclouds.labs', name: 'aliyun-ecs', version: '[2, 3[').status = 'integration'
   implementation group: 'org.apache.commons', name: 'commons-compress', version: '[1, 2['
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3, 4['
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
   implementation group: 'org.apache.jclouds.provider', name: 'aws-ec2', version: '[2, 3['
   implementation group: 'org.apache.jclouds.api', name: 'ec2', version: '[2, 3['

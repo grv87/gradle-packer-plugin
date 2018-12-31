@@ -12,4 +12,5 @@ import org.gradle.api.tasks.Internal
 @AnnotationCollector([Internal])
 @CompileStatic
 @interface ExtraProcessed {
+  // TOTHINK: add way to say how exactly they are processed
 }
