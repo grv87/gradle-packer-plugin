@@ -1,6 +1,7 @@
 package org.fidata.packer.engine.annotations
 
 import groovy.transform.CompileStatic
+
 import java.lang.annotation.Documented
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -11,7 +12,6 @@ import java.lang.annotation.Target
 @Retention(RetentionPolicy.SOURCE)
 @Documented
 @CompileStatic
-@interface Default {
-  Class value()
-  boolean dynamic() default false
+@interface OnlyIf {
+  Class<? extends Closure<Boolean>> value()
 }

@@ -6,12 +6,12 @@ import org.apache.commons.lang3.SystemUtils
 enum GOOS {
   DARWIN,
   DRAGONFLY,
-  JS,
+  JS, // WebAssembly
   LINUX,
   ANDROID,
   SOLARIS,
   FREEBSD,
-  NACL,
+  NACL, // Native Client
   NETBSD,
   OPENBSD,
   PLAN9,
@@ -24,28 +24,30 @@ enum GOOS {
     this.name().toLowerCase()
   }
 
-  static GOOS current() {
-    if (SystemUtils.IS_OS_MAC) {
+  @Lazy
+  static final GOOS CURRENT = {
+    switch (Boolean.TRUE) {
+     case SystemUtils.IS_OS_MAC:
       return DARWIN
-    } else if (SystemUtils.IS_OS_LINUX) {
+     case SystemUtils.IS_OS_LINUX:
       return LINUX
-    } else if (SystemUtils.IS_OS_SOLARIS) {
+    case SystemUtils.IS_OS_SOLARIS:
       return SOLARIS
-    } else if (SystemUtils.IS_OS_FREE_BSD) {
+    case SystemUtils.IS_OS_FREE_BSD:
       return FREEBSD
-    } else if (SystemUtils.IS_OS_NET_BSD) {
+    case SystemUtils.IS_OS_NET_BSD:
       return NETBSD
-    } else if (SystemUtils.IS_OS_OPEN_BSD) {
+    case SystemUtils.IS_OS_OPEN_BSD:
       return OPENBSD
-    } else if (SystemUtils.IS_OS_WINDOWS) {
+    case SystemUtils.IS_OS_WINDOWS:
       return WINDOWS
-    } else if (SystemUtils.IS_OS_ZOS) {
+    case SystemUtils.IS_OS_ZOS:
       return ZOS
-    } else {
+    default:
       // JS and NACL will never be returned since JVM can't run inside these environments
       // TODO: No way to detect DragonFly, Android, Plan9
-      throw new UnsupportedOperationException()
+      throw new UnsupportedOperationException('Unknown operating system')
     }
-  }
+  }()
 
 }

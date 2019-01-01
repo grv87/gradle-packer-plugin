@@ -1,15 +1,19 @@
 package com.github.hashicorp.packer.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.common.collect.ImmutableList
+import groovy.transform.Internal
+import org.fidata.gradle.utils.InputURIWrapper
 import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ComputedNested
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableChecksumType
-import org.fidata.packer.engine.types.InterpolableInputURI
 import org.fidata.packer.engine.types.InterpolableFile
+import org.fidata.packer.engine.types.InterpolableURI
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
-import org.gradle.api.tasks.Nested
 
 @AutoImplement
 @CompileStatic
@@ -20,8 +24,14 @@ abstract class ISOConfig implements InterpolableObject<ISOConfig> {
 
   abstract InterpolableChecksumType getIsoChecksumType()
 
-  @Nested
-  abstract List<InterpolableInputURI> getIsoUrls()
+  @ExtraProcessed
+  abstract List<InterpolableURI> getIsoUrls()
+
+  @ComputedNested
+  @Internal
+  final List<InputURIWrapper> getIsoUrlsAsInputURIs() {
+    ImmutableList.copyOf(isoUrls.collect { InterpolableURI interpolableURI -> new InputURIWrapper(interpolableURI.interpolated) })
+  }
 
   @JsonProperty('iso_target_path')
   @Staging
@@ -33,6 +43,6 @@ abstract class ISOConfig implements InterpolableObject<ISOConfig> {
   abstract InterpolableString getTargetExtension()
 
   @JsonProperty('iso_url')
-  @Nested
-  abstract InterpolableInputURI getRawSingleISOUrl()
+  @ExtraProcessed
+  abstract InterpolableURI getRawSingleISOUrl() // TODO: special processing
 }

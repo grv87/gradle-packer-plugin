@@ -1,6 +1,6 @@
 /*
  * ShellLocal class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -25,13 +25,29 @@ import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 
+/**
+ * {@code shell-local} post-processor.
+ *
+ * The shell-local Packer post processor enables users to do some post processing
+ * after artifacts have been built
+ */
 @AutoImplement
 @CompileStatic
 abstract class ShellLocal extends PostProcessor<ShellLocal> {
+  /**
+   * Common configuration
+   *
+   * @return common configuration
+   */
   @Inline
   abstract com.github.hashicorp.packer.common.ShellLocal getConfig()
 
+  /**
+   * Registers this class in specified Engine
+   *
+   * @param engine Engine to register in
+   */
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'shell-local', this
+    engine.registerSubtype PostProcessor, 'shell-local', this
   }
 }

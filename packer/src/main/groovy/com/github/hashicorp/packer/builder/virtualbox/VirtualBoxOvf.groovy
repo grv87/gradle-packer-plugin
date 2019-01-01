@@ -31,17 +31,20 @@ import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
 import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
+import groovy.transform.Internal
+import org.fidata.gradle.utils.InputURIWrapper
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
+import org.fidata.packer.engine.annotations.ComputedNested
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableChecksumType
-import org.fidata.packer.engine.types.InterpolableInputURI
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
+import org.fidata.packer.engine.types.InterpolableURI
 import org.fidata.packer.engine.types.InterpolableVBoxGuestAdditionsMode
 import com.github.hashicorp.packer.enums.VBoxGuestAdditionsMode
 import groovy.transform.CompileStatic
@@ -112,8 +115,14 @@ abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   @Input
   abstract InterpolableString getImportOpts()
 
-  @Nested
-  abstract InterpolableInputURI getSourcePath()
+  @ExtraProcessed
+  abstract InterpolableURI getSourcePath()
+
+  @ComputedNested
+  @Internal
+  final InputURIWrapper getSourcePathAsInputURI() {
+    new InputURIWrapper(sourcePath.interpolated)
+  }
 
   @Staging
   abstract InterpolableString getTargetPath()
@@ -138,6 +147,6 @@ abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Builder).registerSubtype 'virtualbox-ovf', this
+    engine.registerSubtype Builder, 'virtualbox-ovf', this
   }
 }

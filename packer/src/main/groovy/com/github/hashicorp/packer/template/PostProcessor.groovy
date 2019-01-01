@@ -88,11 +88,21 @@ abstract class PostProcessor<ThisClass extends PostProcessor> implements Interpo
 
   protected abstract Tuple3<Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact)
 
+  /**
+   * Registers this class in specified Engine
+   *
+   * @param engine Engine to register in
+   */
   static void register(AbstractEngine engine) {
     engine.addSubtypeRegistry PostProcessor
   }
 
-  static final class PostProcessorArrayDefinition extends InterpolableObject {
+  static final class PostProcessorArrayDefinition implements InterpolableObject<PostProcessorArrayDefinition> {
+    @Override
+    PostProcessorArrayDefinition interpolate(Context context) {
+      return null
+    }
+
     static class ArrayClass extends ArrayList<PostProcessorDefinition> {
     }
 
@@ -221,7 +231,7 @@ abstract class PostProcessor<ThisClass extends PostProcessor> implements Interpo
     }
   }
 
-    static final class PostProcessorDefinition extends InterpolableObject {
+  static final class PostProcessorDefinition implements InterpolableObject<PostProcessorDefinition> {
     @JsonValue
     @Nested
     Object rawValue
@@ -315,6 +325,11 @@ abstract class PostProcessor<ThisClass extends PostProcessor> implements Interpo
 
     private Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> doPostProcess(Artifact priorArtifact, Object rawValue) {
       throw new InvalidRawValueClassException(rawValue)
+    }
+
+    @Override
+    PostProcessorDefinition interpolate(Context context) {
+      return null
     }
   }
 }

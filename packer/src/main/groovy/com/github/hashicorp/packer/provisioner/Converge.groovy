@@ -1,6 +1,6 @@
 /*
  * File class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -41,7 +41,7 @@ import org.gradle.api.tasks.Nested
 @CompileStatic
 class Converge extends Provisioner<Configuration> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
     @Input
     @ContextVars([
       @ContextVar(key = 'Sudo', value = { preventBootstrapSudo.interpolated }),
@@ -121,6 +121,6 @@ class Converge extends Provisioner<Configuration> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'converge', this
+    engine.registerSubtype Provisioner, 'converge', this
   }
 }

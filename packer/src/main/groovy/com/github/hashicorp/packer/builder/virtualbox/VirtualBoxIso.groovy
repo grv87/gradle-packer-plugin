@@ -146,6 +146,6 @@ abstract class VirtualBoxIso extends Builder<VirtualBoxIso> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Builder).registerSubtype 'virtualbox-iso', this
+    engine.registerSubtype Builder, 'virtualbox-iso', this
   }
 }

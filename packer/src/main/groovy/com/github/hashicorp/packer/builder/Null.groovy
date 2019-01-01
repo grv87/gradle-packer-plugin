@@ -14,6 +14,6 @@ abstract class Null extends Builder<Null> {
   abstract Communicator getCommConfig()
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Builder).registerSubtype 'null', this
+    engine.registerSubtype Builder, 'null', this
   }
 }

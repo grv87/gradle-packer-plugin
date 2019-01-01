@@ -68,6 +68,6 @@ abstract class AmazonEbs extends Builder<AmazonEbs> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Builder).registerSubtype 'amazon-ebs', this
+    engine.registerSubtype Builder, 'amazon-ebs', this
   }
 }

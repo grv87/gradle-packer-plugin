@@ -12,8 +12,6 @@ import com.google.common.reflect.TypeToken
 import org.fidata.version.VersionAdapter
 import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
-import org.fidata.packer.engine.types.InterpolableInputDirectory
-import org.fidata.packer.engine.types.InterpolableInputURI
 import org.fidata.packer.engine.types.InterpolableInteger
 import org.fidata.packer.engine.types.InterpolableLong
 import org.fidata.packer.engine.types.InterpolableString
@@ -90,8 +88,8 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
    * Groovy bug
    * <grv87 2018-12-30>
    */
-  public <BaseType extends InterpolableObject<BaseType>> SubtypeRegistry<BaseType> getSubtypeRegistry(Class<BaseType> baseType) {
-    subtypeRegistries[baseType]
+  public <BaseType extends InterpolableObject<BaseType>> void registerSubtype(Class<BaseType> baseType, String name, Class<? extends BaseType> clazz) {
+    subtypeRegistries[baseType].registerSubtype name, clazz
   }
 
   private static final List<Module> DEFAULT_MODULES = ImmutableList.of(
@@ -175,9 +173,7 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
 
       // File & URI
       registerAbstractTypeMapping InterpolableFile, true, InterpolableFile.Raw, InterpolableFile.ImmutableRaw
-      registerAbstractTypeMapping InterpolableInputDirectory, true, InterpolableInputDirectory.Raw, InterpolableInputDirectory.ImmutableRaw
       registerAbstractTypeMapping InterpolableURI, true, InterpolableURI.Raw, InterpolableURI.ImmutableRaw
-      registerAbstractTypeMapping InterpolableInputURI, true, InterpolableInputURI.Raw, InterpolableInputURI.ImmutableRaw
 
       // Miscellaneous
       registerAbstractTypeMapping InterpolableDuration, true, InterpolableDuration.Raw, InterpolableDuration.ImmutableRaw
@@ -188,6 +184,7 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
       if (registry.containsKey(abstractClass)) {
         throw new IllegalArgumentException(sprintf('Abstract type mapping for type %s is already registered', [abstractClass.canonicalName]))
       }
+      // TODO: Check that implementations are not generic classes ?
       registry[abstractClass] = new AbstractTypeMapping(noArgConstructor, mutableImplementation, immutableImplementation)
     }
 

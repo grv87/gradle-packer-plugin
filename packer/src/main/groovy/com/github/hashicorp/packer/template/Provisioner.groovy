@@ -1,6 +1,6 @@
 /*
  * Provisioner class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -39,7 +39,7 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner<P extends Configuration, ThisClass extends Provisioner<P, ThisClass>> implements InterpolableObject<ThisClass> {
+abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extends Configuration> implements InterpolableObject<ThisClass> {
   final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   protected Provisioner() {
@@ -52,7 +52,7 @@ abstract class Provisioner<P extends Configuration, ThisClass extends Provisione
   @Input // TODO
   abstract String getType()
 
-  abstract static class Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration<ThisClass extends Configuration> implements InterpolableObject<ThisClass> {
     protected Configuration() {
     }
 
@@ -106,6 +106,11 @@ abstract class Provisioner<P extends Configuration, ThisClass extends Provisione
     }
   }
 
+  /**
+   * Registers this class in specified Engine
+   *
+   * @param engine Engine to register in
+   */
   static void register(AbstractEngine engine) {
     engine.addSubtypeRegistry Provisioner
   }

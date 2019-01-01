@@ -58,6 +58,6 @@ abstract class Manifest extends PostProcessor<Manifest> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'manifest', this
+    engine.registerSubtype PostProcessor, 'manifest', this
   }
 }

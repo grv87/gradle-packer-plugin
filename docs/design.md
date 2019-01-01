@@ -64,26 +64,6 @@ What plugin is able to do:
     *   users under which provisioning is happening,
         sudo/elevated settings
 
-What plugin is not able to do:
-*   Parse shell scripts to detect whether script will actually
-    do something:
-
-    *   [Making provisioner steps conditional on the variable value
-        with shell `if` command
-        ](https://www.packer.io/docs/templates/user-variables.html#making-a-provisioner-step-conditional-on-the-value-of-a-variable)
-        is not supported.
-
-        Plugin assumes provisioner is run each time
-        regardless of the actual value of the variable.
-
-    *   Testing for `PACKER_BUILDER_TYPE` environment variable
-        inside script like [this](
-        https://github.com/chef/bento/blob/master/_common/virtualbox.sh)
-        is not supported too.
-
-        To limit the run of the script on specific builds
-        `only` and `except` configurations should be used.
-
 ## Paths
 
 Context gets `cwd` resolved relatively to project dir already,
@@ -92,12 +72,9 @@ are not necessary.
 Other methods (`Project#files` and `Project#fileTree`) get paths
 resolved to `cwd`, so that project dir doesn't mess with them.
 
-##
-
-
 
 ------------------------------------------------------------------------
-Copyright © 2018  Basil Peace
+Copyright © 2018-2019  Basil Peace
 
 This file is part of gradle-packer-plugin.
 

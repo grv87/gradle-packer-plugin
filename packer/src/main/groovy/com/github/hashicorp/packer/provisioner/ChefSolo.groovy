@@ -1,6 +1,6 @@
 /*
  * ChefSolo class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -19,26 +19,23 @@
  */
 package com.github.hashicorp.packer.provisioner
 
-import groovy.cli.Option
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
-import org.fidata.packer.engine.annotations.ComputedInput
+import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.IgnoreIf
+import org.fidata.packer.engine.annotations.OnlyIf
 import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableFile
-import org.fidata.packer.engine.types.InterpolableInputDirectory
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
 import org.fidata.packer.engine.types.InterpolableBoolean
+import org.fidata.packer.engine.types.InterpolableFileContent
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
-import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -46,15 +43,39 @@ import org.gradle.api.tasks.PathSensitivity
 @CompileStatic
 class ChefSolo extends Provisioner<Configuration> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+    /**
+     * The name of the chef_environment sent to the Chef server.
+     * By default this is empty and will not use an environment
+     * @return The name of the chef_environment
+     */
     @Input
+    @OnlyIf({ -> environmentsPath.interpolated })
     abstract InterpolableString getChefEnvironment()
 
     @Input
-    abstract InterpolableString getConfigTemplate()
+    @Default({
+      '''\
+        cookbook_path [{{.CookbookPaths}}]
+        {{if .HasRolesPath}}
+        role_path "{{.RolesPath}}"
+        {{end}}
+        {{if .HasDataBagsPath}}
+        data_bag_path	"{{.DataBagsPath}}"
+        {{end}}
+        {{if .HasEncryptedDataBagSecretPath}}
+        encrypted_data_bag_secret "{{.EncryptedDataBagSecretPath}}"
+        {{end}}
+        {{if .HasEnvironmentsPath}}
+        environment_path "{{.EnvironmentsPath}}"
+        environment "{{.ChefEnvironment}}"
+        {{end}}
+      '''.stripIndent()
+    })
+    abstract InterpolableFileContent getConfigTemplate()
 
-    @Nested
-    abstract List<InterpolableInputDirectory> getCookbookPaths()
+    @ExtraProcessed
+    abstract List<InterpolableFile> getCookbookPaths()
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -108,6 +129,6 @@ class ChefSolo extends Provisioner<Configuration> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'chef-solo', this
+    engine.registerSubtype Provisioner, 'chef-solo', this
   }
 }

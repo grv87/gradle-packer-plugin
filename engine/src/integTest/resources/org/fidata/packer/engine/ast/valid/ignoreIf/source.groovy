@@ -2,6 +2,7 @@ package org.fidata.packer.engine.ast.valid.ignoreIf
 
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.IgnoreIf
+import org.fidata.packer.engine.annotations.OnlyIf
 import org.fidata.packer.engine.types.InterpolableLong
 import org.fidata.packer.engine.types.base.InterpolableObject
 import groovy.transform.CompileStatic
@@ -16,7 +17,7 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
   abstract InterpolableLong getFirstField()
 
   @Input
-  @IgnoreIf({ -> firstField.interpolated != 0 })
+  @OnlyIf({ -> firstField.interpolated == 0 })
   abstract InterpolableLong getSecondField()
 
   @Internal

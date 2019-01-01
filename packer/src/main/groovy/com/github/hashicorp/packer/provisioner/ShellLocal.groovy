@@ -1,6 +1,6 @@
 /*
  * ShellLocal class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -24,17 +24,38 @@ import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import org.fidata.packer.engine.types.base.InterpolableObject
 
+/**
+ * {@code shell-local} provisioner.
+ *
+ * shell-local will run a shell script of your choosing on the machine where
+ * Packer is being run - in other words, shell-local will run the shell script on
+ * your build server, or your desktop, etc., rather than the remote/guest machine
+ * being provisioned by Packer
+ */
+@AutoImplement
 @CompileStatic
-class ShellLocal extends Provisioner<Configuration> {
+abstract class ShellLocal extends Provisioner<ShellLocal, Configuration> {
+  /**
+   * @inheritdoc
+   */
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration {
+    /**
+     * Common configuration
+     *
+     * @return common configuration
+     */
     @Inline
     abstract com.github.hashicorp.packer.common.ShellLocal getConfig()
   }
 
+  /**
+   * Registers this class in specified Engine
+   *
+   * @param engine Engine to register in
+   */
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'shell-local', this
+    engine.registerSubtype Provisioner, 'shell-local', this
   }
 }

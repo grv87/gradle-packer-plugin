@@ -1,6 +1,6 @@
 /*
  * File class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -23,8 +23,6 @@ import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
-import org.fidata.packer.engine.types.base.InterpolableObject
-
 import java.io.File as JavaFile
 import org.fidata.packer.engine.annotations.ComputedInputDirectory
 import org.fidata.packer.engine.annotations.ComputedInputFile
@@ -45,7 +43,7 @@ import java.util.regex.Pattern
 @CompileStatic
 class File extends Provisioner<Configuration> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
     @ExtraProcessed
     abstract InterpolableString getSource()
 
@@ -155,6 +153,6 @@ class File extends Provisioner<Configuration> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'file', this
+    engine.registerSubtype Provisioner, 'file', this
   }
 }

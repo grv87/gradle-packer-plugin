@@ -1,6 +1,6 @@
 /*
  * File class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -29,14 +29,13 @@ import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.types.InterpolableBoolean
 import org.fidata.packer.engine.types.InterpolableString
 import org.fidata.packer.engine.types.InterpolableStringArray
-import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
 class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is somewhere wrong
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
     @Internal
     abstract InterpolableString getCommand()
 
@@ -76,6 +75,6 @@ class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is s
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'ansible', this
+    engine.registerSubtype Provisioner, 'ansible', this
   }
 }

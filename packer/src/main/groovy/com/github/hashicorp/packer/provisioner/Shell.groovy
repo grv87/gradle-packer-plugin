@@ -1,6 +1,6 @@
 /*
  * Shell class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -28,7 +28,6 @@ import org.fidata.packer.engine.types.InterpolableDuration
 import org.fidata.packer.engine.types.InterpolableFile
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Provisioner
-import org.fidata.packer.engine.types.base.InterpolableObject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -40,7 +39,7 @@ import org.gradle.api.tasks.PathSensitivity
 @CompileStatic
 class Shell extends Provisioner<Configuration> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration implements InterpolableObject<Configuration> {
+  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
     @Internal
     abstract Boolean getBinary()
 
@@ -93,6 +92,6 @@ class Shell extends Provisioner<Configuration> {
   }
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(Provisioner).registerSubtype 'shell', this
+    engine.registerSubtype Provisioner, 'shell', this
   }
 }

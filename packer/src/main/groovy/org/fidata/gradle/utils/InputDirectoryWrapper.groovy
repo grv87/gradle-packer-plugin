@@ -26,7 +26,7 @@ class InputDirectoryWrapper {
   @InputDirectory
   @PathSensitive(PathSensitivity.RELATIVE)
   File getValue() {
-    value
+    this.@value
   }
 
   /**

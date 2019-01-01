@@ -45,6 +45,6 @@ abstract class VagrantCloud extends PostProcessor<VagrantCloud> {
   abstract String getBoxDownloadUrl()
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant-cloud', this
+    engine.registerSubtype PostProcessor, 'vagrant-cloud', this
   }
 }

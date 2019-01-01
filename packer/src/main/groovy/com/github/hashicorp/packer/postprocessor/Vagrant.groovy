@@ -38,6 +38,6 @@ abstract class Vagrant extends PostProcessor<Vagrant> {
   abstract String getVagrantfileTemplate()
 
   static void register(AbstractEngine engine) {
-    engine.getSubtypeRegistry(PostProcessor).registerSubtype 'vagrant', this
+    engine.registerSubtype PostProcessor, 'vagrant', this
   }
 }

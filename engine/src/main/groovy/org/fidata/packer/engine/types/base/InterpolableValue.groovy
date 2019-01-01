@@ -37,12 +37,18 @@ interface InterpolableValue<
   Target extends Serializable,
   ThisInterface extends InterpolableValue<Source, Target, ThisInterface>
 > extends InterpolableObject<ThisInterface> {
+  /**
+   *
+   * @throws ObjectAlreadyInterpolatedWithFixedContextException
+   * @return
+   */
   Source getRaw()
 
   /**
    *
    * @param raw
    * @throws ReadOnlyPropertyException if this instance is read-only
+   * @throws ObjectAlreadyInterpolatedWithFixedContextException
    */
   void setRaw(Source raw)
 
