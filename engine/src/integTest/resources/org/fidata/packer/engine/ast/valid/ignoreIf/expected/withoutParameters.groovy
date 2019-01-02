@@ -74,9 +74,9 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
         InterpolableLong thirdField
     ) {
       super(
-        firstField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
-        secondField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
-        thirdField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        firstField ?: engine.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        secondField ?: engine.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        thirdField ?: engine.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }
@@ -104,9 +104,9 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
       InterpolableLong thirdField
     ) {
       super(
-        firstField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
-        secondField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
-        thirdField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
+        firstField ?: engine.instantiate(InterpolableLong, Mutability.MUTABLE),
+        secondField ?: engine.instantiate(InterpolableLong, Mutability.MUTABLE),
+        thirdField ?: engine.instantiate(InterpolableLong, Mutability.MUTABLE),
       )
     }
   }

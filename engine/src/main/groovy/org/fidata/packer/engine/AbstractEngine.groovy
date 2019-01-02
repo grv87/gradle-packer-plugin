@@ -92,6 +92,16 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
     subtypeRegistries[baseType].registerSubtype name, clazz
   }
 
+  // @Synchronized
+  public <T extends InterpolableObject<T>> T instantiate(Class<T> abstractClass, Mutability mutability) {
+    abstractTypeMappingRegistry.instantiate(abstractClass, mutability)
+  }
+
+  // @Synchronized
+  public <T extends InterpolableObject<T>> T instantiate(Class<T> baseClass, String name, Mutability mutability) {
+    instantiate(subtypeRegistries[baseClass][name], mutability)
+  }
+
   private static final List<Module> DEFAULT_MODULES = ImmutableList.of(
     (Module)new ParameterNamesModule(JsonCreator.Mode.PROPERTIES),
     (Module)new GuavaModule(),
@@ -197,11 +207,6 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
       } else {
         (T)constructor.newInstance(AbstractEngine.this)
       }
-    }
-
-    // @Synchronized
-    public <T extends InterpolableObject<T>> T instantiate(Class<T> baseClass, String name, Mutability mutability) {
-      instantiate(AbstractEngine.this.getSubtypeRegistry(baseClass)[name], mutability)
     }
 
     @Override

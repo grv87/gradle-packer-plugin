@@ -1,6 +1,6 @@
 /*
- * Manifest class
- * Copyright © 2018  Basil Peace
+ * Manifest post-processor
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,10 +16,15 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file post-processor/manifest/post-processor.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.postprocessor
 
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.PostProcessResult
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
@@ -43,15 +48,19 @@ abstract class Manifest extends PostProcessor<Manifest> {
   abstract InterpolableBoolean getStripPath()
 
   @Override
-  protected Tuple3<com.github.hashicorp.packer.packer.Artifact, Boolean, List<Provider<Boolean>>> doPostProcess(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
-    new Tuple3(new Artifact(priorArtifact), true, null)
+  protected final PostProcessResult doPostProcess(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
+    new PostProcessResult(
+      new Artifact(priorArtifact),
+      true,
+      Collections.EMPTY_LIST
+    )
   }
 
   class Artifact implements com.github.hashicorp.packer.packer.Artifact {
     static final String BUILDER_ID = 'packer.post-processor.manifest'
     Artifact(com.github.hashicorp.packer.packer.Artifact priorArtifact) {
       com_github_hashicorp_packer_packer_Artifact__builderId = BUILDER_ID
-      com_github_hashicorp_packer_packer_Artifact__files = context.resolveFiles(outputPath?.interpolatedValue ?: 'packer-manifest.json' /* TODO*/)
+      com_github_hashicorp_packer_packer_Artifact__files = context.resolveFiles(outputPath?.interpolated /* TODO*/) // MARK2
       com_github_hashicorp_packer_packer_Artifact__id = priorArtifact.id
       com_github_hashicorp_packer_packer_Artifact__string = "$context.buildName-$priorArtifact.id"
     }

@@ -11,6 +11,7 @@ import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface InterpolableStringArray extends InterpolableValue<Object, ImmutableList<String>, InterpolableStringArray> {
+  @InheritConstructors
   static final class ArrayClass extends ArrayList<SimpleInterpolableString> { }
 
   @KnownImmutable

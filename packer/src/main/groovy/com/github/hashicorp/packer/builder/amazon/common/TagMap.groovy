@@ -11,8 +11,8 @@ import groovy.transform.KnownImmutable
 
 @CompileStatic
 interface TagMap extends InterpolableValue<Map<InterpolableString, InterpolableString>, ImmutableMap<String, String>, TagMap> {
-  static final class MapClass extends HashMap<InterpolableString, InterpolableString> {
-  }
+  @InheritConstructors
+  static final class MapClass extends HashMap<InterpolableString, InterpolableString> { }
 
   @KnownImmutable
   final class ImmutableRaw extends InterpolableValue.ImmutableRaw<Map<InterpolableString, InterpolableString>, ImmutableMap<String, String>, TagMap, Interpolated, AlreadyInterpolated> implements TagMap {

@@ -5,6 +5,7 @@
 package org.fidata.gradle.utils
 
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
@@ -14,8 +15,9 @@ import org.gradle.api.tasks.PathSensitivity
  * This class wraps single {@link File} instance
  * and marks it as {@link InputFile} for Gradle.
  *
- * TODOC: Usage cases
+ * This class is used by {@link OrderedInputFilesWrapper}
  */
+@Internal
 @CompileStatic
 class InputFileWrapper {
   private final File value

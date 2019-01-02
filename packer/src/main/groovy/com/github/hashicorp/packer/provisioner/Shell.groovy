@@ -1,5 +1,5 @@
 /*
- * Shell class
+ * Shell provisioner
  * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file provisioner/shell/provisioner.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.provisioner
 

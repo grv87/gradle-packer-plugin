@@ -10,12 +10,10 @@ are listed in this document.
 
 It is expected that scripts are independent of their location,
 file names and extensions.
-These properties should not affect script result.
+Variations in these should not affect script run result.
 
 All related properties are excluded from up-to-date detection
 with `@Staging` annotation.
-
-They should not affect
 
 ## Conditions in scripts
 
@@ -65,6 +63,11 @@ Workarounds are:
     ```
 
 *   Use regular Gradle tasks and other features
+
+Note that *most* provisioners, not only `shell-local`,
+work on the machine created by builder and don't have their own outputs.
+The known exception is `file` provisioner which exposes its outputs
+with getters annotated with `@OutputFile` and `@OutputDirectory`.
 
 ## Timing of the connection or the build
 

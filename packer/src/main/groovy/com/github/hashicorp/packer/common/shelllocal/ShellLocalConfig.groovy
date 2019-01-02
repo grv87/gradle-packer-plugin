@@ -1,5 +1,5 @@
 /*
- * ShellLocal class
+ * ShellLocalConfig class
  * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -16,8 +16,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file common/shell-local/config.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
-package com.github.hashicorp.packer.common
+package com.github.hashicorp.packer.common.shelllocal
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.google.common.annotations.Beta
@@ -52,7 +56,7 @@ import org.gradle.api.tasks.PathSensitivity
  */
 @AutoImplement
 @CompileStatic
-abstract class ShellLocal implements InterpolableObject<ShellLocal> {
+abstract class ShellLocalConfig implements InterpolableObject<ShellLocalConfig> {
   /**
    * This is an array of commands to execute. The
    * commands are concatenated by newlines and turned into a single file, so
@@ -166,8 +170,8 @@ abstract class ShellLocal implements InterpolableObject<ShellLocal> {
   abstract List<InterpolableFile> getScripts()
 
   @ComputedNested
-  @groovy.transform.Internal
   final OrderedInputFilesWrapper getScriptsInOrder() {
+    // TOTHINK: cache result ?
     new OrderedInputFilesWrapper(scripts*.interpolated)
   }
 

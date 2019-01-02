@@ -1,5 +1,5 @@
 /*
- * ShellLocal class
+ * ShellLocal provisioner
  * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -16,9 +16,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file provisioner/shell-local/provisioner.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.provisioner
 
+import com.github.hashicorp.packer.common.shelllocal.ShellLocalConfig
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
@@ -47,7 +52,7 @@ abstract class ShellLocal extends Provisioner<ShellLocal, Configuration> {
      * @return common configuration
      */
     @Inline
-    abstract com.github.hashicorp.packer.common.ShellLocal getConfig()
+    abstract ShellLocalConfig getConfig()
   }
 
   /**

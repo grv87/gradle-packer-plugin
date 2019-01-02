@@ -1,6 +1,6 @@
 /*
  * Builder class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,22 +16,25 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file template/template.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.template
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.BuilderResult
 import org.fidata.packer.engine.annotations.AutoImplement
-import org.fidata.packer.engine.annotations.ComputedInput
-import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
-import org.fidata.packer.engine.annotations.ComputedInternal
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -41,37 +44,27 @@ import org.gradle.api.tasks.Input
 @AutoImplement
 @CompileStatic
 // REVIEWED
-abstract class Builder<ThisClass extends Builder> implements InterpolableObject<ThisClass> {
+abstract class Builder<ThisClass extends Builder<ThisClass>> implements InterpolableObject<ThisClass> {
   protected Builder() {
   }
 
   @Inline
   abstract BuilderHeader getHeader()
 
-  final Tuple2<Artifact, List<Provider<Boolean>>> run() {
+  final BuilderResult run() {
     // Stage 4
     doRun()
   }
 
-  protected abstract Tuple2<Artifact, List<Provider<Boolean>>> doRun()
-
   /**
-   * Number of local CPUs used for build.
+   * Run is where the actual build should take place
    *
-   * For cloud builders, if the builder is able to detect
-   * that the cloud is run alongside with this build on the same host
-   * (e.g. local installation of Eucalyptus)
-   * then it should treat used CPUs as local
-   * and so return their number from this method.
-   * Otherwise, it should return zero.
+   * Implementations should emulate in this method the run of builder
+   * and returning information required to configure Gradle task.
    *
-   * Right now this number is not used for anything.
-   * In the future it could be used to limit build parallelism.
-   *
-   * @return Number of local CPUs used for build
+   * @return Run result
    */
-  @ComputedInternal
-  abstract int getLocalCpusUsed()
+  protected abstract BuilderResult doRun()
 
   @AutoImplement
   abstract static class BuilderHeader implements InterpolableObject<BuilderHeader> {
@@ -81,7 +74,8 @@ abstract class Builder<ThisClass extends Builder> implements InterpolableObject<
     @Input
     abstract String getType()
 
-    @ComputedInput
+    @JsonIgnore
+    @Internal
     String getBuildName() {
       name?.interpolated ?: type
     }

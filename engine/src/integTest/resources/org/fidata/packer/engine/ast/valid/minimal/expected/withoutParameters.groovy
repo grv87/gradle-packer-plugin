@@ -49,7 +49,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
         InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.IMMUTABLE),
+        singleField ?: engine.instantiate(InterpolableLong, Mutability.IMMUTABLE),
       )
     }
   }
@@ -71,7 +71,7 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
       InterpolableLong singleField
     ) {
       super(
-        singleField ?: engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE),
+        singleField ?: engine.instantiate(InterpolableLong, Mutability.MUTABLE),
       )
     }
   }

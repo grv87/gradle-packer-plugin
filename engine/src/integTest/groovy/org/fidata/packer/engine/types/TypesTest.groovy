@@ -15,7 +15,7 @@ class TypesTest {
   @Test
   void testEngine() {
     AbstractEngine engine = new AbstractEngine()
-    InterpolableLong interpolableLong = engine.abstractTypeMappingRegistry.instantiate(InterpolableLong, Mutability.MUTABLE)
+    InterpolableLong interpolableLong = engine.instantiate(InterpolableLong, Mutability.MUTABLE)
     assert InterpolableLong.Raw.isInstance(interpolableLong)
   }
 

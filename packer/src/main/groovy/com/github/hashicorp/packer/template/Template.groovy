@@ -1,6 +1,6 @@
 /*
  * Template class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,12 +16,20 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file template/template.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.template
 
-import org.fidata.packer.engine.annotations.ExtraProcessed
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 import static Context.BUILD_NAME_VARIABLE_NAME
+import org.fidata.packer.engine.BuilderResult
+import org.fidata.packer.engine.PostProcessArrayResult
+import org.fidata.packer.engine.TemplateBuildResult
+import org.fidata.packer.engine.annotations.ExtraProcessed
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
@@ -31,12 +39,11 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ComputedInternal
-import org.fidata.packer.engine.annotations.ComputedNested
 import org.gradle.api.Project
 import java.nio.file.Path
 import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import com.github.hashicorp.packer.packer.Artifact
-import org.gradle.api.provider.Provider
+import java.util.function.Supplier
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.fidata.packer.engine.types.base.InterpolableObject
@@ -76,8 +83,9 @@ abstract class Template implements InterpolableObject<Template> {
   @Nested
   abstract List<PostProcessor.PostProcessorArrayDefinition> getPostProcessors()
 
-  // Note that this is
-  @ComputedInternal
+  // Note that Packer doesn't load and store comments
+  @JsonIgnore
+  @Internal
   abstract Map<String, Object> getComments()
 
   // TODO
@@ -123,61 +131,76 @@ abstract class Template implements InterpolableObject<Template> {
     }
   }
 
-  final Template interpolateForBuilder(String buildName, Project project) {
+  final Template interpolateForBuilder(AbstractEngine engine, String buildName, Project project) {
     if (context.buildName) {
       // This will never be true
       throw new ObjectAlreadyInterpolatedForBuilderException()
     }
-    interpolate context
-    Template result = new Template()
     Builder builder = builders.find { Builder builder -> builder.header.buildName == buildName }
     if (!builder) {
       throw new IllegalArgumentException(sprintf('Build with name `%s` not found.', [buildName]))
     }
     // Stage 3
     Context projectContext = variablesCtx.forProject(project)
-    builder = builder.clone()
-    builder.interpolate context
-    result.builders = [builder]
+    builder = builder.interpolate(projectContext)
     Context buildCtx = projectContext.withTemplateVariables([
       (BUILD_NAME_VARIABLE_NAME): buildName,
       'BuilderType': builder.header.type,
     ])
 
-    result.provisioners = provisioners*.interpolateForBuilder(buildCtx).findAll()
-    result.postProcessors = postProcessors*.interpolateForBuilder(buildCtx).findAll()
-    // Stage 4
-    result.run()
-    result
+    Template template = new Interpolated(
+      path,
+      description,
+      minVersion,
+      variables,
+      sensitiveVariables,
+      [builder],
+      provisioners*.interpolateForBuilder(engine, buildCtx).findAll(),
+      postProcessors*.interpolateForBuilder(engine, buildCtx).findAll()
+    )
+    template.@comments = comments // TODO
+
+    template
   }
 
-  private void run() {
+  /**
+   * Emulates running the actual build.
+   */
+  TemplateBuildResult build() {
+    // Stage 4
+    final List<Artifact> artifacts = []
+
+    final List<Supplier<Boolean>> upToDateWhen = []
+
     if (builders.size() != 1) {
       throw new IllegalStateException(sprintf('Expected 1 builder. Found: %d', builders.size()))
     }
     // Stage 4
-    Tuple2<Artifact, List<Provider<Boolean>>> builderResult = builders[0].run()
-    Boolean keep = true
-    upToDateWhen.addAll builderResult.second
+    BuilderResult builderResult = builders[0].run()
+    Artifact builderArtifact = builderResult.artifact
+    if (builderArtifact == null) {
+      // If there was no result, don't worry about running post-processors
+      // because there is nothing they can do, just return.
+      // TODO: log warn
+      return
+    }
+    boolean keep = true
+    upToDateWhen.addAll builderResult.upToDateWhen
 
     // Provisioners don't add anything to artifacts or upToDateWhen
 
     postProcessors.each { PostProcessor.PostProcessorArrayDefinition postProcessorArrayDefinition ->
-      Tuple3<List<Artifact>, Boolean, List<Provider<Boolean>>> postProcessorResult = postProcessorArrayDefinition.postProcess(builderResult.first)
-      artifacts.addAll postProcessorResult.first
-      keep = keep || postProcessorResult.second
-      upToDateWhen.addAll postProcessorResult.third
+      PostProcessArrayResult postProcessorArrayResult = postProcessorArrayDefinition.postProcess(builderResult.artifact)
+      artifacts.addAll postProcessorArrayResult.artifacts
+      keep = keep || postProcessorArrayResult.keep
+      upToDateWhen.addAll postProcessorArrayResult.upToDateWhen
     }
     if (keep) {
-      artifacts.add builderResult.first
+      artifacts.add 0, builderResult.artifact
     }
+
+    new TemplateBuildResult(artifacts, upToDateWhen)
   }
-
-  @ComputedNested
-  final List<Artifact> artifacts = []
-
-  @ComputedInternal
-  final List<Provider<Boolean>> upToDateWhen = []
 
   // @Inject // TOTEST
   // Template(/*ProjectLayout projectLayout*/) {
@@ -215,6 +238,20 @@ abstract class Template implements InterpolableObject<Template> {
       comments.put matcher.group(1), value
     } else {
       throw UnrecognizedPropertyException.from(null, this, name, null)
+    }
+  }
+
+  static final class Interpolated extends Template {
+    Interpolated(
+      Path path,
+      String description,
+      String minVersion,
+      Map<String, InterpolableString> variables,
+      List<String> sensitiveVariables,
+      List<Builder> builders,
+      List<Provisioner> provisioners,
+      List<PostProcessor.PostProcessorArrayDefinition> postProcessors
+    ) {
     }
   }
 }

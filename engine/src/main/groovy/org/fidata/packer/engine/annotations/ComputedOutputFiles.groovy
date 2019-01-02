@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.AnnotationCollector
 import groovy.transform.CompileStatic
 import groovy.transform.Internal
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFiles
 
-@AnnotationCollector([JsonIgnore, InputFile, Internal])
+@AnnotationCollector([JsonIgnore, OutputFiles, Internal])
 @CompileStatic
-@interface ComputedInputFile {
+@interface ComputedOutputFiles {
 }

@@ -1,5 +1,5 @@
 /*
- * File class
+ * File provisioner
  * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file provisioner/file/provisioner.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.provisioner
 
@@ -23,6 +27,9 @@ import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+
 import java.io.File as JavaFile
 import org.fidata.packer.engine.annotations.ComputedInputDirectory
 import org.fidata.packer.engine.annotations.ComputedInputFile
@@ -63,12 +70,14 @@ class File extends Provisioner<Configuration> {
     private JavaFile inputFile
 
     @ComputedInputFile
+    // TODO: Path sensitivity
     @Optional
     JavaFile getInputFile() {
       !isDirectory ? this.inputFile : null
     }
 
     @ComputedInputDirectory
+    // TODO: Path sensitivity
     @Optional
     JavaFile getSourceDirectory() {
       isDirectory ? this.inputFile : null
@@ -77,12 +86,14 @@ class File extends Provisioner<Configuration> {
     private JavaFile outputFile
 
     @ComputedOutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
     JavaFile getOutputFile() {
       !isDirectory ? this.outputFile : null
     }
 
     @ComputedOutputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
     JavaFile getOutputDirectory() {
       isDirectory ? this.outputFile : null

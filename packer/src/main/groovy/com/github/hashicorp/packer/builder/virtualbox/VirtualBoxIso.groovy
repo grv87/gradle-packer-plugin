@@ -1,6 +1,6 @@
 /*
- * VirtualBoxIso class
- * Copyright © 2018  Basil Peace
+ * VirtualBoxIso builder
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file builder/virtualbox/iso/builder.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.builder.virtualbox
 
@@ -33,6 +37,7 @@ import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.ISOConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.BuilderResult
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Default
 import org.fidata.packer.engine.annotations.ExtraProcessed
@@ -48,6 +53,8 @@ import com.github.hashicorp.packer.template.Builder
 import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
 import com.google.common.primitives.UnsignedInteger
+
+import static org.fidata.utils.InetAddressUtils.isLocalHost
 
 @CompileStatic
 @AutoImplement
@@ -139,10 +146,15 @@ abstract class VirtualBoxIso extends Builder<VirtualBoxIso> {
   abstract InterpolableString getVmName()
 
   @Override
-  final int getLocalCpusUsed() {
-    VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
-      vboxManageCommand*.interpolated
-    })
+  protected final BuilderResult doRun() {
+    // TODO
+    new BuilderResult(
+      ,
+      ,
+      VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
+        vboxManageCommand*.interpolated
+      })
+    )
   }
 
   static void register(AbstractEngine engine) {

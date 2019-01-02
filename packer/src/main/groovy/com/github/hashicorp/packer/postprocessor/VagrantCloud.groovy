@@ -1,6 +1,6 @@
 /*
- * VagrantCloud class
- * Copyright © 2018  Basil Peace
+ * VagrantCloud post-processor
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,10 +16,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file post-processor/vagrant-cloud/post-processor.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.postprocessor
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import org.fidata.packer.engine.AbstractEngine

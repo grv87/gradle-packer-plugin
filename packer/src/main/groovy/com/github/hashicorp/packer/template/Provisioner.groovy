@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file template/template.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.template
 
@@ -24,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.fidata.packer.engine.annotations.Timing
-import org.fidata.packer.engine.exceptions.ObjectAlreadyInterpolatedForBuilderException
 import groovy.transform.CompileStatic
 import org.fidata.packer.engine.annotations.Inline
 import org.fidata.packer.engine.types.base.InterpolableObject
@@ -42,9 +45,6 @@ import java.lang.reflect.Field
 abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extends Configuration> implements InterpolableObject<ThisClass> {
   final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
-  protected Provisioner() {
-  }
-
   @JsonUnwrapped
   @ExtraProcessed
   abstract OnlyExcept getOnlyExcept()
@@ -52,10 +52,7 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
   @Input // TODO
   abstract String getType()
 
-  abstract static class Configuration<ThisClass extends Configuration> implements InterpolableObject<ThisClass> {
-    protected Configuration() {
-    }
-
+  abstract static class Configuration<ThisClass extends Configuration<ThisClass>> implements InterpolableObject<ThisClass> {
     @Timing
     abstract InterpolableDuration getPauseBefore()
   }
@@ -71,7 +68,7 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
    * * Copies `override` configuration
    */
   @Override
-  final protected void doInterpolate() { // MARK1
+  final ThisClass interpolate(Context context) { // MARK1
     configuration.interpolate context
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
@@ -92,18 +89,19 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
     }
   }
 
-  final Provisioner interpolateForBuilder(Context buildCtx) {
-    if (context.buildName) {
-      throw new ObjectAlreadyInterpolatedForBuilderException()
-    }
+  final Provisioner interpolateForBuilder(AbstractEngine engine, Context buildCtx) {
     // Stage 3
     if (onlyExcept == null || !onlyExcept.skip(buildCtx.buildName)) {
-      Provisioner result = this.clone() // TODO
-      result.interpolate buildCtx
-      result
+      interpolate(buildCtx)
     } else {
       null
     }
+  }
+
+  final static class Interpolated {
+    Interpolated(
+
+    )
   }
 
   /**

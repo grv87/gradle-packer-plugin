@@ -126,11 +126,6 @@ class AutoImplementAstTransformation implements ASTTransformation {
     Mutability.IMMUTABLE, 'ImmutableImpl',
   )
   private static final String INTERPOLATED = 'Interpolated'
-  private static final String ABSTRACT_TYPE_MAPPING_REGISTRY = 'abstractTypeMappingRegistry'
-  private static final Expression ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X = propX(
-    ENGINE_VAR_X,
-    ABSTRACT_TYPE_MAPPING_REGISTRY
-  )
   private static final String REGISTER_ABSTRACT_TYPE_MAPPING = 'registerAbstractTypeMapping'
   private static final String INTERPOLATE = 'interpolate'
   private static final String INTERPOLATE_VALUE = 'interpolateValue'
@@ -241,10 +236,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
 
     Closure<Statement> registerStmt = { Parameter engineParam ->
       stmt(callX(
-        propX(
-          varX(engineParam),
-          ABSTRACT_TYPE_MAPPING_REGISTRY
-        ),
+        varX(engineParam),
         REGISTER_ABSTRACT_TYPE_MAPPING,
         args(
           classX(abstractClassRef),
@@ -340,7 +332,7 @@ class AutoImplementAstTransformation implements ASTTransformation {
           value.add new ElvisOperatorExpression(
             fieldVarX,
             callX(
-              ABSTRACT_TYPE_MAPPING_REGISTRY_PROP_X,
+              ENGINE_VAR_X,
               INSTANTIATE,
               args(
                 classX(typ),

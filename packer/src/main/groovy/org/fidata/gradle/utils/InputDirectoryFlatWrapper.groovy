@@ -5,16 +5,20 @@
 package org.fidata.gradle.utils
 
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 /**
  * This class wraps single {@link File} instance
- * and marks it as {@link InputDirectory} for Gradle.
- * It is a workaround
+ * and marks it as {@link InputDirectory} for Gradle
+ * with NAME_ONLY path sensitivity.
+ *
+ * This class is used as a workaround
  * for missing InputDirectories annotation
  */
+@Internal
 @CompileStatic
 class InputDirectoryFlatWrapper {
   private final File value

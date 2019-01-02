@@ -1,6 +1,6 @@
 /*
- * Vagrant class
- * Copyright © 2018  Basil Peace
+ * Vagrant post-processor
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file post-processor/vagrant/post-processor.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.postprocessor
 

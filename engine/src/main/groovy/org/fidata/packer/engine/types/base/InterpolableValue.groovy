@@ -157,10 +157,10 @@ interface InterpolableValue<
      */
     @CompileDynamic
     protected Target doInterpolatePrimitive(Context context) {
-      doInterpolatePrimitive context, raw
+      doInterpolatePrimitive(context, raw)
     }
 
-    protected Target doInterpolatePrimitive(Context context, Object raw) {
+    protected static Target doInterpolatePrimitive(Context context, Object raw) {
       throw new InvalidRawValueClassException(raw)
     }
 

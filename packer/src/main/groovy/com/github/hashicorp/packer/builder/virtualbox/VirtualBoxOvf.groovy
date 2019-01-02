@@ -1,6 +1,6 @@
 /*
- * VirtualBoxOvf class
- * Copyright © 2018  Basil Peace
+ * VirtualBoxOvf builder
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -16,6 +16,10 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file builder/virtualbox/ovf/config.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.builder.virtualbox
 
@@ -31,9 +35,9 @@ import com.github.hashicorp.packer.builder.virtualbox.common.VBoxVersionConfig
 import com.github.hashicorp.packer.common.FloppyConfig
 import com.github.hashicorp.packer.common.HTTPConfig
 import com.github.hashicorp.packer.common.bootcommand.BootConfig
-import groovy.transform.Internal
 import org.fidata.gradle.utils.InputURIWrapper
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.BuilderResult
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedNested
 import org.fidata.packer.engine.annotations.Default
@@ -52,8 +56,9 @@ import com.github.hashicorp.packer.template.Builder
 import org.fidata.ovf.OvfUtils
 import org.fidata.virtualbox.VBoxManageUtils
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
 import java.nio.file.Paths
+
+import static org.fidata.utils.InetAddressUtils.isLocalHost
 
 @CompileStatic
 @AutoImplement
@@ -119,8 +124,8 @@ abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   abstract InterpolableURI getSourcePath()
 
   @ComputedNested
-  @Internal
   final InputURIWrapper getSourcePathAsInputURI() {
+    // TOTHINK: cache result ?
     new InputURIWrapper(sourcePath.interpolated)
   }
 
@@ -140,10 +145,15 @@ abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   abstract InterpolableBoolean getSkipExport() // TODO: handle
 
   @Override
-  final int getLocalCpusUsed() {
-    VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
-      vboxManageCommand*.interpolated
-    }, OvfUtils.getCpusFromOvfOrOva(Paths.get(sourcePath.fileURI).toFile()))
+  protected final BuilderResult doRun() {
+    // TODO
+    new BuilderResult(
+      ,
+      ,
+      VBoxManageUtils.getCpusUsed(vboxManageConfig.vboxManage.collect { List<InterpolableString> vboxManageCommand ->
+        vboxManageCommand*.interpolated
+      }, OvfUtils.getCpusFromOvfOrOva(Paths.get(sourcePath.fileURI).toFile()))
+    )
   }
 
   static void register(AbstractEngine engine) {

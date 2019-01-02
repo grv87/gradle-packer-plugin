@@ -1,6 +1,6 @@
 /*
  * AbstractPackerBuild class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -19,9 +19,12 @@
  */
 package org.fidata.gradle.packer.tasks
 
+import com.github.hashicorp.packer.packer.Artifact
+import com.google.common.collect.ImmutableList
 import org.fidata.gradle.packer.PackerEnginePlugin
 import org.fidata.packer.engine.AbstractEngine
 import com.github.hashicorp.packer.template.OnlyExcept
+import org.fidata.packer.engine.TemplateBuildResult
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.configuration.ConsoleOutput
@@ -41,6 +44,8 @@ import com.github.hashicorp.packer.template.Template
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Console
+
+import java.util.function.Supplier
 
 @CompileStatic
 abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
@@ -94,8 +99,8 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
     debug.convention project.provider { (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG }
 
     outputs.upToDateWhen {
-      interpolatedTemplates.get().every() { Template interpolatedTemplate ->
-        !interpolatedTemplate.upToDateWhen || interpolatedTemplate.upToDateWhen.every { Provider<Boolean> upToDateWhenProvider ->
+      cachedBuildResults.every() { TemplateBuildResult templateBuildResult ->
+        !templateBuildResult.upToDateWhen || templateBuildResult.upToDateWhen.every { Supplier<Boolean> upToDateWhenProvider ->
           upToDateWhenProvider.get()
         }
       }
@@ -145,19 +150,47 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   @ExtraProcessed
   abstract Template getTemplate()
 
-  @Nested
-  final Provider<List<Template>> interpolatedTemplates = project.provider {
+  /**
+   * We cache interpolated templates to overcome the fact
+   * that provider can call the closure several times
+   *
+   * See:
+   * https://github.com/gradle/gradle/issues/6787
+   * https://github.com/gradle/gradle/issues/4292
+   * https://github.com/gradle/gradle/issues/5301
+   * <grv87 2019-01-02>
+   */
+  @Lazy
+  private List<Template> cachedInterpolatedTemplates = {
     Template interpolatedTemplate = template.interpolate(new Context(variables.get(), environment, templateFile.get().asFile, workingDir.get().asFile.toPath())) // MARK1
 
     List<Template> result = new ArrayList<>(onlyExcept.sizeAfterSkip(interpolatedTemplate.builders.size()))
     for (Builder builder in interpolatedTemplate.builders) {
       String buildName = builder.header.buildName
       if (!onlyExcept.skip(buildName)) {
-        result.add interpolatedTemplate.interpolateForBuilder(buildName, project)
+        result.add interpolatedTemplate.interpolateForBuilder(engine, buildName, project)
       }
     }
     result
-  }
+  }()
+
+  @Lazy
+  private List<TemplateBuildResult> cachedBuildResults = {
+    ImmutableList.copyOf(cachedInterpolatedTemplates.collect { Template template ->
+      template.build()
+    })
+  }()
+
+  @Lazy
+  private List<Artifact> cachedArtifacts = {
+    (List<Artifact>)cachedBuildResults*.artifacts.flatten()
+  }()
+
+  @Nested
+  final Provider<List<Template>> interpolatedTemplates = project.provider { cachedInterpolatedTemplates }
+
+  @Nested
+  final Provider<List<Artifact>> artifacts = project.provider { cachedArtifacts }
 
   protected final AbstractEngine<Template> getEngine() {
     project.gradle.plugins.getPlugin(PackerEnginePlugin).engine

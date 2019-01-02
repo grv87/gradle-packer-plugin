@@ -1,5 +1,5 @@
 /*
- * ShellLocal class
+ * ShellLocal post-processor
  * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
@@ -16,10 +16,17 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this plugin.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Ported from original Packer code,
+ * file post-processor/shell-local/post-processor.go
+ * under the terms of the Mozilla Public License, v. 2.0.
  */
 package com.github.hashicorp.packer.postprocessor
 
+import com.github.hashicorp.packer.common.shelllocal.ShellLocalConfig
+import com.github.hashicorp.packer.packer.Artifact
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.PostProcessResult
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
 import groovy.transform.CompileStatic
@@ -28,8 +35,9 @@ import com.github.hashicorp.packer.template.PostProcessor
 /**
  * {@code shell-local} post-processor.
  *
- * The shell-local Packer post processor enables users to do some post processing
- * after artifacts have been built
+ * The local shell post processor executes scripts locally during the post
+ * processing stage. Shell local provides a convenient way to automate executing
+ * some task with packer outputs and variables.
  */
 @AutoImplement
 @CompileStatic
@@ -40,7 +48,16 @@ abstract class ShellLocal extends PostProcessor<ShellLocal> {
    * @return common configuration
    */
   @Inline
-  abstract com.github.hashicorp.packer.common.ShellLocal getConfig()
+  abstract ShellLocalConfig getConfig()
+
+  @Override
+  protected final PostProcessResult doPostProcess(Artifact priorArtifact) {
+    new PostProcessResult(
+      priorArtifact,
+      Boolean.TRUE,
+      Collections.EMPTY_LIST
+    )
+  }
 
   /**
    * Registers this class in specified Engine

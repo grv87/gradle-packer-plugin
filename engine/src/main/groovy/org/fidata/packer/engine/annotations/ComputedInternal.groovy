@@ -5,7 +5,7 @@ import groovy.transform.AnnotationCollector
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Internal
 
-@AnnotationCollector([JsonIgnore, Internal])
+@AnnotationCollector([JsonIgnore, Internal, groovy.transform.Internal])
 @CompileStatic
 @interface ComputedInternal {
 }

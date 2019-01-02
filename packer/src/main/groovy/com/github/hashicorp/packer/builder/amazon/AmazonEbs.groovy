@@ -1,6 +1,6 @@
 /*
- * AmazonEbs class
- * Copyright © 2018  Basil Peace
+ * AmazonEbs builder
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -19,6 +19,8 @@
  */
 package com.github.hashicorp.packer.builder.amazon
 
+import org.fidata.packer.engine.BuilderResult
+
 import static org.fidata.utils.InetAddressUtils.isLocalHost
 import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.LaunchedVMConfiguration
@@ -30,11 +32,9 @@ import com.github.hashicorp.packer.builder.amazon.common.RunConfig
 import com.github.hashicorp.packer.builder.amazon.common.TagMap
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
-import com.github.hashicorp.packer.packer.Artifact
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.Builder
 import org.fidata.aws.ec2.InstanceTypeUtils
-import org.gradle.api.provider.Provider
 
 @CompileStatic
 @AutoImplement
@@ -56,15 +56,15 @@ abstract class AmazonEbs extends Builder<AmazonEbs> {
   abstract TagMap getVolumeRunTags()
 
   @Override
-  protected final Tuple2<Artifact, List<Provider<Boolean>>> doRun() {
+  protected final BuilderResult doRun() {
     // TODO
-  }
-
-  @Override
-  final int getLocalCpusUsed() {
-    // TODO: null customEndpointEc2 ?
-    // TOTEST: if this doesn't work with Eucalyptus then this makes no sense
-    isLocalHost(accessConfig.customEndpointEc2.interpolated) ? InstanceTypeUtils.NUMBER_OF_CPU_CORES[runConfig.instanceType.interpolated] : 0
+    new BuilderResult(
+      ,
+      ,
+      // TODO: null customEndpointEc2 ?
+      // TOTEST: if this doesn't work with Eucalyptus then this makes no sense
+      isLocalHost(accessConfig.customEndpointEc2.interpolated) ? InstanceTypeUtils.NUMBER_OF_CPU_CORES[runConfig.instanceType.interpolated] : 0
+    )
   }
 
   static void register(AbstractEngine engine) {

@@ -6,17 +6,23 @@ package org.fidata.gradle.utils
 
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 
 /**
- * This class wraps single {@link File} instance
- * and marks it as {@link InputFile} for Gradle.
+ * This class wraps a list of {@link File} instances
+ * and marks them as {@link InputFile} for Gradle.
  *
- * TODOC: Usage cases
+ * This class is used as a workaround,
+ * to overcome the problem that {@link InputFiles}
+ * ignores order of the files by default,
+ * and there is no built-in way to change this
+ *
+ * See https://github.com/gradle/gradle/issues/8132
  */
+@Internal
 @CompileStatic
 class OrderedInputFilesWrapper {
   private final List<InputFileWrapper> values

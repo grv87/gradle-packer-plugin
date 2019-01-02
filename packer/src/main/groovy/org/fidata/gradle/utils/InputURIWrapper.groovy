@@ -5,6 +5,7 @@
 package org.fidata.gradle.utils
 
 import groovy.transform.CompileStatic
+import groovy.transform.Internal
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
@@ -15,7 +16,12 @@ import org.gradle.api.tasks.PathSensitivity
  * This class wraps {@link URI} instance
  * and marks it as {@link InputFile} (if URI points to local file)
  * or {@link Input} (if URI points to remote) for Gradle.
+ *
+ * This class is used as a workaround,
+ * to overcome the problem that Gradle can't handle
+ * remote URIs/URLs as input files
  */
+@Internal
 @CompileStatic
 class InputURIWrapper {
   private final URI value
