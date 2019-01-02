@@ -23,12 +23,14 @@
  */
 package com.github.hashicorp.packer.common
 
+import static org.fidata.utils.ChecksumFileUtils.parseCheckSumFile
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.collect.ImmutableList
-import org.fidata.gradle.utils.InputURIWrapper
+import com.github.hashicorp.packer.enums.ChecksumType
+import org.codehaus.groovy.runtime.EncodingGroovyMethods
 import org.fidata.packer.engine.annotations.AutoImplement
-import org.fidata.packer.engine.annotations.ComputedNested
+import org.fidata.packer.engine.annotations.ComputedInput
 import org.fidata.packer.engine.annotations.ExtraProcessed
+import org.fidata.packer.engine.annotations.IgnoreIf
 import org.fidata.packer.engine.annotations.Staging
 import org.fidata.packer.engine.types.InterpolableChecksumType
 import org.fidata.packer.engine.types.InterpolableFile
@@ -36,24 +38,24 @@ import org.fidata.packer.engine.types.InterpolableURI
 import org.fidata.packer.engine.types.base.InterpolableObject
 import org.fidata.packer.engine.types.InterpolableString
 import groovy.transform.CompileStatic
+import org.fidata.utils.IsoList
+import org.fidata.utils.TypedChecksum
 
 @AutoImplement
 @CompileStatic
 abstract class ISOConfig implements InterpolableObject<ISOConfig> {
+  @ExtraProcessed
   abstract InterpolableString getIsoChecksum()
 
-  abstract InterpolableString getIsoChecksumUrl() // TODO
+  @ExtraProcessed
+  @IgnoreIf({ -> isoChecksum.interpolated })
+  abstract InterpolableURI getIsoChecksumUrl() // TODO
 
+  @ExtraProcessed
   abstract InterpolableChecksumType getIsoChecksumType()
 
   @ExtraProcessed
   abstract List<InterpolableURI> getIsoUrls()
-
-  @ComputedNested
-  final List<InputURIWrapper> getIsoUrlsAsInputURIs() {
-    // TOTHINK: cache result ?
-    ImmutableList.copyOf(isoUrls.collect { InterpolableURI interpolableURI -> new InputURIWrapper(interpolableURI.interpolated) })
-  }
 
   @JsonProperty('iso_target_path')
   @Staging
@@ -67,4 +69,15 @@ abstract class ISOConfig implements InterpolableObject<ISOConfig> {
   @JsonProperty('iso_url')
   @ExtraProcessed
   abstract InterpolableURI getRawSingleISOUrl() // TODO: special processing
+
+  @ComputedInput
+  final IsoList getIsoList() {
+    List<URI> isoUris = rawSingleISOUrl.interpolated ? [rawSingleISOUrl.interpolated] : isoUrls*.interpolated
+    ChecksumType checksumType = isoChecksumType.interpolated
+    String checksum = isoChecksum.interpolated // TODO
+    if (!checksum && isoChecksumUrl.interpolated) {
+      checksum = parseCheckSumFile(isoChecksumUrl.interpolated, isoUris[0], checksumType)
+    }
+    new IsoList(new TypedChecksum(EncodingGroovyMethods.decodeHex(checksum), checksumType), isoUris)
+  }
 }

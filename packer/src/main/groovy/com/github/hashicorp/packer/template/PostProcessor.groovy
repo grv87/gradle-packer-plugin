@@ -86,7 +86,7 @@ abstract class PostProcessor<ThisClass extends PostProcessor<ThisClass>> impleme
   final PostProcessResult postProcess(Artifact priorArtifact) {
     // Stage 4
     PostProcessResult result = doPostProcess(priorArtifact)
-    new PostProcessResult(result.artifact, result.keep || keepInputArtifacts.interpolated, result.upToDateWhen)
+    new PostProcessResult(result.artifact, result.keep || keepInputArtifacts.interpolated, result.upToDateWhen, result.interactive)
   }
 
   /**
@@ -203,8 +203,9 @@ abstract class PostProcessor<ThisClass extends PostProcessor<ThisClass>> impleme
 
     private static PostProcessArrayResult doPostProcess(Artifact priorArtifact, ArrayClass rawValue) {
       List<Artifact> artifacts = []
-      boolean keep = Boolean.TRUE
+      boolean keep = true
       List<Supplier<Boolean>> upToDateWhen = []
+      boolean interactive = false
       Artifact prevArtifact = priorArtifact
       rawValue.eachWithIndex { PostProcessorDefinition postProcessorDefinition, Integer i ->
         PostProcessResult result = postProcessorDefinition.postProcess(prevArtifact)
@@ -224,8 +225,9 @@ abstract class PostProcessor<ThisClass extends PostProcessor<ThisClass>> impleme
         }
         keep = keep && newKeep
         upToDateWhen.addAll result.upToDateWhen
+        interactive = interactive || result.interactive
       }
-      new PostProcessArrayResult(artifacts, keep, upToDateWhen)
+      new PostProcessArrayResult(artifacts, keep, upToDateWhen, interactive)
     }
 
     private static PostProcessArrayResult doPostProcess(Artifact priorArtifact, PostProcessorDefinition rawValue) {
@@ -265,7 +267,7 @@ abstract class PostProcessor<ThisClass extends PostProcessor<ThisClass>> impleme
     }
 
     private static PostProcessorDefinition doInterpolatePrimitive(Context context, PostProcessor rawValue) {
-      new PostProcessorDefinition(rawValue.interpolate(context))
+      new PostProcessorDefinition(rawValue.interpolate(context)) // TODO MARK1
     }
 
     private static PostProcessorDefinition doInterpolatePrimitive(Context context, Object rawValue) {

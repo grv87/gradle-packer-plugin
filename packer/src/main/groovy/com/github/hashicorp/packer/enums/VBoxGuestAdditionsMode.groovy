@@ -12,6 +12,7 @@ enum VBoxGuestAdditionsMode {
   @JsonValue
   @Override
   String toString() {
+    // TOTHINK: cache result ?
     this.name().toLowerCase()
   }
 }

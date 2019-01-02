@@ -9,7 +9,7 @@ import org.gradle.api.tasks.Console
 trait PackerMachineReadableArgument extends PackerArgument {
   @Console
   // @Optional
-  final Property<Boolean> machineReadable = project.objects.property(Boolean).convention(false)
+  final Property<Boolean> machineReadable = project.objects.property(Boolean).convention false
 
   /*
    * WORKAROUND:

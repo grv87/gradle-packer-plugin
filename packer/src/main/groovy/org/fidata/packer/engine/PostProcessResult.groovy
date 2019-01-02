@@ -23,13 +23,20 @@ final class PostProcessResult {
    */
   final List<Supplier<Boolean>> upToDateWhen
 
+  /**
+   * Whether this post-processor requires interactive mode
+   */
+  final boolean interactive
+
   PostProcessResult(
     Artifact artifact,
     boolean keep,
-    List<Supplier<Boolean>> upToDateWhen
+    List<Supplier<Boolean>> upToDateWhen,
+    boolean interactive
   ) {
     this.@artifact = requireNonNull(artifact, 'Null artifact, halting post-processor chain.')
     this.@keep = keep
     this.@upToDateWhen = ImmutableList.copyOf(requireNonNull(upToDateWhen))
+    this.@interactive = interactive
   }
 }

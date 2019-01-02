@@ -81,8 +81,7 @@ abstract class AbstractPackerValidate extends PackerWrapperTask implements Packe
 
     PackerOnlyExceptReadOnlyArgument.super.onlyExcept = onlyExcept
 
-    syntaxOnly = project.objects.property(Boolean)
-    syntaxOnly.convention Boolean.FALSE
+    syntaxOnly = project.objects.property(Boolean).convention Boolean.FALSE
 
     outputs.upToDateWhen { true } // TODO ? Is it standard for code quality tasks ?
   }

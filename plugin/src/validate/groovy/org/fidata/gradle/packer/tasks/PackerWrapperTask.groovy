@@ -1,6 +1,6 @@
 /*
  * PackerWrapperTask class
- * Copyright © 2018  Basil Peace
+ * Copyright © 2018-2019  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
@@ -20,6 +20,9 @@
 package org.fidata.gradle.packer.tasks
 
 import static org.ysb33r.grolifant.api.StringUtils.stringize
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Console
 import org.fidata.packer.engine.annotations.ExtraProcessed
 import org.gradle.api.file.Directory
 import groovy.transform.CompileStatic
@@ -34,7 +37,13 @@ import org.ysb33r.grolifant.api.exec.AbstractExecWrapperTask
 @CompileStatic
 abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec, PackerToolExtension> implements PackerArgument {
   @ExtraProcessed
-  final MapProperty<String, String> env = project.objects.mapProperty(String, String).empty()
+  final MapProperty<String, String> env = {
+    MapProperty<String, String> env = project.objects.mapProperty(String, String).empty()
+    env.putAll project.provider {
+      log.get() ? [PACKER_LOG: '1'] : [:]
+    }
+    env
+  }()
 
   @Override
   void setEnvironment(Map<String, ?> args) {
@@ -67,6 +76,9 @@ abstract class PackerWrapperTask extends AbstractExecWrapperTask<PackerExecSpec,
     }
     project.layout.projectDirectory
   })
+
+  @Console
+  final Property<Boolean> log = project.objects.property(Boolean).convention project.provider { (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG }
 
   @Lazy
   private final PackerToolExtension packerToolExtension = extensions.create(PackerToolExtension.NAME, PackerToolExtension, this)

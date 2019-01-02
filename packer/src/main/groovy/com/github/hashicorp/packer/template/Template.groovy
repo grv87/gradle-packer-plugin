@@ -184,22 +184,25 @@ abstract class Template implements InterpolableObject<Template> {
       // TODO: log warn
       return
     }
-    boolean keep = true
+    boolean keep = postProcessors.empty
     upToDateWhen.addAll builderResult.upToDateWhen
 
     // Provisioners don't add anything to artifacts or upToDateWhen
+
+    boolean interactive = false
 
     postProcessors.each { PostProcessor.PostProcessorArrayDefinition postProcessorArrayDefinition ->
       PostProcessArrayResult postProcessorArrayResult = postProcessorArrayDefinition.postProcess(builderResult.artifact)
       artifacts.addAll postProcessorArrayResult.artifacts
       keep = keep || postProcessorArrayResult.keep
       upToDateWhen.addAll postProcessorArrayResult.upToDateWhen
+      interactive = interactive || postProcessorArrayResult.interactive
     }
     if (keep) {
       artifacts.add 0, builderResult.artifact
     }
 
-    new TemplateBuildResult(artifacts, upToDateWhen)
+    new TemplateBuildResult(artifacts, upToDateWhen, interactive)
   }
 
   // @Inject // TOTEST

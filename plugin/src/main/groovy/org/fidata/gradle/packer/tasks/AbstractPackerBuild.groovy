@@ -50,19 +50,32 @@ import java.util.function.Supplier
 @CompileStatic
 abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMachineReadableArgument, PackerOnlyExceptReadOnlyArgument, PackerVarArgument, PackerTemplateReadOnlyArgument {
   @Console
-  final Property<Boolean> color
+  final Property<Boolean> color = project.objects.property(Boolean).convention project.provider {
+    switch (project.gradle.startParameter.consoleOutput) {
+      case ConsoleOutput.Plain:
+        false
+        break
+      case ConsoleOutput.Rich:
+      case ConsoleOutput.Verbose:
+        true
+        break
+      default:
+        // TODO: project.logger.warn
+        true
+    }
+  }
 
   @Internal
-  final Property<Boolean> parallel
+  final Property<Boolean> parallel = project.objects.property(Boolean).convention Boolean.TRUE
 
   @Internal
-  final Property<OnError> onError
+  final Property<OnError> onError = project.objects.property(OnError).convention OnError.CLEANUP
 
   @Internal
-  final Property<Boolean> force
+  final Property<Boolean> force = project.objects.property(Boolean).convention project.gradle.startParameter.rerunTasks
 
   @Console
-  final Property<Boolean> debug
+  final Property<Boolean> debug = project.objects.property(Boolean).convention Boolean.FALSE
 
   // @Inject
   protected AbstractPackerBuild(/*TODO ProviderFactory providerFactory*/ Provider<RegularFile> templateFile, OnlyExcept onlyExcept = null) {
@@ -70,39 +83,13 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
 
     PackerOnlyExceptReadOnlyArgument.super.onlyExcept = onlyExcept
 
-    color = project.objects.property(Boolean)
-    color.convention project.provider {
-      switch (project.gradle.startParameter.consoleOutput) {
-        case ConsoleOutput.Plain:
-          false
-          break
-        case ConsoleOutput.Rich:
-        case ConsoleOutput.Verbose:
-          true
-          break
-        default:
-          // TODO: project.logger.warn
-          true
-      }
+    doFirst {
+      cachedArtifacts*.destroy()
     }
 
-    parallel = project.objects.property(Boolean)
-    parallel.convention Boolean.TRUE
-
-    onError = project.objects.property(OnError)
-    onError.convention OnError.CLEANUP
-
-    force = project.objects.property(Boolean)
-    force.convention project.gradle.startParameter.rerunTasks
-
-    debug = project.objects.property(Boolean)
-    debug.convention project.provider { (project.logging.level ?: project.gradle.startParameter.logLevel) <= LogLevel.DEBUG }
-
     outputs.upToDateWhen {
-      cachedBuildResults.every() { TemplateBuildResult templateBuildResult ->
-        !templateBuildResult.upToDateWhen || templateBuildResult.upToDateWhen.every { Supplier<Boolean> upToDateWhenProvider ->
-          upToDateWhenProvider.get()
-        }
+      cachedBuildResults.every { TemplateBuildResult buildResult ->
+        buildResult.upToDate
       }
     }
   }
@@ -122,10 +109,7 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
       cmdArgs.add 0, '-parallel=false'
     }
 
-    if (onError.present) {
-      /*if (onError == OnError.ASK &&  {
-        TODO: ASK will work in interactive mode only
-      }*/
+    if (onError.present) { // TODO: maybe ignore default ?
       cmdArgs.add 0, "-on-error=$onError"
     }
 
@@ -137,6 +121,8 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
       cmdArgs.add 0, '-debug'
     }
 
+    if (project.gradle.startParameter.interactive
+
     cmdArgs
   }
 
@@ -144,6 +130,12 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   protected PackerExecSpec configureExecSpec(PackerExecSpec execSpec) {
     PackerExecSpec result = super.configureExecSpec(execSpec)
     result.command 'build'
+    /*
+     * TODO: Check this
+     */
+    if (requireInteractive()) {
+      result.standardInput System.in
+    }
     result
   }
 
@@ -185,6 +177,14 @@ abstract class AbstractPackerBuild extends PackerWrapperTask implements PackerMa
   private List<Artifact> cachedArtifacts = {
     (List<Artifact>)cachedBuildResults*.artifacts.flatten()
   }()
+
+  private requireInteractive() {
+    onError.get() == OnError.ASK ||
+    debug.get() ||
+    cachedBuildResults.any { TemplateBuildResult buildResult ->
+      buildResult.interactive
+    }
+  }
 
   @Nested
   final Provider<List<Template>> interpolatedTemplates = project.provider { cachedInterpolatedTemplates }

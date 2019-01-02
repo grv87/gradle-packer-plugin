@@ -66,7 +66,7 @@ Workarounds are:
 
 Note that *most* provisioners, not only `shell-local`,
 work on the machine created by builder and don't have their own outputs.
-The known exception is `file` provisioner which exposes its outputs
+The exception is `file` provisioner which exposes its outputs
 with getters annotated with `@OutputFile` and `@OutputDirectory`.
 
 ## Timing of the connection or the build
