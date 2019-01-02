@@ -30,13 +30,9 @@ import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Inline
 import com.github.hashicorp.packer.helper.communicator.CommunicatorConfig
 
-@AutoImplement
+@AutoImplement(name = 'null')
 @CompileStatic
 abstract class Null extends Builder<Null> {
   @Inline
   abstract CommunicatorConfig getCommConfig()
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype Builder, 'null', this
-  }
 }

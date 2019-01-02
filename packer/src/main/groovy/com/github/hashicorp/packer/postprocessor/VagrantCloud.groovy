@@ -29,7 +29,7 @@ import org.fidata.packer.engine.AbstractEngine
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.Credential
 
-@AutoImplement
+@AutoImplement(name = 'vagrant-cloud')
 @CompileStatic
 abstract class VagrantCloud extends PostProcessor<VagrantCloud> {
   abstract String getTag()
@@ -46,8 +46,4 @@ abstract class VagrantCloud extends PostProcessor<VagrantCloud> {
   abstract String getVagrantCloudUrl()
 
   abstract String getBoxDownloadUrl()
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype PostProcessor, 'vagrant-cloud', this
-  }
 }

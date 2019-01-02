@@ -90,6 +90,6 @@ abstract class ListTest implements InterpolableObject<ListTest> {
 
   @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:49:05+03:00')
   static final void register(AbstractEngine engine) {
-    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping ListTest, Impl, ImmutableImpl
+    engine.registerAbstractTypeMapping ListTest, Impl, ImmutableImpl
   }
 }

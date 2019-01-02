@@ -36,7 +36,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.fidata.packer.engine.types.InterpolableBoolean
 
-@AutoImplement
+@AutoImplement(name = 'manifest')
 @CompileStatic
 abstract class Manifest extends PostProcessor<Manifest> {
   @JsonProperty('output')
@@ -64,9 +64,5 @@ abstract class Manifest extends PostProcessor<Manifest> {
       com_github_hashicorp_packer_packer_Artifact__id = priorArtifact.id
       com_github_hashicorp_packer_packer_Artifact__string = "$context.buildName-$priorArtifact.id"
     }
-  }
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype PostProcessor, 'manifest', this
   }
 }

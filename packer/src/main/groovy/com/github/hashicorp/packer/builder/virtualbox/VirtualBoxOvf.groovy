@@ -60,8 +60,8 @@ import java.nio.file.Paths
 
 import static org.fidata.utils.InetAddressUtils.isLocalHost
 
+@AutoImplement(name = 'virtualbox-ovf')
 @CompileStatic
-@AutoImplement
 abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
   @Inline
   abstract HTTPConfig getHttpConfig()
@@ -154,9 +154,5 @@ abstract class VirtualBoxOvf extends Builder<VirtualBoxOvf> {
         vboxManageCommand*.interpolated
       }, OvfUtils.getCpusFromOvfOrOva(Paths.get(sourcePath.fileURI).toFile()))
     )
-  }
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype Builder, 'virtualbox-ovf', this
   }
 }

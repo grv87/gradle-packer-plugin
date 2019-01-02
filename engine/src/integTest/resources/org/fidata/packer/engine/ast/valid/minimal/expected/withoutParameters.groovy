@@ -93,6 +93,6 @@ abstract class MinimalTest implements InterpolableObject<MinimalTest> {
 
   @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:48:22+03:00')
   static final void register(AbstractEngine engine) {
-    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
+    engine.registerAbstractTypeMapping MinimalTest, Impl, ImmutableImpl
   }
 }

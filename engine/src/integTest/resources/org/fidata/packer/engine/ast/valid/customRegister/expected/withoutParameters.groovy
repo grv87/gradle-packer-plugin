@@ -88,7 +88,7 @@ abstract class CustomRegisterTest implements InterpolableObject<CustomRegisterTe
   static final void register(AbstractEngine e) {
     // do some stuff
     new Random().nextInt()
-    e.abstractTypeMappingRegistry.registerAbstractTypeMapping CustomRegisterTest, Impl, ImmutableImpl
+    e.registerAbstractTypeMapping CustomRegisterTest, Impl, ImmutableImpl
   }
 
   @Override

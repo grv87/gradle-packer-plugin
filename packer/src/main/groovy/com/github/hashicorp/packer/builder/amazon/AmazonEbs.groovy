@@ -37,7 +37,7 @@ import com.github.hashicorp.packer.template.Builder
 import org.fidata.aws.ec2.InstanceTypeUtils
 
 @CompileStatic
-@AutoImplement
+@AutoImplement(name = 'amazon-ebs')
 abstract class AmazonEbs extends Builder<AmazonEbs> {
   @Inline
   abstract AccessConfig getAccessConfig()
@@ -65,9 +65,5 @@ abstract class AmazonEbs extends Builder<AmazonEbs> {
       // TOTEST: if this doesn't work with Eucalyptus then this makes no sense
       isLocalHost(accessConfig.customEndpointEc2.interpolated) ? InstanceTypeUtils.NUMBER_OF_CPU_CORES[runConfig.instanceType.interpolated] : 0
     )
-  }
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype Builder, 'amazon-ebs', this
   }
 }

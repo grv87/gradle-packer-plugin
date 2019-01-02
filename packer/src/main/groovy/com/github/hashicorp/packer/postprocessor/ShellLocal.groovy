@@ -39,7 +39,7 @@ import com.github.hashicorp.packer.template.PostProcessor
  * processing stage. Shell local provides a convenient way to automate executing
  * some task with packer outputs and variables.
  */
-@AutoImplement
+@AutoImplement(name = 'shell-local')
 @CompileStatic
 abstract class ShellLocal extends PostProcessor<ShellLocal> {
   /**
@@ -57,14 +57,5 @@ abstract class ShellLocal extends PostProcessor<ShellLocal> {
       Boolean.TRUE,
       Collections.EMPTY_LIST
     )
-  }
-
-  /**
-   * Registers this class in specified Engine
-   *
-   * @param engine Engine to register in
-   */
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype PostProcessor, 'shell-local', this
   }
 }

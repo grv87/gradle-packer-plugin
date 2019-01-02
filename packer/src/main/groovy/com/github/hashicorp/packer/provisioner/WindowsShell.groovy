@@ -52,12 +52,12 @@ class WindowsShell extends Provisioner<Configuration> {
     abstract List<String> getInline()
 
     @InputFile
-    @PathSensitive(PathSensitivity.NONE) // TODOC
+    @PathSensitive(PathSensitivity.NONE)
     @Optional
     abstract InterpolableFile getScript()
 
     @InputFiles
-    @PathSensitive(PathSensitivity.NONE) // TODOC
+    @PathSensitive(PathSensitivity.NONE)
     @Optional
     abstract List<InterpolableFile> getScripts()
 

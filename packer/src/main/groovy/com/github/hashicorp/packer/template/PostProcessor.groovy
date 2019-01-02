@@ -61,7 +61,6 @@ import java.util.function.Supplier
 )
 @AutoImplement
 @CompileStatic
-// REVIEWED
 abstract class PostProcessor<ThisClass extends PostProcessor<ThisClass>> implements InterpolableObject<ThisClass> {
   @JsonUnwrapped
   @ExtraProcessed

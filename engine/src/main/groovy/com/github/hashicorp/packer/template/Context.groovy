@@ -36,7 +36,6 @@ import com.samskivert.mustache.Template as MustacheTemplate
 @Immutable // Note: Context is itself is immutable, but templateVariables are mutable
 // Maybe we should make other objects mutable too - makes no sense to don't support mutability
 @CompileStatic
-// REVIEWED
 final class Context {
   private final Map<String, ?> userVariablesValues
 

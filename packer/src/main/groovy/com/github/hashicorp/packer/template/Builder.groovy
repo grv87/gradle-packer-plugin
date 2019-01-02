@@ -43,7 +43,6 @@ import org.gradle.api.tasks.Internal
 )
 @AutoImplement
 @CompileStatic
-// REVIEWED
 abstract class Builder<ThisClass extends Builder<ThisClass>> implements InterpolableObject<ThisClass> {
   protected Builder() {
   }

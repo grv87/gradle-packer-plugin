@@ -62,8 +62,8 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
 
   private final AbstractTypeMappingRegistry abstractTypeMappingRegistry = new AbstractTypeMappingRegistry()
 
-  AbstractTypeMappingRegistry getAbstractTypeMappingRegistry() {
-    this.@abstractTypeMappingRegistry
+  public <T extends InterpolableObject<T>> void registerAbstractTypeMapping(Class<? extends T> abstractClass, boolean noArgConstructor = false, Class<? extends T> mutableImplementation, Class<? extends T> immutableImplementation) {
+    abstractTypeMappingRegistry.registerAbstractTypeMapping abstractClass, noArgConstructor, mutableImplementation, immutableImplementation
   }
 
   private final Map<Class<? extends InterpolableObject>, SubtypeRegistry> subtypeRegistries = [:]
@@ -163,7 +163,7 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
     }
   }
 
-  final class AbstractTypeMappingRegistry extends Module {
+  private final class AbstractTypeMappingRegistry extends Module {
     private final Map<Class<? extends InterpolableObject>, AbstractTypeMapping> registry = [:]
 
     AbstractTypeMappingRegistry() {

@@ -56,8 +56,8 @@ import com.google.common.primitives.UnsignedInteger
 
 import static org.fidata.utils.InetAddressUtils.isLocalHost
 
+@AutoImplement(name = 'virtualbox-iso')
 @CompileStatic
-@AutoImplement
 abstract class VirtualBoxIso extends Builder<VirtualBoxIso> {
   @Inline
   abstract HTTPConfig getHttpConfig()
@@ -155,9 +155,5 @@ abstract class VirtualBoxIso extends Builder<VirtualBoxIso> {
         vboxManageCommand*.interpolated
       })
     )
-  }
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype Builder, 'virtualbox-iso', this
   }
 }

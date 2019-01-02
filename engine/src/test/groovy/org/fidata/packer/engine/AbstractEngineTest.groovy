@@ -15,7 +15,7 @@ class AbstractEngineTest {
 
   @Test
   void 'is able to create new instances of abstract types'() {
-    AbstractEngine engine = new AbstractEngine()
+    AbstractEngine<InterpolableString> engine = new AbstractEngine<InterpolableString>() {}
     InterpolableObject newInstance = engine.instantiate(InterpolableString, Mutability.MUTABLE)
     assert InterpolableString.Raw.isInstance(newInstance)
   }

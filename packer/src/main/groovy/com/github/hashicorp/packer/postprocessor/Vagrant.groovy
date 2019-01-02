@@ -27,7 +27,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
 import com.github.hashicorp.packer.template.PostProcessor
 import org.fidata.packer.engine.AbstractEngine
+import org.fidata.packer.engine.annotations.AutoImplement
 
+@AutoImplement(name = 'vagrant')
 @CompileStatic
 abstract class Vagrant extends PostProcessor<Vagrant> {
   abstract Integer getCompressionLevel()
@@ -40,8 +42,4 @@ abstract class Vagrant extends PostProcessor<Vagrant> {
   abstract Map<String, Object> getOverride()
 
   abstract String getVagrantfileTemplate()
-
-  static void register(AbstractEngine engine) {
-    engine.registerSubtype PostProcessor, 'vagrant', this
-  }
 }

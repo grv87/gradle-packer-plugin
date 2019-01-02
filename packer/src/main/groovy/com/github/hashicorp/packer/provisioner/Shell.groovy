@@ -86,7 +86,7 @@ class Shell extends Provisioner<Configuration> {
     abstract List<String> getExecuteCommand()
 
     @Timing
-    abstract InterpolableDuration getStartRetryTimeout() // TODO: parse Raw
+    abstract InterpolableDuration getStartRetryTimeout()
 
     @Input
     abstract Boolean getSkipClean()

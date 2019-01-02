@@ -16,4 +16,5 @@ import java.lang.annotation.Target
 @Documented
 @CompileStatic
 @interface AutoImplement {
+  String name() default null
 }

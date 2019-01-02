@@ -123,6 +123,6 @@ abstract class IgnoreIfTest implements InterpolableObject<IgnoreIfTest> {
 
   @Generated(value = 'org.fidata.packer.engine.ast.AutoImplementAstTransformation', date = '2018-12-29T07:50:31+03:00')
   static final void register(AbstractEngine engine) {
-    engine.abstractTypeMappingRegistry.registerAbstractTypeMapping IgnoreIfTest, Impl, ImmutableImpl
+    engine.registerAbstractTypeMapping IgnoreIfTest, Impl, ImmutableImpl
   }
 }
