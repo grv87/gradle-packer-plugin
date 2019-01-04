@@ -88,7 +88,7 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
    * Groovy bug
    * <grv87 2018-12-30>
    */
-  public <BaseType extends InterpolableObject<BaseType>> void registerSubtype(Class<BaseType> baseType, String name, Class<? extends BaseType> clazz) {
+  public <BaseType extends InterpolableObject<BaseType>, SubType extends BaseType & InterpolableObject<SubType>> void registerSubtype(Class<BaseType> baseType, String name, Class<SubType> clazz) {
     subtypeRegistries[baseType].registerSubtype name, clazz
   }
 
@@ -98,7 +98,7 @@ abstract class AbstractEngine<T extends InterpolableObject<T>> {
   }
 
   // @Synchronized
-  public <T extends InterpolableObject<T>> T instantiate(Class<T> baseClass, String name, Mutability mutability) {
+  public <BaseType extends InterpolableObject<BaseType>> BaseType instantiate(Class<BaseType> baseClass, String name, Mutability mutability) {
     instantiate(subtypeRegistries[baseClass][name], mutability)
   }
 

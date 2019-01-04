@@ -45,9 +45,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-class ChefSolo extends Provisioner<Configuration> {
+class ChefSolo extends Provisioner<Config> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+  abstract static class Config extends Provisioner.Config<Config> {
     /**
      * The name of the chef_environment sent to the Chef server.
      * By default this is empty and will not use an environment

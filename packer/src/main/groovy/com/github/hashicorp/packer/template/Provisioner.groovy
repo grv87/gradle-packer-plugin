@@ -42,8 +42,8 @@ import java.lang.reflect.Field
   property = 'type'
 )
 @CompileStatic
-abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extends Configuration> implements InterpolableObject<ThisClass> {
-  final Class<P> configurationClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
+abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extends Config> implements InterpolableObject<ThisClass> {
+  final Class<P> configClass = (Class<P>)new TypeToken<P>(this.class) { }.rawType
 
   @JsonUnwrapped
   @ExtraProcessed
@@ -52,7 +52,7 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
   @Input // TODO
   abstract String getType()
 
-  abstract static class Configuration<ThisClass extends Configuration<ThisClass>> implements InterpolableObject<ThisClass> {
+  abstract static class Config<ThisClass extends Config<ThisClass>> implements InterpolableObject<ThisClass> {
     @Timing
     abstract InterpolableDuration getPauseBefore()
   }
@@ -73,7 +73,7 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
     P overrideConfiguration = override[context.buildName]
     if (overrideConfiguration) {
       overrideConfiguration.interpolate(context)
-      Class</*? extends Configuration*/ P> clazz = configurationClass
+      Class</*? extends Config*/ P> clazz = configClass
       while (true) {
         clazz.fields.each { Field field ->
           Object value = field.get(overrideConfiguration)
@@ -81,10 +81,10 @@ abstract class Provisioner<ThisClass extends Provisioner<ThisClass, P>, P extend
             field.set this, value
           }
         }
-        if (clazz == Configuration) {
+        if (clazz == Config) {
           break
         }
-        clazz = (Class<? extends Configuration>)clazz.superclass
+        clazz = (Class<? extends Config>)clazz.superclass
       }
     }
   }

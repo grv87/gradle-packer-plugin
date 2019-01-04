@@ -38,14 +38,13 @@ import com.github.hashicorp.packer.template.Provisioner
  * your build server, or your desktop, etc., rather than the remote/guest machine
  * being provisioned by Packer
  */
-@AutoImplement
 @CompileStatic
-abstract class ShellLocal extends Provisioner<ShellLocal, Configuration> {
+class ShellLocal extends Provisioner<ShellLocal, Config> {
   /**
    * @inheritdoc
    */
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration {
+  abstract static class Config extends Provisioner.Config {
     /**
      * Common configuration
      *

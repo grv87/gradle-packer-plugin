@@ -43,9 +43,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 
 @CompileStatic
-class Converge extends Provisioner<Configuration> {
+class Converge extends Provisioner<Config> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+  abstract static class Config extends Provisioner.Config<Config> {
     @Input
     @ContextVars([
       @ContextVar(key = 'Sudo', value = { preventBootstrapSudo.interpolated }),

@@ -41,9 +41,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-class WindowsShell extends Provisioner<Configuration> {
+class WindowsShell extends Provisioner<Config> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+  abstract static class Config extends Provisioner.Config<Config> {
     @Internal
     abstract Boolean getBinary()
 

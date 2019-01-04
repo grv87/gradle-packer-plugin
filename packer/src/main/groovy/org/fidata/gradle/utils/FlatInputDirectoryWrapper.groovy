@@ -20,7 +20,7 @@ import org.gradle.api.tasks.PathSensitivity
  */
 @Internal
 @CompileStatic
-class InputDirectoryFlatWrapper {
+class FlatInputDirectoryWrapper {
   private final File value
 
   /**
@@ -37,7 +37,7 @@ class InputDirectoryFlatWrapper {
    * Creates new InputDirectoryWrapper instance
    * @param value Actual {@link File} instance
    */
-  InputDirectoryFlatWrapper(File value) {
+  FlatInputDirectoryWrapper(File value) {
     this.value = value
   }
 }

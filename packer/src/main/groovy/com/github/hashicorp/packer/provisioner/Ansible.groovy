@@ -37,9 +37,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 @CompileStatic
-class Ansible extends Provisioner<Ansible.Configuration> { // TODO ??? IDEA is somewhere wrong
+class Ansible extends Provisioner<Config> { // TODO ??? IDEA is somewhere wrong
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+  abstract static class Config extends Provisioner.Config<Config> {
     @Internal
     abstract InterpolableString getCommand()
 

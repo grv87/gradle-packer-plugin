@@ -23,7 +23,7 @@
  */
 package com.github.hashicorp.packer.common
 
-import org.fidata.gradle.utils.InputDirectoryFlatWrapper
+import org.fidata.gradle.utils.FlatInputDirectoryWrapper
 import org.fidata.gradle.utils.InputDirectoryWrapper
 import org.fidata.packer.engine.annotations.AutoImplement
 import org.fidata.packer.engine.annotations.ComputedInputFiles
@@ -50,7 +50,7 @@ abstract class FloppyConfig implements InterpolableObject<FloppyConfig> {
   }
 
   @ComputedNested
-  List<InputDirectoryFlatWrapper> getInputDirectoriesFlat() {
+  List<FlatInputDirectoryWrapper> getFlatInputDirectories() {
     // TOTHINK: cache result ?
 
   }

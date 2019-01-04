@@ -48,9 +48,9 @@ import java.nio.file.Paths
 import java.util.regex.Pattern
 
 @CompileStatic
-class File extends Provisioner<Configuration> {
+class File extends Provisioner<Config> {
   @AutoImplement
-  abstract static class Configuration extends Provisioner.Configuration<Configuration> {
+  abstract static class Config extends Provisioner.Config<Config> {
     @ExtraProcessed
     abstract InterpolableString getSource()
 

@@ -40,5 +40,5 @@ contacts {
 tasks.named('codenarcBuildSrc').configure { disabledRules.add 'JavaIoPackageAccess' }
 
 wrapper {
-  gradleVersion = '5.1-rc-3'
+  gradleVersion = '5.1'
 }
