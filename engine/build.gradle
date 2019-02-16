@@ -25,7 +25,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner', version: '[2.9, 3['
   api group: 'com.samskivert', name: 'jmustache', version: '[1, 2['
   implementation group: 'com.fasterxml.uuid', name: 'java-uuid-generator', version: '[3, 4['
-  api group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+  api group: 'com.google.guava', name: 'guava', version: '27.0-jre'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '[3.3, 4['
   implementation group: 'commons-io', name: 'commons-io', version: '[2, 3['
   api group: 'com.github.zafarkhaja', name: 'java-semver', version: '[0, 1['
@@ -66,7 +66,7 @@ plugins.getPlugin('org.fidata.base.groovy').addGroovyDependency configurations.n
 
 dependencies {
   testImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
-  // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+  // Provided by main: integTestImplementation group: 'com.google.guava', name: 'guava', version: '27.0-jre'
   integTestImplementation group: 'pl.pragmatists', name: 'JUnitParams', version: '[1, 2['
 }
 
