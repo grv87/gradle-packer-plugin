@@ -35,7 +35,7 @@ fix it manually or automatically with `packer fix`.
 
 
 ------------------------------------------------------------------------
-Copyright © 2019  Basil Peace
+Copyright ©  Basil Peace
 
 This file is part of gradle-packer-plugin.
 

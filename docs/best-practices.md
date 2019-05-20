@@ -89,7 +89,7 @@ and the new build is successful too, produce different artifacts?
 
 
 ------------------------------------------------------------------------
-Copyright © 2018-2019  Basil Peace
+Copyright ©  Basil Peace
 
 This file is part of gradle-packer-plugin.
 

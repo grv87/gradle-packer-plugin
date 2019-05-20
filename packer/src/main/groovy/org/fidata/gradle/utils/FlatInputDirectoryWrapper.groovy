@@ -1,6 +1,6 @@
 /*
  * InputDirectoryWrapper class
- * Copyright © 2018  Basil Peace
+ * Copyright ©  Basil Peace
  */
 package org.fidata.gradle.utils
 

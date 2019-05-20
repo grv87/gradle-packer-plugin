@@ -74,7 +74,7 @@ resolved to `cwd`, so that project dir doesn't mess with them.
 
 
 ------------------------------------------------------------------------
-Copyright © 2018-2019  Basil Peace
+Copyright ©  Basil Peace
 
 This file is part of gradle-packer-plugin.
 

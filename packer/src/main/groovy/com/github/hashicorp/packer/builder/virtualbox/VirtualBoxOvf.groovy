@@ -1,6 +1,6 @@
 /*
  * VirtualBoxOvf builder
- * Copyright © 2018-2019  Basil Peace
+ * Copyright ©  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *

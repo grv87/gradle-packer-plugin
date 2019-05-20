@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 /*
  * Build script for gradle-packer-plugin
- * Copyright © 2016-2018  Basil Peace
+ * Copyright ©  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *

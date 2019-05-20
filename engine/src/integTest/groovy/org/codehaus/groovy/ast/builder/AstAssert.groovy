@@ -1,7 +1,7 @@
 /*
  * AstAssert class
  * This file is copied from Groovy 2.5.4 source under Apache 2.0 license.
- * Copyright © 2018  Basil Peace
+ * Copyright ©  Basil Peace
  * Copyright 2003-2018 The Apache Software Foundation
  *
  * This file is part of gradle-packer-plugin.

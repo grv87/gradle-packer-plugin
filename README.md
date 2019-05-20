@@ -144,7 +144,7 @@ To mitigate this risk:
 
 
 ------------------------------------------------------------------------
-Copyright © 2016-2019  Basil Peace
+Copyright ©  Basil Peace
 
 This is part of gradle-packer-plugin.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 /*
  * Script to load Gradle properties for buildSrc of gradle-packer-plugin
- * Copyright © 2018  Basil Peace
+ * Copyright ©  Basil Peace
  *
  * This file is part of gradle-packer-plugin.
  *
